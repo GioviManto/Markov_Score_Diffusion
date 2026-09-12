@@ -1,0 +1,116 @@
+% ===========================================================================
+% Shared notation for the internal note and the compendium.
+%
+% Conventions follow the statistical-physics usage of the diffusion literature
+% (Song et al. 2021 for the SDE formulation; Mezard-Montanari 2009 for the
+% graphical-model side). Only publicly available sources are cited.
+%
+% Symbol decisions that matter, fixed here once:
+%
+%   1. K (or K_theta) is the MARKOV TRANSITION KERNEL, everywhere and only.
+%      The number of quadrature grid points is N_g. These were previously W and
+%      K respectively, which collided; nothing in either document may now use
+%      K for a grid size or W for a kernel.
+%
+%   2. The chain length is L, and every graphical-model statement is indexed by
+%      sites. The ambient dimension equals it, n = L, but the two are written
+%      separately because they are different concepts and the reader should not
+%      have to infer the identification. The number of observed sequences is M.
+%      A translation sentence appears at first use, because much of the
+%      diffusion literature uses n for the sample count and d for the dimension.
+%
+%   5. Vectors are bold lowercase (\vect) and matrices and tensors are bold
+%      uppercase (\mat). Scalars, including single sites a_i, stay upright.
+%      Anything indexed down to a scalar loses its bold.
+%
+%   3. The decay factor is written e^{-t} in displayed equations and is never
+%      abbreviated to alpha_t.
+%
+%   4. Gaussian white noise eta is STANDARDISED, <eta(t)eta(t')> = delta(t-t'),
+%      so the sqrt(2) is carried explicitly in both the forward and the reverse
+%      SDE. This keeps Delta_t = 1 - e^{-2t} consistent throughout.
+% ===========================================================================
+
+% --- Diffusion -------------------------------------------------------------
+\newcommand{\Pz}{P_0}                       % clean distribution
+\newcommand{\Pt}{P_t}                       % noised distribution at time t
+\newcommand{\Dt}{\Delta_t}                  % 1 - e^{-2t}
+\newcommand{\score}{S}                      % S(x,t) = grad log P_t(x)
+\newcommand{\gwn}{\vect{\eta}}              % standardised Gaussian white noise (vector)
+\newcommand{\tmin}{t_{\min}}
+\newcommand{\tmax}{t_{\max}}
+
+% Posterior mean, in bracket notation rather than E[a|x].
+\newcommand{\pmean}[1]{\langle #1 \rangle_{x,t}}
+\newcommand{\pmeansite}[1]{\langle a_{#1} \rangle_{x,t}}
+
+% --- Vectors and matrices --------------------------------------------------
+% Bold lowercase for vectors, bold uppercase for matrices and tensors.
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\va}{\vect{a}}                  % clean chain, in R^L
+\newcommand{\vx}{\vect{x}}                  % noised chain, in R^L
+\newcommand{\vz}{\vect{z}}                  % standard normal draw, in R^L
+\newcommand{\Sig}{\mat{\Sigma}}             % covariance
+\newcommand{\Id}{\mat{I}}                   % identity
+
+% --- Chain and graphical model --------------------------------------------
+\newcommand{\nsites}{L}                     % chain length (ambient dimension n = L)
+\newcommand{\nseq}{M}                       % number of observed sequences
+\newcommand{\ngrid}{N_{\mathrm{g}}}         % number of quadrature grid points
+\newcommand{\gridpt}[1]{u_{#1}}             % grid point
+\newcommand{\gridh}{h}                      % grid spacing
+\newcommand{\halfwidth}{A}                  % grid half-width, domain [-A, A]
+\newcommand{\kernel}{K}                     % transition kernel K(a'|a)
+\newcommand{\kernelth}{K_{\params}}         % parameterised transition kernel
+\newcommand{\like}{\ell_t}                  % unary likelihood factor
+\newcommand{\lmsg}{\overrightarrow{m}}      % forward (left) message
+\newcommand{\rmsg}{\overleftarrow{m}}       % backward (right) message
+\newcommand{\innov}{\varphi}                % innovation density
+\newcommand{\corr}{\rho}                    % autoregression coefficient
+\newcommand{\ivar}{q}                       % innovation variance
+\newcommand{\ncomp}{C}                      % mixture component count
+
+% --- Estimation ------------------------------------------------------------
+\newcommand{\params}{\theta}
+\newcommand{\Qfun}{\mathcal{Q}}             % EM auxiliary function
+\newcommand{\Xis}{\mat{\Xi}}                % expected transition statistic (a matrix)
+\newcommand{\Lik}{\mathcal{L}}              % marginal log-likelihood
+
+% --- Operators -------------------------------------------------------------
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Reals}{\mathbb{R}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\normal}[2]{\mathcal{N}\!\left(#1,#2\right)}
+% Gaussian moment projection, defined formally in prop-lmmse: the Gaussian with
+% the same first two moments as its (normalised) argument. Named rather than
+% written inline because the LMMSE proposition is a statement about WHERE this
+% operator is applied, and an unnamed operator cannot carry that.
+\newcommand{\Pgauss}{\Pi_{\mathrm{G}}}
+\newcommand{\dd}{\,\mathrm{d}}
+
+% --- Estimators ------------------------------------------------------------
+\newcommand{\mmse}{\widehat{\va}_{\mathrm{MMSE}}}
+\newcommand{\lmmse}{\widehat{\va}_{\mathrm{LMMSE}}}
+
+% --- Pending-data guard -----------------------------------------------------
+% Every number in the paper must come from the frozen batch (outputs/frozen/).
+% While that batch is running, a slot that still needs a number is marked with
+% \needsdata{what}, which renders in loud red with a bracket. It is deliberately
+% impossible to miss in a built PDF, so a placeholder cannot be mistaken for a
+% result. `tools/check_no_placeholders.sh` greps for it and fails the build if
+% any survive.
+\providecommand{\needsdata}[1]{{\bfseries\color{red}[PENDING: #1]}}
+
+% --- Repository pointers (shared by the note and the compendium) ------------
+% The arrow is drawn only when there IS a second component to point at.
+% Four call sites pass an empty second argument to mean "the whole file", and
+% those were rendering as "path/to/file.py -> produces the numbers above",
+% a dangling arrow running into the prose.
+\providecommand{\codepath}[1]{\texttt{\small #1}}
+\providecommand{\coderef}[2]{%
+  \codepath{#1}\ifx\relax#2\relax\else\,$\rightarrow$\,\texttt{\small #2}\fi}
+\providecommand{\codefile}[1]{\texttt{\small #1}}

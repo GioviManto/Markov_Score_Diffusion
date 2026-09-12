@@ -1,0 +1,1416 @@
+\chapter{Learning the Parameters: EM on the Chain}\label{ch:em-method}
+
+Everything so far assumed the transition kernel was given. This chapter drops
+that assumption. The data are still a Markov chain observed through the
+Ornstein--Uhlenbeck channel, but the kernel that generated them is unknown and
+must be recovered from the noised sequences alone: no clean data, no
+supervision, and no differentiation through the inference.
+
+The tool is expectation--maximisation, and the reason it is cheap here is
+Fisher's identity. At each current parameter value, one complete
+forward--backward pass of belief propagation already contains the exact
+gradient of the marginal log-likelihood with respect to the parameters, so
+each E-step is the BP recursion of Chapter~\ref{ch:gaussian-bp} with the
+kernel held fixed and the M-step moves the kernel; the full fit runs one such
+pass per iteration, and nothing is ever back-propagated through the recursion.
+Section~\ref{sec:em-algorithm} derives that claim in full, in the form
+actually implemented.
+
+\section{Model: an estimated mixture innovation}\label{sec:em-model}
+
+The clean chain is the one of \eqref{eq:l-chain-prior}, in the index
+convention of this chapter,
+\begin{equation}
+  a_1 \sim \Nd(0,1), \qquad a_i = \alpha\, a_{i-1} + \varepsilon_i,
+  \qquad i = 2,\dots,\nsites,
+  \label{eq:em-chain}
+\end{equation}
+with innovations $\varepsilon_i$ i.i.d., mean zero and variance
+$\ivar = 1-\alpha^2$: the same Gaussian initial state and the same
+variance-matching Chapter~\ref{ch:laplace} used, but now drawn from a member of
+a \emph{parametric family} rather than a fixed law. Forward noising is the
+coordinatewise Ornstein--Uhlenbeck channel of Section~\ref{sec:ou},
+$x = e^{-t} a + \sqrt{\Deltat}\,\xi$, unchanged from every earlier chapter.
+
+The estimated family is a $C$-component Gaussian mixture on the innovation. It
+is the transition kernel written $\kernel(a' \mid a)$ in
+Chapters~\ref{ch:background} and~\ref{ch:laplace}, carrying its parameters
+explicitly because they are now what is being estimated:
+\begin{equation}
+  \kernel_\theta(a' \mid a) = \sum_{c=1}^{C} \pi_c \,
+    \Nd\!\big(a' - \alpha a;\ \nu_c,\ s_c^2\big),
+  \qquad \theta = \{\alpha, (\pi_c,\nu_c,s_c)_{c=1}^C\},
+  \label{eq:em-mixture-kernel}
+\end{equation}
+so both the autoregressive coefficient $\alpha$ and the shape of the innovation
+density are free, estimated jointly by maximum marginal likelihood from noised
+data alone. The parameter space is
+\begin{equation}
+  \Theta = \Big\{\, \pi_c \geq 0,\ \textstyle\sum_c \pi_c = 1,\
+    s_c^2 \geq s_{\min}^2,\ \nu_c \in \R,\
+    \alpha \in (-1, 1) \,\Big\},
+  \label{eq:em-parameter-space}
+\end{equation}
+the variance floor $s_{\min}^2$ being the guard of
+Section~\ref{sec:em-numerical} against a component collapsing onto a single
+grid point, and $|\alpha| < 1$ being what gives the recursion a stationary law
+at all. It buys existence and no more: with $(\pi_c, \nu_c, s_c)$ free the
+fitted chain's stationary variance is
+$\sum_c \pi_c(\nu_c^2 + s_c^2)/(1-\alpha^2)$, which equals one only under a
+variance-matching constraint this family deliberately does not impose, and its
+stationary mean is zero only if $\sum_c \pi_c \nu_c = 0$, which it likewise
+does not impose --- the asymmetry recorded below. The conditional maximiser for
+$\alpha$ derived below is a closed form that does not enforce its own
+constraint, so the boundary is a real possibility rather than an excluded one;
+in every fit reported in this thesis the estimate stays far inside the
+interval, near the generating value, and the constraint never binds. Component
+labels are exchangeable throughout, so $\Theta$ is identified only up to
+permutation and every label-dependent diagnostic is reported under a fixed
+ordering convention (Section~\ref{sec:em-diagnostics}). At $C=1$ this collapses to a single Gaussian, recovering the model
+of Chapter~\ref{ch:gaussian}; larger $C$ can represent skew, heavy tails and
+multimodality to the resolution of the grid.
+
+One deliberate asymmetry between the generating and the fitted model should be
+on the record here rather than discovered later. The \emph{generating}
+innovations are centred with variance $1-\alpha^2$; the \emph{fitted} family
+\eqref{eq:em-mixture-kernel} enforces neither constraint --- no
+$\sum_c \pi_c\nu_c = 0$ and no matched total variance. That is a choice, not
+an oversight: projecting the means back to zero after each update does not
+maximise the surrogate and measurably broke monotone ascent when tried
+(by $\sim 10^{-2}$ nats per edge), whereas the unconstrained ECM is exactly
+monotone, and on centred data the fitted total innovation mean lands at the
+$10^{-3}$ level on its own. The moment conditions are therefore treated as
+\emph{diagnostics} of the fit, reported rather than imposed, and the
+free-parameter count of the family is $(C-1) + C + C + 1 = 3C$. 
+
+
+\section{The EM algorithm, derived}\label{sec:em-algorithm}
+
+The parameters of the transition kernel are not observed directly. What we
+observe is the noised sequence
+\[
+  x=(x_1,\ldots,x_{\nsites}),
+\]
+while the clean trajectory
+\[
+  a=(a_1,\ldots,a_{\nsites})
+\]
+that generated it is latent. In the Gaussian-mixture model there is a second
+source of missing information: for every transition
+$a_{i-1}\to a_i$, we do not observe which mixture component generated the
+innovation. Denote by $c_i\in\{1,\ldots,C\}$ the label of the transition into $a_i$ and
+write
+\[
+  c=(c_2,\ldots,c_{\nsites}),
+\]
+one label per transition, so $\nsites-1$ of them rather than $\nsites$: the
+first state is drawn from the initial law and no innovation generates it.
+
+The statistical goal is still ordinary maximum likelihood:
+\begin{equation}
+  \widehat\theta
+  \in
+  \operatorname{argmax}_\theta \mathcal L(\theta),
+  \qquad
+  \mathcal L(\theta)
+  :=
+  \log p_\theta(x).
+  \label{eq:em-objective}
+\end{equation}
+The difficulty is that $p_\theta(x)$ is obtained only after removing all the
+unobserved variables,
+\begin{equation}
+  p_\theta(x)
+  =
+  \sum_c
+  \int_{\R^{\nsites}}
+  p_\theta(a,c,x)\,\dd a,
+  \label{eq:em-marginalisation}
+\end{equation}
+and hence
+\begin{equation}
+  \mathcal L(\theta)
+  =
+  \log
+  \left[
+    \sum_c
+    \int_{\R^{\nsites}}
+    p_\theta(a,c,x)\,\dd a
+  \right].
+  \label{eq:em-marginal-likelihood}
+\end{equation}
+The logarithm therefore sits \emph{outside} an integral over the whole clean
+trajectory and a sum over all mixture-label configurations. Directly
+optimising this expression is substantially harder than fitting the model if
+$a$ and $c$ were known.
+
+Expectation--maximisation (EM) exploits exactly this distinction. At iteration
+$k$, it alternates between two questions:
+\begin{enumerate}
+  \item[\emph{E-step.}]
+  Given the current parameters $\theta^{(k)}$ and the observation $x$, which
+  hidden trajectories and mixture labels are plausible?
+  \item[\emph{M-step.}]
+  If those possibilities are weighted according to their current posterior
+  probabilities, which new parameters fit them best?
+\end{enumerate}
+Thus EM does not replace the hidden variables by a single reconstruction.
+It averages over their entire posterior uncertainty.
+
+\subsection{Complete data and the surrogate}
+
+To formalise this idea, collect all latent variables into
+\begin{equation}
+  z=(a,c)
+\end{equation}
+and define the posterior under the current parameter value,
+\begin{equation}
+  q^{(k)}(a,c)
+  :=
+  p_{\theta^{(k)}}(a,c\mid x).
+  \label{eq:em-q-def}
+\end{equation}
+The distribution $q^{(k)}$ is computed in the E-step and is then held fixed
+while the parameters are changed in the M-step.
+
+The central EM quantity is
+\begin{equation}
+  Q(\theta\mid\theta^{(k)})
+  :=
+  \E_{q^{(k)}}\!
+  \left[
+    \log p_\theta(a,c,x)
+  \right].
+  \label{eq:em-Q-def}
+\end{equation}
+This is called the EM \emph{surrogate}. Its meaning is: imagine that
+$(a,c)$ were observed. Then $\log p_\theta(a,c,x)$ would be the ordinary
+complete-data log-likelihood. Since $(a,c)$ are not observed, EM averages that
+quantity over all their possible values, weighted by how plausible those
+values are under the current model.
+
+The connection between this surrogate and the true likelihood can be derived
+exactly. Bayes' rule gives
+\begin{equation}
+  p_\theta(a,c\mid x)
+  =
+  \frac{p_\theta(a,c,x)}{p_\theta(x)},
+\end{equation}
+and therefore
+\begin{equation}
+  \log p_\theta(x)
+  =
+  \log p_\theta(a,c,x)
+  -
+  \log p_\theta(a,c\mid x).
+  \label{eq:em-bayes-log}
+\end{equation}
+Since the left-hand side does not depend on $(a,c)$, taking expectation with
+respect to the fixed distribution $q^{(k)}$ leaves it unchanged:
+\begin{align}
+  \mathcal L(\theta)
+  &=
+  \E_{q^{(k)}}\!
+  \left[
+    \log p_\theta(a,c,x)
+  \right]
+  -
+  \E_{q^{(k)}}\!
+  \left[
+    \log p_\theta(a,c\mid x)
+  \right]
+  \nonumber\\
+  &=
+  Q(\theta\mid\theta^{(k)})
+  -
+  \E_{q^{(k)}}\!
+  \left[
+    \log p_\theta(a,c\mid x)
+  \right].
+  \label{eq:em-first-decomposition}
+\end{align}
+
+Now add and subtract
+$\E_{q^{(k)}}[\log q^{(k)}(a,c)]$. Using
+\begin{equation}
+  \mathcal H(q)
+  :=
+  -\E_q[\log q]
+\end{equation}
+and
+\begin{equation}
+  \operatorname{KL}(q\,\|\,p)
+  :=
+  \E_q\!\left[
+    \log\frac{q}{p}
+  \right],
+\end{equation}
+we obtain
+\begin{equation}
+  \boxed{
+  \mathcal L(\theta)
+  =
+  Q(\theta\mid\theta^{(k)})
+  +
+  \mathcal H(q^{(k)})
+  +
+  \operatorname{KL}\!\left(
+    q^{(k)}
+    \,\middle\|\,
+    p_\theta(a,c\mid x)
+  \right).
+  }
+  \label{eq:em-decomposition}
+\end{equation}
+Equivalently,
+\begin{equation}
+  \underbrace{
+    Q(\theta\mid\theta^{(k)})
+    +
+    \mathcal H(q^{(k)})
+  }_{\displaystyle \mathcal F(\theta;q^{(k)})}
+  =
+  \mathcal L(\theta)
+  -
+  \operatorname{KL}\!\left(
+    q^{(k)}
+    \,\middle\|\,
+    p_\theta(a,c\mid x)
+  \right)
+  \leq
+  \mathcal L(\theta).
+  \label{eq:em-lower-bound}
+\end{equation}
+Hence
+$\mathcal F(\theta;q^{(k)})$ is a lower bound on the true observed-data
+log-likelihood. During the M-step $q^{(k)}$ is fixed, so its entropy is a
+constant with respect to $\theta$. Maximising the lower bound
+$\mathcal F$ is therefore exactly equivalent to maximising $Q$.
+
+This explains the word \emph{surrogate}: rather than attacking
+$\mathcal L(\theta)$ directly, EM optimises the easier function
+$Q(\theta\mid\theta^{(k)})$ while keeping the current posterior fixed.
+
+There is one further crucial property. At the current parameter
+$\theta=\theta^{(k)}$,
+\begin{equation}
+  q^{(k)}(a,c)
+  =
+  p_{\theta^{(k)}}(a,c\mid x),
+\end{equation}
+so
+\begin{equation}
+  \operatorname{KL}\!\left(
+    q^{(k)}
+    \,\middle\|\,
+    p_{\theta^{(k)}}(a,c\mid x)
+  \right)
+  =0.
+\end{equation}
+Consequently the lower bound touches the true likelihood at the current
+iterate,
+\begin{equation}
+  \mathcal F(\theta^{(k)};q^{(k)})
+  =
+  \mathcal L(\theta^{(k)}).
+  \label{eq:em-touching}
+\end{equation}
+The EM iteration can therefore be pictured as
+\[
+  \theta^{(k)}
+  \;\longrightarrow\;
+  q^{(k)}(a,c)
+  \;\longrightarrow\;
+  Q(\theta\mid\theta^{(k)})
+  \;\longrightarrow\;
+  \theta^{(k+1)}.
+\]
+The first arrow infers what the hidden clean process probably was; the second
+turns that posterior into a weighted complete-data likelihood; the final arrow
+fits a new transition kernel to those posterior-weighted hidden trajectories.
+
+In a generic latent-variable model, computing $q^{(k)}$ may itself require an
+approximation. Here the chain structure makes this step particularly simple.
+
+\begin{proposition}[The E-step is exact]\label{prop:em-estep}
+Since the posterior factor graph is a tree, one forward and one backward
+sum--product sweep return the exact single-site and pairwise posterior
+marginals, at the level of functional messages. Consequently the E-step
+requires neither a variational approximation nor Monte Carlo sampling: all
+conditional expectations needed by EM are exact under the model, before the
+numerical grid discretisation is introduced.
+\end{proposition}
+
+We next write the complete-data likelihood explicitly. Introduce the mixture
+label $c_i$ on the transition $a_{i-1}\to a_i$. Conditional on $c_i=c$, the
+mixture transition becomes a single Gaussian,
+\begin{equation}
+  \widetilde\kernel_\theta(a',c\mid a)
+  =
+  \pi_c\,
+  \Nd\!\big(
+    a'-\alpha a;
+    \nu_c,s_c^2
+  \big),
+  \qquad
+  \kernel_\theta(a'\mid a)
+  =
+  \sum_{c=1}^{C}
+  \widetilde\kernel_\theta(a',c\mid a).
+  \label{eq:em-complete-kernel}
+\end{equation}
+
+The purpose of introducing $c$ is now visible. Without the label, one
+transition contributes
+\begin{equation}
+  \log\kernel_\theta(a_i\mid a_{i-1})
+  =
+  \log
+  \left[
+    \sum_{c=1}^{C}
+    \pi_c
+    \Nd\!\big(
+      a_i-\alpha a_{i-1};
+      \nu_c,s_c^2
+    \big)
+  \right],
+  \label{eq:em-log-mixture}
+\end{equation}
+so the logarithm couples all mixture components through a log--sum. Once
+$c_i$ is exposed, the same transition is assigned to a single Gaussian
+component, giving a weighted Gaussian likelihood with closed-form conditional
+maximisers.
+
+For one sequence, the complete joint distribution factorises as
+\begin{equation}
+  p_\theta(a,c,x)
+  =
+  p(a_1)
+  \prod_{i=2}^{\nsites}
+  \widetilde\kernel_\theta(a_i,c_i\mid a_{i-1})
+  \prod_{i=1}^{\nsites}
+  \phi_i(a_i),
+  \label{eq:em-complete-factorisation}
+\end{equation}
+where
+\[
+  \phi_i(a_i)=p(x_i\mid a_i)
+\]
+is the fixed OU observation factor. Taking logarithms,
+\begin{equation}
+  \log p_\theta(a,c,x)
+  =
+  \underbrace{\log p(a_1)}_{\text{independent of }\theta}
+  +
+  \sum_{i=2}^{\nsites}
+  \log
+  \widetilde\kernel_\theta(a_i,c_i\mid a_{i-1})
+  +
+  \underbrace{
+    \sum_{i=1}^{\nsites}\log\phi_i(a_i)
+  }_{\text{independent of }\theta}.
+  \label{eq:em-complete-ll}
+\end{equation}
+Thus, under the parameterisation used here, all terms relevant to the
+M-step are local transition terms.
+
+For one labelled transition,
+\begin{align}
+  \log
+  \widetilde\kernel_\theta(a_i,c_i\mid a_{i-1})
+  &=
+  \log\pi_{c_i}
+  +
+  \log
+  \Nd\!\big(
+    a_i-\alpha a_{i-1};
+    \nu_{c_i},s_{c_i}^2
+  \big)
+  \nonumber\\
+  &=
+  \log\pi_{c_i}
+  -\frac12\log(2\pi)
+  -\frac12\log s_{c_i}^2
+  -
+  \frac{
+    (a_i-\alpha a_{i-1}-\nu_{c_i})^2
+  }{2s_{c_i}^2}.
+  \label{eq:em-single-transition-log}
+\end{align}
+Using indicators,
+\begin{align}
+  \log
+  \widetilde\kernel_\theta(a_i,c_i\mid a_{i-1})
+  =
+  \sum_{c=1}^{C}
+  \mathbf 1\{c_i=c\}
+  \left[
+    \log\pi_c
+    -\frac12\log(2\pi)
+    -\frac12\log s_c^2
+    -
+    \frac{
+      (a_i-\alpha a_{i-1}-\nu_c)^2
+    }{2s_c^2}
+  \right].
+  \label{eq:em-indicator-transition}
+\end{align}
+
+Substituting this expression into \eqref{eq:em-Q-def} gives
+\begin{align}
+  Q(\theta\mid\theta^{(k)})
+  &=
+  \E_{a,c\mid x,\theta^{(k)}}
+  \!\left[
+    \log p_\theta(a,c,x)
+  \right]
+  \nonumber\\
+  &\overset{c}{=}
+  \sum_{i=2}^{\nsites}
+  \sum_{c=1}^{C}
+  \E_{\theta^{(k)}}\!
+  \left[
+    \mathbf 1\{c_i=c\}
+    \left(
+      \log\pi_c
+      -\frac12\log s_c^2
+      -
+      \frac{
+        (a_i-\alpha a_{i-1}-\nu_c)^2
+      }{2s_c^2}
+    \right)
+  \right],
+  \label{eq:em-Q}
+\end{align}
+where $\overset{c}{=}$ means equality up to an additive constant independent
+of $\theta$. In particular, the initial-state term, the observation-channel
+term and $-\frac12\log(2\pi)$ do not affect the M-step.
+
+Equation~\eqref{eq:em-Q} is the central simplification: the difficult
+logarithm of the marginalisation in
+\eqref{eq:em-marginal-likelihood} has been replaced by the expectation of a
+sum of local Gaussian transition terms. The remaining question is how those
+expectations are computed.
+
+\subsection{Fisher's identity: why BP is never differentiated}
+
+The same construction also explains why parameter learning does not require
+differentiating through the BP recursion. Starting from
+\begin{equation}
+  \mathcal L(\theta)
+  =
+  \log p_\theta(x),
+\end{equation}
+differentiate directly. The interchange of $\nabla_\theta$ with the sum and
+the integral below is the one regularity condition the identity needs: it holds
+because $p_\theta(a,c,x)$ is differentiable in $\theta$ with
+$\|\nabla_\theta p_\theta(a,c,x)\|$ dominated, locally uniformly in
+$\theta$, by an integrable function of $(a,c)$ --- which the Gaussian
+likelihood factors and the mixture kernel of \eqref{eq:em-mixture-kernel}
+satisfy on a compact subset of $\Theta$ containing every fit reported here ---
+every component non-degenerate and the fitted $\alpha$ staying well inside
+$(-1,1)$. Then
+\begin{align}
+  \nabla_\theta\mathcal L(\theta)
+  &=
+  \frac{1}{p_\theta(x)}
+  \nabla_\theta p_\theta(x)
+  \nonumber\\
+  &=
+  \frac{1}{p_\theta(x)}
+  \sum_c
+  \int
+  \nabla_\theta p_\theta(a,c,x)\,\dd a.
+  \label{eq:em-fisher-step1}
+\end{align}
+Using
+\begin{equation}
+  \nabla_\theta p_\theta(a,c,x)
+  =
+  p_\theta(a,c,x)
+  \nabla_\theta\log p_\theta(a,c,x),
+\end{equation}
+we obtain
+\begin{align}
+  \nabla_\theta\mathcal L(\theta)
+  &=
+  \sum_c
+  \int
+  \frac{p_\theta(a,c,x)}{p_\theta(x)}
+  \nabla_\theta
+  \log p_\theta(a,c,x)\,\dd a
+  \nonumber\\
+  &=
+  \sum_c
+  \int
+  p_\theta(a,c\mid x)
+  \nabla_\theta
+  \log p_\theta(a,c,x)\,\dd a
+  \nonumber\\
+  &=
+  \E_{a,c\mid x,\theta}
+  \left[
+    \nabla_\theta
+    \log p_\theta(a,c,x)
+  \right].
+  \label{eq:em-fisher-general}
+\end{align}
+This is Fisher's identity.
+
+Since only the transition factors in
+\eqref{eq:em-complete-ll} depend on $\theta$,
+\begin{equation}
+  \nabla_\theta\mathcal L(\theta)
+  =
+  \E_{a,c\mid x,\theta}
+  \left[
+    \sum_{i=2}^{\nsites}
+    \nabla_\theta
+    \log
+    \widetilde\kernel_\theta
+    (a_i,c_i\mid a_{i-1})
+  \right].
+  \label{eq:em-fisher}
+\end{equation}
+Evaluating at the current iterate gives
+\begin{equation}
+  \nabla_\theta\mathcal L(\theta)
+  \Big|_{\theta=\theta^{(k)}}
+  =
+  \nabla_\theta
+  Q(\theta\mid\theta^{(k)})
+  \Big|_{\theta=\theta^{(k)}}.
+  \label{eq:em-fisher-Q}
+\end{equation}
+
+The important point is what is \emph{not} differentiated. BP is used only to
+compute
+\[
+  q^{(k)}(a,c)
+  =
+  p_{\theta^{(k)}}(a,c\mid x).
+\]
+Once that posterior has been computed, it is treated as fixed. The derivative
+acts on the candidate kernel parameters inside
+$\log\widetilde\kernel_\theta$, not on the BP messages that produced the
+posterior. Thus BP supplies the posterior expectations and Fisher's identity
+converts them into the likelihood gradient without back-propagating through
+the inference algorithm.
+
+\subsection{The E-step: which expectations BP supplies}
+
+The complete-data objective in \eqref{eq:em-Q} is a sum over transitions.
+Consequently we do not need the full joint posterior over the entire clean
+trajectory explicitly. It is sufficient to know, for each edge
+$i-1\to i$, the pairwise posterior
+\begin{equation}
+  b_i(a_{i-1},a_i)
+  :=
+  p_{\theta^{(k)}}(a_{i-1},a_i\mid x).
+  \label{eq:em-pairwise-def}
+\end{equation}
+On a chain this marginal is obtained exactly from the forward and backward
+messages:
+\begin{equation}
+  b_i(a_{i-1},a_i)
+  \propto
+  \lmsg_{i-1}(a_{i-1})
+  \phi_{i-1}(a_{i-1})
+  \kernel_{\theta^{(k)}}(a_i\mid a_{i-1})
+  \phi_i(a_i)
+  \rmsg_i(a_i),
+  \label{eq:em-pairwise}
+\end{equation}
+with normalisation
+\begin{equation}
+  \int\!\!\int
+  b_i(a_{i-1},a_i)
+  \,\dd a_{i-1}\dd a_i
+  =1.
+\end{equation}
+
+The mixture label requires no additional BP recursion. Once a pair
+$(a_{i-1},a_i)$ is given, Bayes' rule on the finite mixture gives the
+responsibility
+\begin{align}
+  r_{i,c}^{(k)}(a_{i-1},a_i)
+  &:=
+  \Prob_{\theta^{(k)}}\!
+  \left(
+    c_i=c
+    \mid
+    a_{i-1},a_i
+  \right)
+  \nonumber\\
+  &=
+  \frac{
+    \pi_c^{(k)}
+    \Nd\!\left(
+      a_i-\alpha^{(k)}a_{i-1};
+      \nu_c^{(k)},(s_c^2)^{(k)}
+    \right)
+  }{
+    \displaystyle
+    \sum_{d=1}^{C}
+    \pi_d^{(k)}
+    \Nd\!\left(
+      a_i-\alpha^{(k)}a_{i-1};
+      \nu_d^{(k)},(s_d^2)^{(k)}
+    \right)
+  }
+  \nonumber\\
+  &=
+  \frac{
+    \pi_c^{(k)}
+    \Nd\!\left(
+      a_i-\alpha^{(k)}a_{i-1};
+      \nu_c^{(k)},(s_c^2)^{(k)}
+    \right)
+  }{
+    \kernel_{\theta^{(k)}}(a_i\mid a_{i-1})
+  }.
+  \label{eq:em-responsibility}
+\end{align}
+For every pair,
+\begin{equation}
+  \sum_{c=1}^{C}
+  r_{i,c}^{(k)}(a_{i-1},a_i)
+  =1.
+\end{equation}
+
+Define expectation with respect to the pairwise posterior by
+\begin{equation}
+  \langle f\rangle_i
+  :=
+  \int\!\!\int
+  f(a_{i-1},a_i)
+  b_i(a_{i-1},a_i)
+  \,\dd a_{i-1}\dd a_i.
+  \label{eq:em-bracket}
+\end{equation}
+Because
+\begin{equation}
+  \E\!\left[
+    \mathbf 1\{c_i=c\}
+    \mid a_{i-1},a_i,x,\theta^{(k)}
+  \right]
+  =
+  r_{i,c}^{(k)}(a_{i-1},a_i),
+  \label{eq:em-indicator-responsibility}
+\end{equation}
+every expectation in \eqref{eq:em-Q} can be reduced to an integral against
+$b_i$ weighted by $r_{i,c}^{(k)}$.
+
+For each component define the six sufficient statistics
+\begin{equation}
+  \begin{aligned}
+    R_c
+    &=
+    \sum_i
+    \left\langle r_{i,c}^{(k)}\right\rangle_i,
+    &
+    U_c
+    &=
+    \sum_i
+    \left\langle
+      r_{i,c}^{(k)}a_i
+    \right\rangle_i,
+    &
+    V_c
+    &=
+    \sum_i
+    \left\langle
+      r_{i,c}^{(k)}a_{i-1}
+    \right\rangle_i,
+    \\[1mm]
+    P_c
+    &=
+    \sum_i
+    \left\langle
+      r_{i,c}^{(k)}a_{i-1}a_i
+    \right\rangle_i,
+    &
+    W_c
+    &=
+    \sum_i
+    \left\langle
+      r_{i,c}^{(k)}a_{i-1}^2
+    \right\rangle_i,
+    &
+    G_c
+    &=
+    \sum_i
+    \left\langle
+      r_{i,c}^{(k)}a_i^2
+    \right\rangle_i.
+  \end{aligned}
+  \label{eq:em-suffstats}
+\end{equation}
+For several training sequences the same quantities are simply summed over
+all edges of all sequences.
+
+ $R_c$ is the posterior effective
+number of transitions assigned to component $c$; $U_c$ and $V_c$ are
+responsibility-weighted first moments of the child and parent states;
+$G_c$ and $W_c$ are the corresponding second moments; and $P_c$ is the
+parent--child cross moment.
+
+A single forward--backward pass therefore reduces the entire E-step to these
+posterior-weighted sufficient statistics.
+
+\subsection{The M-step: deriving the conditional maximisers}
+
+We now substitute \eqref{eq:em-suffstats} into the surrogate and derive the
+parameter updates explicitly.
+
+First expand the squared residual:
+\begin{align}
+  (a_i-\alpha a_{i-1}-\nu_c)^2
+  &=
+  a_i^2
+  -2\alpha a_{i-1}a_i
+  +\alpha^2 a_{i-1}^2
+  -2\nu_c a_i
+  +2\alpha\nu_c a_{i-1}
+  +\nu_c^2.
+  \label{eq:em-residual-expand}
+\end{align}
+Taking the posterior-weighted sums gives
+\begin{equation}
+  S_c(\alpha,\nu_c)
+  :=
+  G_c
+  -2\alpha P_c
+  +\alpha^2W_c
+  -2\nu_c U_c
+  +2\alpha\nu_c V_c
+  +\nu_c^2R_c.
+  \label{eq:em-residual-stat}
+\end{equation}
+Hence, up to constants independent of $\theta$,
+\begin{equation}
+  \boxed{
+  Q(\theta\mid\theta^{(k)})
+  \overset{c}{=}
+  \sum_{c=1}^{C}
+  \left[
+    R_c\log\pi_c
+    -
+    \frac{R_c}{2}\log s_c^2
+    -
+    \frac{
+      S_c(\alpha,\nu_c)
+    }{2s_c^2}
+  \right].
+  }
+  \label{eq:em-Q-suffstats}
+\end{equation}
+All quantities $R_c,U_c,V_c,P_c,W_c,G_c$ are fixed during the M-step: they
+were computed using $\theta^{(k)}$ in the E-step. Only the candidate
+parameters $\pi_c,\nu_c,s_c^2,\alpha$ are varied.
+
+\paragraph{Mixture weights.}
+
+The part of $Q$ depending on the weights is
+\begin{equation}
+  Q_\pi
+  =
+  \sum_{c=1}^{C}
+  R_c\log\pi_c,
+\end{equation}
+subject to
+\begin{equation}
+  \sum_{c=1}^{C}\pi_c=1.
+\end{equation}
+Introduce a Lagrange multiplier $\lambda$:
+\begin{equation}
+  \mathcal J
+  =
+  \sum_c R_c\log\pi_c
+  +
+  \lambda
+  \left(
+    \sum_c\pi_c-1
+  \right).
+\end{equation}
+Differentiating,
+\begin{equation}
+  \frac{\partial\mathcal J}{\partial\pi_c}
+  =
+  \frac{R_c}{\pi_c}
+  +
+  \lambda
+  =
+  0,
+\end{equation}
+so
+\begin{equation}
+  \pi_c
+  =
+  -\frac{R_c}{\lambda}.
+\end{equation}
+Summing over $c$ and imposing $\sum_c\pi_c=1$ gives
+\begin{equation}
+  \lambda
+  =
+  -\sum_{d=1}^{C}R_d.
+\end{equation}
+Therefore
+\begin{equation}
+  \boxed{
+  \pi_c^{+}
+  =
+  \frac{R_c}{
+    \displaystyle\sum_{d=1}^{C}R_d
+  }.
+  }
+  \label{eq:em-mstep-pi}
+\end{equation}
+Thus the new mixture weight is simply the fraction of the total posterior
+transition mass assigned to component $c$.
+
+\paragraph{Component means.}
+
+Holding $\alpha$ and $s_c^2$ fixed, only
+$S_c(\alpha,\nu_c)$ depends on $\nu_c$. From
+\eqref{eq:em-residual-stat},
+\begin{equation}
+  \frac{\partial S_c}{\partial\nu_c}
+  =
+  -2U_c
+  +2\alpha V_c
+  +2\nu_cR_c.
+\end{equation}
+Since
+\begin{equation}
+  \frac{\partial Q}{\partial\nu_c}
+  =
+  -\frac{1}{2s_c^2}
+  \frac{\partial S_c}{\partial\nu_c},
+\end{equation}
+the stationarity condition is
+\begin{equation}
+  -2U_c
+  +2\alpha V_c
+  +2\nu_cR_c
+  =
+  0.
+\end{equation}
+Hence
+\begin{equation}
+  \boxed{
+  \nu_c^{+}
+  =
+  \frac{
+    U_c-\alpha V_c
+  }{R_c}.
+  }
+  \label{eq:em-mstep-nu}
+\end{equation}
+
+\paragraph{Component variances.}
+
+Let
+\[
+  \tau_c=s_c^2.
+\]
+For fixed $\alpha$ and $\nu_c$, the relevant part of the surrogate is
+\begin{equation}
+  Q_c(\tau_c)
+  =
+  -\frac{R_c}{2}\log\tau_c
+  -
+  \frac{S_c(\alpha,\nu_c)}{2\tau_c}.
+\end{equation}
+Differentiating,
+\begin{equation}
+  \frac{\partial Q_c}{\partial\tau_c}
+  =
+  -\frac{R_c}{2\tau_c}
+  +
+  \frac{
+    S_c(\alpha,\nu_c)
+  }{2\tau_c^2}.
+\end{equation}
+Setting this equal to zero gives
+\begin{equation}
+  R_c\tau_c
+  =
+  S_c(\alpha,\nu_c),
+\end{equation}
+and therefore
+\begin{equation}
+  (s_c^2)^{+}
+  =
+  \frac{
+    S_c(\alpha,\nu_c^{+})
+  }{R_c}.
+  \label{eq:em-mstep-var-general}
+\end{equation}
+Substituting
+$\nu_c^{+}=(U_c-\alpha V_c)/R_c$ simplifies the weighted residual to
+\begin{equation}
+  S_c(\alpha,\nu_c^{+})
+  =
+  G_c
+  -2\alpha P_c
+  +\alpha^2W_c
+  -
+  R_c(\nu_c^{+})^2,
+\end{equation}
+so
+\begin{equation}
+  \boxed{
+  (s_c^2)^{+}
+  =
+  \frac{
+    G_c
+    -2\alpha P_c
+    +\alpha^2W_c
+    -R_c(\nu_c^{+})^2
+  }{R_c}.
+  }
+  \label{eq:em-mstep-var}
+\end{equation}
+
+Combining the three mixture updates,
+\begin{equation}
+  \boxed{
+  \pi_c^{+}
+  =
+  \frac{R_c}{\sum_d R_d},
+  \qquad
+  \nu_c^{+}
+  =
+  \frac{U_c-\alpha V_c}{R_c},
+  \qquad
+  (s_c^2)^{+}
+  =
+  \frac{
+    G_c-2\alpha P_c+\alpha^2W_c
+    -R_c(\nu_c^{+})^2
+  }{R_c}.
+  }
+  \label{eq:em-mstep-mixture}
+\end{equation}
+
+\begin{remark}[Floors, empty components, and label order]
+\label{rmk:em-degeneracy}
+The updates \eqref{eq:em-mstep-mixture} are undefined at $R_c = 0$ and the
+mixture likelihood is unbounded as any $s_c^2 \to 0$ with a component pinned
+on one residual, so the implementation carries two explicit guards: the
+responsibility mass is floored at $10^{-300}$ before any division (an empty
+component keeps its parameters rather than producing indeterminate ones), and
+the variance update is floored at $s_c^2 \geq 10^{-6}$, a component standard
+deviation of $10^{-3}$ --- far below the grid spacing, so the floor marks
+degeneracy rather than shaping any resolved fit. A separate reporting gate
+(\provenanceappendix) excludes fits whose narrowest component falls under two
+grid cells, where the quadrature likelihood can reward lattice artefacts.
+Component labels are exchangeable, so all label-dependent diagnostics order
+components deterministically before comparison; the effective component count
+$\exp[\mathrm{entropy}(\pi)]$ is logged per fit so that collapse onto fewer
+live components is visible rather than silent.
+\end{remark}
+
+\paragraph{Autoregressive coefficient.}
+
+Finally hold the mixture parameters fixed and optimise with respect to
+$\alpha$. From \eqref{eq:em-residual-stat},
+\begin{equation}
+  \frac{\partial S_c}{\partial\alpha}
+  =
+  -2P_c
+  +2\alpha W_c
+  +2\nu_cV_c.
+\end{equation}
+Therefore
+\begin{align}
+  \frac{\partial Q}{\partial\alpha}
+  &=
+  -\sum_{c=1}^{C}
+  \frac{1}{2s_c^2}
+  \frac{\partial S_c}{\partial\alpha}
+  \nonumber\\
+  &=
+  \sum_{c=1}^{C}
+  \frac{
+    P_c-\alpha W_c-\nu_cV_c
+  }{s_c^2}.
+  \label{eq:em-alpha-derivative}
+\end{align}
+Setting the derivative to zero gives
+\begin{equation}
+  \sum_c
+  s_c^{-2}
+  \big(
+    P_c-\nu_cV_c
+  \big)
+  =
+  \alpha
+  \sum_c
+  s_c^{-2}W_c,
+\end{equation}
+and hence
+\begin{equation}
+  \boxed{
+  \alpha^{+}
+  =
+  \frac{
+    \displaystyle
+    \sum_c
+    s_c^{-2}
+    \big(
+      P_c-\nu_cV_c
+    \big)
+  }{
+    \displaystyle
+    \sum_c
+    s_c^{-2}W_c
+  }.
+  }
+  \label{eq:em-mstep-alpha}
+\end{equation}
+The factors $s_c^{-2}$ are precisions: components with smaller innovation
+variance provide more information about the regression coefficient and
+therefore receive greater weight.
+
+At $C=1$ and $\nu_1=0$ this reduces to
+\begin{equation}
+  \alpha^{+}
+  =
+  \frac{P_1}{W_1}
+  =
+  \frac{
+    \sum_i
+    \E[a_{i-1}a_i\mid x]
+  }{
+    \sum_i
+    \E[a_{i-1}^2\mid x]
+  },
+\end{equation}
+which is the posterior analogue of the ordinary least-squares slope of $a_i$
+on $a_{i-1}$.
+
+The complete EM iteration can therefore be summarised as
+\begin{equation}
+  \boxed{
+  \begin{array}{ll}
+  \text{E-step:}
+  &
+  \theta^{(k)}
+  \xrightarrow{\mathrm{BP}}
+  \left\{
+    R_c,U_c,V_c,P_c,W_c,G_c
+  \right\}_{c=1}^{C},
+  \\[2mm]
+  \text{M-step:}
+  &
+  \left\{
+    R_c,U_c,V_c,P_c,W_c,G_c
+  \right\}_{c=1}^{C}
+  \xrightarrow{\text{closed-form updates}}
+  \theta^{(k+1)}.
+  \end{array}
+  }
+  \label{eq:em-summary}
+\end{equation}
+
+\subsection{Generalised EM and monotonicity}
+
+The updates above are conditional maximisers. The mixture block
+$(\pi,\nu,s^2)$ is maximised while $\alpha$ is fixed, and then $\alpha$ is
+maximised while the mixture block is fixed. Alternating these operations
+increases the same surrogate $Q$, but need not find its joint maximiser in one
+step. The implementation therefore belongs to the generalised EM family, more
+specifically to expectation--conditional maximisation (ECM)
+\citep{meng1993maximum}.
+
+The monotonicity guarantee does not require an exact joint maximisation of
+$Q$. To see this, use \eqref{eq:em-decomposition} with
+$q^{(k)}=p_{\theta^{(k)}}(a,c\mid x)$. At the current parameter the KL term
+vanishes, so
+\begin{align}
+  \mathcal L(\theta)
+  -
+  \mathcal L(\theta^{(k)})
+  &=
+  Q(\theta\mid\theta^{(k)})
+  -
+  Q(\theta^{(k)}\mid\theta^{(k)})
+  \nonumber\\
+  &\quad+
+  \operatorname{KL}\!\left(
+    p_{\theta^{(k)}}(a,c\mid x)
+    \,\middle\|\,
+    p_\theta(a,c\mid x)
+  \right).
+  \label{eq:em-monotone}
+\end{align}
+The second term is non-negative. Consequently,
+\begin{equation}
+  Q(\theta^{(k+1)}\mid\theta^{(k)})
+  \geq
+  Q(\theta^{(k)}\mid\theta^{(k)})
+\end{equation}
+is sufficient to imply
+\begin{equation}
+  \boxed{
+  \mathcal L(\theta^{(k+1)})
+  \geq
+  \mathcal L(\theta^{(k)}).
+  }
+  \label{eq:em-likelihood-monotone}
+\end{equation}
+Thus each conditional maximisation need only increase the surrogate; joint
+maximisation is unnecessary for likelihood monotonicity.
+
+In the implementation, the two parameter blocks are alternated until either
+the gain in $Q$ per edge falls below the prescribed tolerance or a maximum of
+sixteen inner sweeps is reached. The returned kernel records which stopping
+condition occurred. One distinction keeps the guarantee honest. The derivation
+above concerns the continuum model; the implementation evaluates densities on
+the grid of Section~\ref{sec:em-numerical} without renormalising transition
+columns, so the objective it computes --- and the one whose monotone increase
+Table~\ref{tab:em-checks} certifies --- is the quadrature-defined surrogate of
+that discretised factor model. It approximates the continuum likelihood to the
+quadrature error measured in Table~\ref{tab:em-grid}, but the exact
+monotonicity statement applies to the grid objective, not automatically to the
+continuum one.
+
+\begin{remark}[The inner budget of sixteen]\label{rmk:em-inner}
+The cap of sixteen inner sweeps is chosen from the numerical behaviour rather
+than from a theoretical convention. At $C=8$, $\nseq=256$ and a fixed outer
+budget of $40$ iterations, increasing the inner budget from four to sixteen
+sweeps moves the fitted innovation excess kurtosis from $1.68$ to $2.14$, a
+$28\%$ change relative to the former value and still below the true Laplace
+value $3.0$, whereas $\widehat\alpha$ changes only in the fourth decimal
+place. The innovation shape therefore converges substantially more slowly than
+the correlation parameter. By roughly $60$ outer iterations the outer and
+inner loops largely compensate for one another and the inner budget has little
+remaining effect. The choice of sixteen is consequently a practical safeguard
+against interpreting incomplete inner optimisation as a failure to recover the
+innovation shape.
+\end{remark}
+
+
+\section{The numerical representation: grid BP, again}
+\label{sec:em-numerical}
+
+As in Section~\ref{sec:l-grid}, messages are represented on $\ngrid$
+equispaced points of $[-A,A]$ and updated by trapezoidal quadrature. The
+pairwise belief \eqref{eq:em-pairwise} is therefore an
+$\ngrid\times\ngrid$ array, and the expectations in
+\eqref{eq:em-suffstats} become weighted sums. One EM iteration costs
+$O(\nsites\ngrid^2)$ per sequence, with an additional factor $C$ only in the
+mixture responsibilities.
+
+There are two distinct numerical errors. \emph{Truncation} comes from replacing
+$\R$ by $[-A,A]$ and is monitored through forward-message boundary mass;
+because this depends on the sampled trajectory, it is reported over
+$\gdchains$ chains. \emph{Quadrature} comes from the spacing
+$h=2A/(\ngrid-1)$: in the interior the trapezoidal error scales as $O(h^2)$,
+with the measured residual decreasing by a factor $4.00$ per halving. Near the
+boundary it does not converge, because the remaining error is truncation rather
+than resolution. Table~\ref{tab:em-grid} and Figure~\ref{fig:em-grid} separate
+the two effects.
+
+\begin{center}
+\begin{minipage}{\linewidth}\centering
+\captionof{table}[The two discretisation budgets]{Numerical error diagnostics.
+\emph{Upper:} boundary mass versus domain half-width at $\ngrid=401$, reported
+over $\gdchains$ chains. \emph{Lower:} column-mass residual versus grid spacing
+at $A=8$. Interior error follows the expected $O(h^2)$ rate, whereas the edge
+residual is truncation-dominated. The working choice is $\ngrid=401$, $A=8$.}
+\label{tab:em-grid}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\multicolumn{5}{@{}l}{\emph{truncation: boundary mass against half-width} ($\ngrid=401$)}\\
+half-width $A$      & $4$ & $6$ & $8$ & $10$ \\
+\midrule
+max over chains     & $2.3\times10^{-3}$ & $1.6\times10^{-4}$ & $1.2\times10^{-6}$ & $3.2\times10^{-8}$ \\
+$90$th percentile   & $2.7\times10^{-4}$ & $2.5\times10^{-6}$ & $1.5\times10^{-8}$ & $7.8\times10^{-11}$ \\
+median              & $3.8\times10^{-5}$ & $3.7\times10^{-7}$ & $3.0\times10^{-9}$ & $1.8\times10^{-11}$ \\
+max / median        & $61\times$ & $434\times$ & $392\times$ & $1796\times$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{quadrature: column-mass residual against spacing} ($A=8$)}\\
+$\ngrid$ \ / \ $h$  & \multicolumn{1}{c}{$201$ / $0.080$} & \multicolumn{1}{c}{$401$ / $0.040$} & \multicolumn{1}{c}{$801$ / $0.020$} & rate \\
+\midrule
+interior column     & $3.84\times10^{-3}$ & $9.61\times10^{-4}$ & $2.40\times10^{-4}$ & $4.00\times$ per halving \\
+edge column         & $1.62\times10^{-2}$ & $1.90\times10^{-2}$ & $1.97\times10^{-2}$ & none \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_em_grid.pdf}
+\caption[The two discretisation budgets, separated]{Numerical behaviour of the
+grid representation. \emph{(a)} Boundary mass decreases rapidly with the
+domain half-width $A$, but varies substantially across sampled chains.
+\emph{(b)} Interior column-mass error follows the $O(h^2)$ trapezoidal rate,
+whereas the edge error remains truncation-dominated. \emph{(c)} Relative score
+error versus diffusion time for three resolutions; failure occurs when the
+resolution condition \eqref{eq:l-resolution} is violated.}
+\label{fig:em-grid}
+\end{figure}
+
+\paragraph{Which finite-grid model is fitted.}
+The transition array is the continuum density
+$\kernel_\theta(a'\mid a)$ evaluated on the grid and integrated with
+trapezoidal weights, without normalising each parent-conditioned column.
+BP is therefore exact, up to floating point, for the resulting discretised
+factor model, but this is not exactly a normalised finite-state Markov kernel.
+The discrepancy is measured by the column-mass residual in
+Table~\ref{tab:em-grid}.
+
+Column-wise renormalisation would remove this discrepancy, but its normaliser
+$Z_\theta$ would depend on the parameters. Terms
+$\nabla_\theta\log Z_\theta$ would then enter Fisher's identity and the
+M-step, destroying the closed-form updates
+\eqref{eq:em-mstep-mixture}--\eqref{eq:em-mstep-alpha}. The present convention
+therefore fits the continuum kernel through the quadrature rule, with
+truncation controlled separately.
+
+\begin{remark}[The boundary diagnostic is empirical, not a bound]
+\label{rmk:em-boundary}
+Boundary mass depends on the realised trajectory, so a single chain cannot
+certify truncation error. At the working configuration, the batch maximum over
+$\gdchains$ chains exceeds the single-chain reading by a median factor
+$\gdboundmed$ and by as much as $\gdboundhi$. This motivates reporting the
+distribution across chains rather than one value. The quadrature comparison,
+by contrast, depends only on $(A,\ngrid)$ and reproduces to $0.000$ relative
+difference under reseeding.
+\end{remark}
+
+Finally, as in Section~\ref{sec:l-grid}, posterior-mean errors are amplified in
+the score by
+\[
+  \frac{e^{-t}}{\Deltat}\sim\frac{1}{2t},
+\]
+so numerical or estimation deficiencies are most visible at small diffusion
+times.
+
+\section{Diagnostics}\label{sec:em-diagnostics}
+
+The remaining checks answer two questions: whether the implementation is
+correct, and which parameters can actually be recovered from noised data.
+
+\subsection{Implementation and estimator checks}
+
+The BP recursion agrees with independent references to machine precision, and
+the surrogate never decreases in the logged runs.
+
+\begin{center}
+\begin{minipage}{\linewidth}\centering
+\captionof{table}[Correctness checks on the EM implementation]{Correctness and
+monotonicity checks at $\ngrid=401$, $A=8$.}
+\label{tab:em-checks}
+\small
+\begin{tabular}{@{}llc@{}}
+\toprule
+check & reference & discrepancy \\
+\midrule
+posterior mean & closed-form Gaussian chain (Ch.~\ref{ch:gaussian})
+  & $9.2\times10^{-15}$ \\
+posterior mean & brute-force enumeration, no shared code
+  & $1.6\times10^{-14}$ \\
+log-evidence   & brute-force enumeration, no shared code
+  & $1.8\times10^{-15}$ \\
+\midrule
+\multicolumn{2}{@{}l}{minimum increase of $Q$ over twelve steps, Gaussian kernel}
+  & $+2.61$ \\
+\multicolumn{2}{@{}l}{\qquad\qquad the same, Laplace kernel}
+  & $+4.34$ \\
+\multicolumn{2}{@{}l}{\qquad\qquad the same, $C=8$ mixture kernel}
+  & $+4.18$ \\
+\multicolumn{2}{@{}l}{decreases recorded in any logged run}
+  & $0$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+Figure~\ref{fig:em-diagnostics} adds two estimator-level checks. First,
+$\widehat\alpha$ converges to the same value from initialisations spanning
+$[-0.4,0.6]$, showing that it is genuinely estimated rather than supplied.
+Second, its RMSE and that of the innovation variance decay approximately at the
+$\nseq^{-1/2}$ sampling rate.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_em_diagnostics.pdf}
+\caption[Optimisation diagnostics for the EM procedure]{Optimisation
+diagnostics at $C=4$. \emph{(a)} Marginal log-likelihood increases
+monotonically from four initialisations of $\alpha$. \emph{(b)}
+$\widehat\alpha$ converges to $[0.8517,0.8520]$ from starts spanning
+$[-0.4,0.6]$, against the true value $0.85$. \emph{(c)} RMSE of
+$\widehat\alpha$ and the innovation variance versus $\nseq$, over $16$ seeds,
+with an $\nseq^{-1/2}$ reference.}
+\label{fig:em-diagnostics}
+\end{figure}
+
+\subsection{What does EM recover?}
+
+The parameters are not recovered equally well. Table~\ref{tab:em-recovery}
+shows a clear hierarchy: correlation is easiest, innovation variance is next,
+and higher-order shape is substantially harder.
+
+\begin{center}
+\begin{minipage}{\linewidth}\centering
+\captionof{table}[What EM recovers from noised sequences]{Estimates after
+$61$ EM iterations on noised Laplace chains
+($\alpha=0.85$, $\ivar=0.2775$, excess kurtosis $3.0$, $\nsites=32$).
+No run recorded a monotonicity violation.}
+\label{tab:em-recovery}
+\small
+\begin{tabular}{@{}ccccc ccc@{}}
+\toprule
+$C$ & $\nseq$ & $\widehat\alpha$ & $\widehat\ivar$ & $\widehat\kappa_4$
+& $|\Delta\alpha|/\alpha$ & $|\Delta\ivar|/\ivar$ & $|\Delta\kappa_4|/\kappa_4$ \\
+\midrule
+$4$ & $128$  & $0.8649$ & $0.2686$ & $1.61$ & $1.8\%$  & $3.2\%$ & $46\%$ \\
+$4$ & $512$  & $0.8518$ & $0.2844$ & $2.27$ & $0.2\%$  & $2.5\%$ & $24\%$ \\
+$4$ & $2048$ & $0.8465$ & $0.2818$ & $1.82$ & $0.4\%$  & $1.5\%$ & $39\%$ \\
+\addlinespace
+$8$ & $128$  & $0.8294$ & $0.2824$ & $3.18$ & $2.4\%$  & $1.8\%$ & $6\%$ \\
+$8$ & $512$  & $0.8503$ & $0.2694$ & $2.26$ & $0.04\%$ & $2.9\%$ & $25\%$ \\
+$8$ & $2048$ & $0.8507$ & $0.2793$ & $2.72$ & $0.08\%$ & $0.7\%$ & $9\%$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+At $C=8$ and $\nseq\geq512$, $\alpha$ is recovered to below $0.1\%$ relative
+error, while the innovation variance remains at the percent level and the
+fourth cumulant at the tens-of-percent level. Each row is a single fit, and
+the shape column is visibly not monotone in $\nseq$ at these budgets --- the
+seed-to-seed spread of the fourth cumulant is of the same order as its error,
+so these rows demonstrate the recovery hierarchy, not a convergence law for
+the shape. The ordering is consistent with
+the OU channel: the fourth cumulant is attenuated as $e^{-4t}$, whereas the
+second moment is preserved by the variance-matched construction. Higher-order
+shape is therefore much less visible in the observations. Throughout,
+``recovery'' means what these experiments show: numerical agreement over the
+studied regime, with no identifiability or consistency theorem claimed for
+the mixture family.
+
+The same conclusion appears directly in the fitted density.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_em_innovation.pdf}
+\caption[What EM recovers from noised sequences]{Recovery of the innovation
+law. \emph{Left:} fitted $C=8$ Gaussian-mixture innovation densities for three
+data budgets against the Laplace truth. The main discrepancies occur at the
+cusp and in the tails. \emph{Right:} relative errors in $\alpha$, innovation
+variance and fourth cumulant versus $\nseq$, showing the hierarchy from
+correlation to scale to higher-order shape.}
+\label{fig:em-innovation}
+\end{figure}
+
+A finite Gaussian mixture necessarily rounds the Laplace cusp, so the remaining
+shape error reflects both information lost through the OU channel and
+approximation by the mixture family. For the developments that follow, the
+estimated kernel is therefore most reliable in its correlation structure,
+reasonably accurate in scale, and substantially less informative about
+higher-order tail shape.
+

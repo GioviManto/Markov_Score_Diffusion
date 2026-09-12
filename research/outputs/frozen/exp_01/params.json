@@ -1,0 +1,49 @@
+{
+  "n_sites": 32,
+  "rhos": [
+    0.2,
+    0.5,
+    0.8,
+    0.95
+  ],
+  "m_values": [
+    101,
+    201,
+    401,
+    801
+  ],
+  "a_values": [
+    4.0,
+    5.0,
+    6.0,
+    7.0,
+    8.0
+  ],
+  "t_values": [
+    0.005,
+    0.01,
+    0.02,
+    0.05,
+    0.1,
+    0.2,
+    0.4,
+    0.8,
+    1.6,
+    2.4
+  ],
+  "n_trials": 5,
+  "provenance": {
+    "timestamp": "2026-08-16 13:56:21",
+    "git_commit": "",
+    "git_branch": "",
+    "git_dirty": "",
+    "python": "3.13.11",
+    "numpy": "2.5.1",
+    "platform": "Linux-5.14.0-687.5.3.el9_8.x86_64-x86_64-with-glibc2.34",
+    "hostname": "cnode06",
+    "slurm_job_id": "628478",
+    "slurm_array_task_id": "0",
+    "cpu_count": "40",
+    "blas_threads": "4"
+  }
+}

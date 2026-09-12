@@ -1,0 +1,89 @@
+{
+  "n_sites": 32,
+  "rho_true": 0.85,
+  "grid_half_width": 8.0,
+  "t_train": [
+    0.05,
+    0.0725,
+    0.1053,
+    0.1527,
+    0.2216,
+    0.3215,
+    0.4665,
+    0.6769,
+    0.9821,
+    1.425,
+    2.0676,
+    3.0
+  ],
+  "n_components": 8,
+  "n_test": 256,
+  "n_val": 256,
+  "test_tag": "exp07-test",
+  "val_tag": "exp07-val",
+  "parameterizations": [
+    "eps",
+    "x0"
+  ],
+  "quick": false,
+  "parts": [
+    "sample_efficiency_val"
+  ],
+  "overrides": [
+    "seed=1",
+    "sizes=(8192,)",
+    "em_iters=3200",
+    "net_steps=100000"
+  ],
+  "grid_size": 401,
+  "sizes": [
+    8192
+  ],
+  "net_hidden": [
+    128,
+    128
+  ],
+  "net_steps": 100000,
+  "archs": "((32, 32), (128, 128), (256, 256), (512, 512))",
+  "step_counts": [
+    1000,
+    5000,
+    20000
+  ],
+  "capacity_n": 1024,
+  "t_probe": [
+    0.02,
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.3,
+    0.4,
+    0.6,
+    0.8,
+    1.2,
+    1.6,
+    2.4,
+    3.2
+  ],
+  "inference_batches": [
+    32,
+    128,
+    512
+  ],
+  "seed": 1,
+  "em_iters": 3200,
+  "timestamp": "2026-08-21 19:03:15",
+  "git_commit": "286b305a419b741e3965d119a8404955017510a1",
+  "git_branch": "",
+  "git_dirty": "M overleaf/compendium/chapters/ch11-claim-audit.tex\n M overleaf/paper/appendix.tex\n M overleaf/paper/main.tex\n M overleaf/shared/sections/efficiency-numbers.tex\n M overleaf/shared/sections/tab-efficiency.tex\n M overleaf/thesis/chapters/ch12-conclusions.tex\n M questions/HANDOVER_image_video_generation.md\n M research/nongaussian-bp/experiments/exp_06_em_parameter_recovery.py\n M research/nongaussian-bp/experiments/exp_07_em_vs_score_network.py\n M research/nongaussian-bp/experiments/exp_24_wavelet_fit.py\n M research/nongaussian-bp/experiments/frozen_config.py\n M research/nongaussian-bp/hpc/bocconi_wavelet.sbatch\n M research/nongaussian-bp/outputs/exp_16_cluster/components_converged_C2_seed2/generation.csv\n M research/nongaussian-bp/outputs/exp_16_cluster/components_converged_C2_seed2/params_generate.json\n M research/nongaussian-bp/src/em.py\n M research/nongaussian-bp/src/scale_kernel.py\n M research/nongaussian-bp/src/wavelet_bp.py\n M research/nongaussian-bp/src/wavelet_model.py\n M research/nongaussian-bp/tests/test_backend_parity.py\n M research/nongaussian-bp/tests/test_scale_kernel.py\n M research/nongaussian-bp/tests/test_wavelet_model.py\n M research/nongaussian-bp/tools/make_tab_efficiency.py\n?? overleaf/shared/sections/rate-numbers.tex\n?? research/nongaussian-bp/experiments/exp_30_fid_validation.py\n?? research/nongaussian-bp/outputs/exp_16_cluster/components_converged_C2_seed0/\n?? research/nongaussian-bp/outputs/exp_16_cluster/components_converged_C2_seed1/\n?? research/nongaussian-bp/outputs/exp_16_cluster/components_converged_C4_seed0/\n?? research/nongaussian-bp/outputs/exp_16_cluster/components_converged_C4_seed1/\n?? research/nongaussian-bp/outputs/frozen/.ok_task100\n?? research/nongaussian-bp/outputs/frozen/.ok_task101\n?? research/nongaussian-bp/outputs/frozen/.ok_task102\n?? research/nongaussian-bp/outputs/frozen/.ok_task103\n?? research/nongaussian-bp/outputs/frozen/.ok_task104\n?? research/nongaussian-bp/outputs/frozen/.ok_task105\n?? research/nongaussian-bp/outputs/frozen/.ok_task110\n?? research/nongaussian-bp/outputs/frozen/.ok_task111\n?? research/nongaussian-bp/outputs/frozen/.ok_task112\n?? research/nongaussian-bp/outputs/frozen/.ok_task113\n?? research/nongaussian-bp/outputs/frozen/.ok_task114\n?? research/nongaussian-bp/outputs/frozen/.ok_task115\n?? research/nongaussian-bp/outputs/frozen/.ok_task116\n?? research/nongaussian-bp/outputs/frozen/.ok_task117\n?? research/nongaussian-bp/outputs/frozen/.ok_task118\n?? research/nongaussian-bp/outputs/frozen/.ok_task119\n?? research/nongaussian-bp/outputs/frozen/.ok_task120\n?? research/nongaussian-bp/outputs/frozen/.ok_task121\n?? research/nongaussian-bp/outputs/frozen/.ok_task122\n?? research/nongaussian-bp/outputs/frozen/.ok_task123\n?? research/nongaussian-bp/outputs/frozen/.ok_task124\n?? research/nongaussian-bp/outputs/frozen/.ok_task125\n?? research/nongaussian-bp/outputs/frozen/.ok_task130\n?? research/nongaussian-bp/outputs/frozen/.ok_task131\n?? research/nongaussian-bp/outputs/frozen/.ok_task132\n?? research/nongaussian-bp/outputs/frozen/.ok_task133\n?? research/nongaussian-bp/outputs/frozen/.ok_task134\n?? research/nongaussian-bp/outputs/frozen/.ok_task135\n?? research/nongaussian-bp/outputs/frozen/.ok_task136\n?? research/nongaussian-bp/outputs/frozen/.ok_task137\n?? research/nongaussian-bp/outputs/frozen/.ok_task138\n?? research/nongaussian-bp/outputs/frozen/.ok_task139\n?? research/nongaussian-bp/outputs/frozen/.ok_task140\n?? research/nongaussian-bp/outputs/frozen/.ok_task141\n?? research/nongaussian-bp/outputs/frozen/.ok_task142\n?? research/nongaussian-bp/outputs/frozen/.ok_task143\n?? research/nongaussian-bp/outputs/frozen/.ok_task144\n?? research/nongaussian-bp/outputs/frozen/.ok_task145\n?? research/nongaussian-bp/outputs/frozen/.ok_task150\n?? research/nongaussian-bp/outputs/frozen/.ok_task151\n?? research/nongaussian-bp/outputs/frozen/.ok_task152\n?? research/nongaussian-bp/outputs/frozen/.ok_task153\n?? research/nongaussian-bp/outputs/frozen/.ok_task154\n?? research/nongaussian-bp/outputs/frozen/.ok_task155\n?? research/nongaussian-bp/outputs/frozen/.ok_task156\n?? research/nongaussian-bp/outputs/frozen/.ok_task157\n?? research/nongaussian-bp/outputs/frozen/.ok_task158\n?? research/nongaussian-bp/outputs/frozen/.ok_task159\n?? research/nongaussian-bp/outputs/frozen/.ok_task160\n?? research/nongaussian-bp/outputs/frozen/.ok_task161\n?? research/nongaussian-bp/outputs/frozen/.ok_task162\n?? research/nongaussian-bp/outputs/frozen/.ok_task163\n?? research/nongaussian-bp/outputs/frozen/.ok_task164\n?? research/nongaussian-bp/outputs/frozen/.ok_task165\n?? research/nongaussian-bp/outputs/frozen/.ok_task170\n?? research/nongaussian-bp/outputs/frozen/.ok_task171\n?? research/nongaussian-bp/outputs/frozen/.ok_task172\n?? research/nongaussian-bp/outputs/frozen/.ok_task173\n?? research/nongaussian-bp/outputs/frozen/.ok_task174\n?? research/nongaussian-bp/outputs/frozen/.ok_task175\n?? research/nongaussian-bp/outputs/frozen/.ok_task176\n?? research/nongaussian-bp/outputs/frozen/.ok_task177\n?? research/nongaussian-bp/outputs/frozen/.ok_task178\n?? research/nongaussian-bp/outputs/frozen/.ok_task179\n?? research/nongaussian-bp/outputs/frozen/.ok_task180\n?? research/nongaussian-bp/outputs/frozen/.ok_task181\n?? research/nongaussian-bp/outputs/frozen/.ok_task182\n?? research/nongaussian-bp/outputs/frozen/.ok_task183\n?? research/nongaussian-bp/outputs/frozen/.ok_task184\n?? research/nongaussian-bp/outputs/frozen/.ok_task185\n?? research/nongaussian-bp/outputs/frozen/.ok_task30\n?? research/nongaussian-bp/outputs/frozen/.ok_task31\n?? research/nongaussian-bp/outputs/frozen/.ok_task32\n?? research/nongaussian-bp/outputs/frozen/.ok_task33\n?? research/nongaussian-bp/outputs/frozen/.ok_task40\n?? research/nongaussian-bp/outputs/frozen/.ok_task41\n?? research/nongaussian-bp/outputs/frozen/.ok_task42\n?? research/nongaussian-bp/outputs/frozen/.ok_task43\n?? research/nongaussian-bp/outputs/frozen/.ok_task44\n?? research/nongaussian-bp/outputs/frozen/.ok_task45\n?? research/nongaussian-bp/outputs/frozen/.ok_task46\n?? research/nongaussian-bp/outputs/frozen/.ok_task47\n?? research/nongaussian-bp/outputs/frozen/.ok_task48\n?? research/nongaussian-bp/outputs/frozen/.ok_task49\n?? research/nongaussian-bp/outputs/frozen/.ok_task50\n?? research/nongaussian-bp/outputs/frozen/.ok_task51\n?? research/nongaussian-bp/outputs/frozen/.ok_task52\n?? research/nongaussian-bp/outputs/frozen/.ok_task53\n?? research/nongaussian-bp/outputs/frozen/.ok_task54\n?? research/nongaussian-bp/outputs/frozen/.ok_task55\n?? research/nongaussian-bp/outputs/frozen/.ok_task60\n?? research/nongaussian-bp/outputs/frozen/.ok_task61\n?? research/nongaussian-bp/outputs/frozen/.ok_task62\n?? research/nongaussian-bp/outputs/frozen/.ok_task63\n?? research/nongaussian-bp/outputs/frozen/.ok_task64\n?? research/nongaussian-bp/outputs/frozen/.ok_task65\n?? research/nongaussian-bp/outputs/frozen/.ok_task66\n?? research/nongaussian-bp/outputs/frozen/.ok_task67\n?? research/nongaussian-bp/outputs/frozen/.ok_task68\n?? research/nongaussian-bp/outputs/frozen/.ok_task69\n?? research/nongaussian-bp/outputs/frozen/.ok_task70\n?? research/nongaussian-bp/outputs/frozen/.ok_task71\n?? research/nongaussian-bp/outputs/frozen/.ok_task72\n?? research/nongaussian-bp/outputs/frozen/.ok_task73\n?? research/nongaussian-bp/outputs/frozen/.ok_task74\n?? research/nongaussian-bp/outputs/frozen/.ok_task75\n?? research/nongaussian-bp/outputs/frozen/.ok_task80\n?? research/nongaussian-bp/outputs/frozen/.ok_task81\n?? research/nongaussian-bp/outputs/frozen/.ok_task82\n?? research/nongaussian-bp/outputs/frozen/.ok_task83\n?? research/nongaussian-bp/outputs/frozen/.ok_task84\n?? research/nongaussian-bp/outputs/frozen/.ok_task85\n?? research/nongaussian-bp/outputs/frozen/.ok_task86\n?? research/nongaussian-bp/outputs/frozen/.ok_task87\n?? research/nongaussian-bp/outputs/frozen/.ok_task90\n?? research/nongaussian-bp/outputs/frozen/.ok_task91\n?? research/nongaussian-bp/outputs/frozen/.ok_task92\n?? research/nongaussian-bp/outputs/frozen/.ok_task93\n?? research/nongaussian-bp/outputs/frozen/.ok_task94\n?? research/nongaussian-bp/outputs/frozen/.ok_task95\n?? research/nongaussian-bp/outputs/frozen/.ok_task96\n?? research/nongaussian-bp/outputs/frozen/.ok_task97\n?? research/nongaussian-bp/outputs/frozen/.ok_task98\n?? research/nongaussian-bp/outputs/frozen/.ok_task99\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed10/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed10/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed11/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed11/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed12/\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed13/\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed14/\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed15/\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed6/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed6/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed7/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed7/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed8/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed8/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed9/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_budget2048_seed9/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed12/sample_efficiency.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed12/sample_efficiency.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed12/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed12/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed12/training_cost.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed13/sample_efficiency.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed13/sample_efficiency.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed13/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed13/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed13/training_cost.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed14/sample_efficiency.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed14/sample_efficiency.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed14/sample_efficiency_val.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed14/sample_efficiency_val.png\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed14/training_cost.csv\n?? research/nongaussian-bp/outputs/frozen/exp_07_i400_seed15/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed0/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed1/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed10/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed11/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed12/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed13/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed14/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed15/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed2/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed3/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed4/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed5/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed6/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed7/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed8/\n?? research/nongaussian-bp/outputs/frozen/exp_07_n4096_seed9/\n?? research/nongaussian-bp/outputs/frozen/exp_28_ring_em_p0/\n?? research/nongaussian-bp/outputs/frozen/exp_28_ring_em_p3/\n?? research/nongaussian-bp/outputs/rate_robustness/\n?? research/nongaussian-bp/src/fid.py\n?? research/nongaussian-bp/tests/test_fid.py\n?? research/nongaussian-bp/tools/make_rate_analysis.py\n?? research/nongaussian-bp/tools/rate_robustness.py",
+  "revision_source": "REVISION file",
+  "python": "3.13.11",
+  "numpy": "2.5.1",
+  "platform": "Linux-5.14.0-687.5.3.el9_8.x86_64-x86_64-with-glibc2.34",
+  "hostname": "gnode10",
+  "slurm_job_id": "633388",
+  "slurm_array_task_id": "191",
+  "cpu_count": "32",
+  "blas_threads": "4"
+}

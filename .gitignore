@@ -1,0 +1,18 @@
+# TeX build intermediates (tectonic --keep-intermediates / check.sh)
+main.aux
+main.bbl
+main.blg
+main.log
+main.out
+main.toc
+*.synctex.gz
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+research/.venv/
+
+# Scratch experiment outputs: only outputs/frozen/ is evidence and is tracked.
+research/outputs/*
+!research/outputs/frozen/

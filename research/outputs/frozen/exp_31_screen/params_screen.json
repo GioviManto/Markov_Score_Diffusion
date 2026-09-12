@@ -1,0 +1,127 @@
+{
+  "n_sites": 32,
+  "t_schedule": [
+    0.05,
+    0.0725,
+    0.1053,
+    0.1527,
+    0.2216,
+    0.3215,
+    0.4665,
+    0.6769,
+    0.9821,
+    1.425,
+    2.0676,
+    3.0
+  ],
+  "grid_half_width": 8.0,
+  "bulk": [
+    4,
+    28
+  ],
+  "quick": false,
+  "parts": [
+    "screen"
+  ],
+  "overrides": [
+    "dev_seeds=4",
+    "sizes=(32,2048)",
+    "lrs=(1e-3,3e-3)"
+  ],
+  "rho": 0.85,
+  "grid_size": 401,
+  "sizes": [
+    32,
+    2048
+  ],
+  "n_val": 1024,
+  "n_test": 2048,
+  "seeds": 16,
+  "seed0": 0,
+  "dev_seeds": 4,
+  "em_components": 8,
+  "em_inner": 16,
+  "em_init_rho": 0.3,
+  "em_checkpoints": [
+    10,
+    20,
+    40,
+    60,
+    80,
+    120,
+    160,
+    220,
+    300,
+    400,
+    600,
+    800,
+    1200
+  ],
+  "net_checkpoints": [
+    500,
+    1000,
+    2000,
+    4000,
+    8000,
+    16000,
+    32000,
+    64000
+  ],
+  "batch_size": 64,
+  "lrs": [
+    0.001,
+    0.003
+  ],
+  "parameterizations": [
+    "eps",
+    "x0"
+  ],
+  "window_radii": [
+    2,
+    4,
+    8,
+    16
+  ],
+  "window_widths": [
+    64,
+    128
+  ],
+  "conv_channels": [
+    64,
+    128
+  ],
+  "conv_dilations": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "bimp_hidden": [
+    64,
+    128
+  ],
+  "screen_arch": [
+    "window",
+    "conv",
+    "bimp"
+  ],
+  "winners": null,
+  "grad_clip": 1.0,
+  "saturation_rel": 0.01,
+  "resolved_config_hash": "7745c63c6dc8",
+  "timestamp": "2026-08-28 12:03:08",
+  "git_commit": "569a67c66b27332b99bcfc4884ef79ad216820f6",
+  "git_branch": "",
+  "git_dirty": "",
+  "source_archive_sha256": "32bb326eece67bd62b0c786eef1e9f887172767cafe44149f3e66a7b77b57f52",
+  "source_is_clean": true,
+  "revision_source": "REVISION file",
+  "python": "3.13.11",
+  "numpy": "2.5.1",
+  "platform": "Linux-5.14.0-687.5.3.el9_8.x86_64-x86_64-with-glibc2.34",
+  "hostname": "gnode13",
+  "slurm_job_id": "635628",
+  "slurm_array_task_id": "",
+  "cpu_count": "32",
+  "blas_threads": "16"
+}

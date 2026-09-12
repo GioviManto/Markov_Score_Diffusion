@@ -1,0 +1,66 @@
+{
+  "n_sites": 32,
+  "t_schedule": [
+    0.05,
+    0.0725,
+    0.1053,
+    0.1527,
+    0.2216,
+    0.3215,
+    0.4665,
+    0.6769,
+    0.9821,
+    1.425,
+    2.0676,
+    3.0
+  ],
+  "quick": false,
+  "parts": [
+    "sweep"
+  ],
+  "overrides": [
+    "shard_seed0=0",
+    "shard_seeds=7"
+  ],
+  "rho": 0.85,
+  "grid_size": 401,
+  "half_width": 8.0,
+  "components": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "sizes": [
+    128,
+    512
+  ],
+  "seeds": 16,
+  "seed0": 0,
+  "shard_seed0": 0,
+  "shard_seeds": 7,
+  "inits_per_cell": 2,
+  "n_val": 512,
+  "n_test": 1024,
+  "em_cap": 1200,
+  "equiv_logev_abs": 0.0001,
+  "equiv_risk_rel": 0.01,
+  "boot_resamples": 20000,
+  "resolved_config_hash": "fdc5f5fd64f7",
+  "timestamp": "2026-08-31 04:44:06",
+  "git_commit": "35578c9994f6b675a8eb01fcaf3d830a6f71a34f",
+  "git_branch": "",
+  "git_dirty": "",
+  "source_archive_sha256": "59dd9db33272d692ae17a2ab530eb9008870d4a8113a487d1db40b18fbe5fd3e",
+  "source_is_clean": true,
+  "revision_source": "REVISION file",
+  "python": "3.13.11",
+  "numpy": "2.5.1",
+  "platform": "Linux-5.14.0-687.5.3.el9_8.x86_64-x86_64-with-glibc2.34",
+  "hostname": "gnode10",
+  "slurm_job_id": "641516",
+  "slurm_array_task_id": "",
+  "cpu_count": "32",
+  "blas_threads": ""
+}

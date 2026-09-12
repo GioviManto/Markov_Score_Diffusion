@@ -1,0 +1,78 @@
+{
+  "omega_true_rad": 0.5235987755982988,
+  "omega_true_deg": 29.999999999999996,
+  "quick": false,
+  "parts": [
+    "potential"
+  ],
+  "overrides": [
+    "seeds=(325160077, 1470120544)",
+    "potential_steps=600"
+  ],
+  "seeds": [
+    325160077,
+    1470120544
+  ],
+  "sizes": [
+    32,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096
+  ],
+  "t_grid": [
+    0.05,
+    0.0725,
+    0.1053,
+    0.1527,
+    0.2216,
+    0.3215,
+    0.4665,
+    0.6769,
+    0.9821,
+    1.425,
+    2.0676,
+    3.0
+  ],
+  "density_t": [
+    0.05,
+    0.4665,
+    1.425
+  ],
+  "potential_t": [
+    0.05,
+    0.1053,
+    0.2216,
+    0.4665,
+    0.9821,
+    2.0676
+  ],
+  "potential_sizes": [
+    128,
+    512,
+    1024,
+    2048,
+    4096
+  ],
+  "ring_n_frames": 12,
+  "ring_sigma": 0.3,
+  "ring_lambda": 0.05,
+  "ring_r_star": 1.0,
+  "ring_n_psi": 128,
+  "em_iters": 200,
+  "potential_steps": 600,
+  "timestamp": "2026-08-17 02:04:36",
+  "git_commit": "",
+  "git_branch": "",
+  "git_dirty": "",
+  "python": "3.13.11",
+  "numpy": "2.5.1",
+  "platform": "Linux-5.14.0-687.5.3.el9_8.x86_64-x86_64-with-glibc2.34",
+  "hostname": "cnode05",
+  "slurm_job_id": "629196",
+  "slurm_array_task_id": "82",
+  "cpu_count": "40",
+  "blas_threads": "4"
+}

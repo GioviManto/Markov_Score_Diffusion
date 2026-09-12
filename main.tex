@@ -1,0 +1,110 @@
+% ============================================================
+% MSc Research Thesis — DSBA, Bocconi University, A.Y. 2025-2026
+%
+% Format per "Guide to the University" §10.3:
+%   - no title page and no abstract in this file (added by the university system)
+%   - first four pages: blank / blank / acknowledgements / blank
+%   - content starts at page 5 (numbering includes the preliminary pages)
+%   - no personal information of the author anywhere in the document
+%
+% Build:  tectonic main.tex   (runs bibtex automatically)
+% ============================================================
+\documentclass[12pt,a4paper,openany]{report}
+\input{preamble}
+% Title string (title.tex) goes into the PDF metadata only; the printed
+% title page and the abstract are added by the university system (§10.3),
+% which is also why abstract.tex is not input here.
+\input{title}
+\hypersetup{pdftitle={\thesistitle}}
+\input{sections/efficiency-numbers}
+\input{sections/structured-numbers}
+\input{sections/screening-numbers}
+\input{sections/capacity-numbers}
+\input{sections/convergence-numbers}
+\input{sections/structured-aggregation-numbers}
+\input{sections/nonmarkov-numbers}
+\input{sections/grid-diagnostics-numbers}
+\input{sections/thesis-fig-numbers}
+\input{sections/laplace-oracle-numbers}
+\input{sections/info-conditioning-numbers}
+\input{sections/build-manifest}
+
+\begin{document}
+
+% ------------------------------------------------------------
+% Four preliminary pages required by the university (§10.3.1)
+% ------------------------------------------------------------
+\thispagestyle{empty}\null\clearpage                 % page 1: blank
+\thispagestyle{empty}\null\clearpage                 % page 2: blank
+\thispagestyle{empty}                                 % page 3: acknowledgements
+\vspace*{0.35\textheight}
+\begin{center}
+\itshape
+To my family.
+\end{center}
+\clearpage
+\thispagestyle{empty}\null\clearpage                 % page 4: blank
+
+% ------------------------------------------------------------
+% Content starts here (page 5, odd/right page)
+% ------------------------------------------------------------
+\setcounter{page}{5}
+\tableofcontents
+\clearpage
+% ensure the thesis body starts on an odd (right) page
+\ifodd\value{page}\else\null\thispagestyle{empty}\clearpage\fi
+
+% AI-use disclosure, before the Introduction (university transparency guidance)
+\input{chapters/disclosure}
+
+% Part 0 — context
+\input{chapters/ch01-introduction}
+\input{chapters/ch02-statmech-diffusion}
+\input{chapters/ch03-model}
+% Part I — exact scores under known dynamics. The ring comes first because it
+% is where the work started: it is the model that showed a dynamical parameter
+% can be invisible to every one-frame marginal, which is the argument for
+% studying the joint score at all.
+\input{chapters/ch04-ring}
+\input{chapters/ch05-gaussian-matrix}
+\input{chapters/ch06-gaussian-bp}
+\input{chapters/ch07-laplace}
+% Part II — learning dynamics that are not known
+\input{chapters/ch08-em-parameters}
+\input{chapters/ch09-em-kernel}
+\input{chapters/ch10-comparison}
+\input{chapters/ch11-conclusions}
+
+% ------------------------------------------------------------
+% Bibliography — author-date (writing guide, Attachment 2).
+% Directly after the conclusions; acknowledgements and the appendices follow.
+% ------------------------------------------------------------
+\clearpage
+\phantomsection\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{apalike}
+% One bibliography for all four documents. Four hand-kept copies of the same
+% entries is precisely how two documents come to cite the same work
+% differently, which is the failure Appendix A warns about for numbers.
+\bibliography{references}
+\clearpage
+
+\input{chapters/acknowledgements}
+
+\appendix
+\input{chapters/appA-reproducibility}
+% How the headline ratios were averaged. Kept in the thesis rather than moved
+% out: it is the working behind the headline claim, and a reader checking that
+% number should not have to leave the document to do it.
+\input{chapters/appB-aggregation}
+% Appendices D-F -- the statistical-mechanics, stochastic-calculus and
+% diffusion-model background derivations -- are not submitted with the thesis.
+% They establish textbook material that none of the original results depend on,
+% and at roughly fifty pages they pushed the document to nearly four times
+% Bocconi's general length guidance while lowering the fraction of it that is
+% this work. They are retained in full in the companion compendium.
+% The withdrawn-results appendix moved to the compendium's claim audit
+% (Corrections chapter). A thesis reports its findings; the development record
+% of what was claimed and retracted along the way belongs in the companion
+% document, which exists for exactly that.
+
+\end{document}

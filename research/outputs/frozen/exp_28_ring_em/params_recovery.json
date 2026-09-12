@@ -1,0 +1,41 @@
+{
+  "omega_true_rad": 0.5235987755982988,
+  "omega_true_deg": 29.999999999999996,
+  "quick": true,
+  "parts": [
+    "recovery"
+  ],
+  "overrides": [],
+  "seeds": [
+    123393400,
+    295485566
+  ],
+  "sizes": [
+    128,
+    512
+  ],
+  "t_grid": [
+    0.05,
+    0.4665
+  ],
+  "density_t": [
+    0.05
+  ],
+  "ring_n_frames": 12,
+  "ring_sigma": 0.3,
+  "ring_lambda": 0.05,
+  "ring_n_psi": 64,
+  "em_iters": 60,
+  "timestamp": "2026-08-16 10:34:47",
+  "git_commit": "39e7564dc5ffad40cd3850e78c7ddb9d7a04d28b",
+  "git_branch": "main",
+  "git_dirty": "A  research/nongaussian-bp/paper/Things-to-change-paper.md\n M research/nongaussian-bp/paper/main.tex\n M research/nongaussian-bp/paper/notation.tex\n?? research/nongaussian-bp/experiments/exp_28_ring_em.py\n?? research/nongaussian-bp/experiments/frozen_config.py\n?? research/nongaussian-bp/outputs/frozen/\n?? research/nongaussian-bp/src/ring.py",
+  "python": "3.12.5",
+  "numpy": "2.5.2",
+  "platform": "macOS-14.1.1-arm64-arm-64bit",
+  "hostname": "MacBook-Air-160.local",
+  "slurm_job_id": "",
+  "slurm_array_task_id": "",
+  "cpu_count": "8",
+  "blas_threads": ""
+}

@@ -1,0 +1,91 @@
+{
+  "n_sites": 32,
+  "rho_true": 0.85,
+  "grid_half_width": 8.0,
+  "t_train": [
+    0.05,
+    0.0725,
+    0.1053,
+    0.1527,
+    0.2216,
+    0.3215,
+    0.4665,
+    0.6769,
+    0.9821,
+    1.425,
+    2.0676,
+    3.0
+  ],
+  "n_components": 8,
+  "n_test": 256,
+  "n_val": 256,
+  "test_tag": "exp07-test",
+  "val_tag": "exp07-val",
+  "parameterizations": [
+    "eps",
+    "x0"
+  ],
+  "quick": false,
+  "parts": [
+    "sample_efficiency",
+    "sample_efficiency_val"
+  ],
+  "overrides": [
+    "seed=1"
+  ],
+  "grid_size": 401,
+  "sizes": [
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048
+  ],
+  "net_hidden": [
+    128,
+    128
+  ],
+  "net_steps": 20000,
+  "archs": "((32, 32), (128, 128), (256, 256), (512, 512))",
+  "step_counts": [
+    1000,
+    5000,
+    20000
+  ],
+  "capacity_n": 1024,
+  "t_probe": [
+    0.02,
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.3,
+    0.4,
+    0.6,
+    0.8,
+    1.2,
+    1.6,
+    2.4,
+    3.2
+  ],
+  "inference_batches": [
+    32,
+    128,
+    512
+  ],
+  "seed": 1,
+  "timestamp": "2026-08-16 21:15:20",
+  "git_commit": "",
+  "git_branch": "",
+  "git_dirty": "",
+  "python": "3.13.11",
+  "numpy": "2.5.1",
+  "platform": "Linux-5.14.0-687.5.3.el9_8.x86_64-x86_64-with-glibc2.34",
+  "hostname": "cnode03",
+  "slurm_job_id": "628948",
+  "slurm_array_task_id": "41",
+  "cpu_count": "24",
+  "blas_threads": "4"
+}
