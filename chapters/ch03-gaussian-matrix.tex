@@ -1,0 +1,473 @@
+% ============================================================
+% Chapter 3 -- The Gaussian chain by linear algebra
+%
+% The first model studied. Opens with the minimal model definition, the
+% joint-versus-marginal example, and then the closed-form analysis of the
+% score: covariance, precision, spectral form, lifecycle of the couplings.
+% ============================================================
+
+\chapter{The Gaussian Chain by Linear Algebra}
+\label{ch:gaussian}\label{ch:model}\label{ch:background}
+
+The stationary Gaussian AR(1) chain is the simplest non-trivial exactly
+solvable model in which temporal dependence survives Ornstein--Uhlenbeck
+corruption and the full joint score can be studied analytically. This chapter
+does that with matrices: the clean law, its dense covariance and sparse
+precision, the score in two equivalent forms, and the lifecycle the coupling
+structure passes through as the diffusion time grows. Chapter~\ref{ch:gaussian-bp}
+obtains the same score by message passing.
+
+\section{The model and the object of study}
+\label{sec:g-model}\label{sec:markov}\label{sec:ou}\label{sec:stationarity}
+
+A sequence $(a_k)_{k\ge0}$ is a time-homogeneous Markov chain with
+transition kernel $\kernel(a'\mid a)$ if the joint law of its first
+$\nsites$ states factorises into local terms,
+\begin{equation}
+  p(a_0, \dots, a_{\nsites-1})
+  \;=\; p_0(a_0)\, \prod_{k=0}^{\nsites-2} \kernel(a_{k+1} \mid a_k) .
+  \label{eq:chain-factorisation}
+\end{equation}
+This is the most heavily used equation of the thesis: each factor touches two
+consecutive variables, which makes the chain a tree in the factor-graph sense
+of Chapter~\ref{ch:gaussian-bp} and its precision tridiagonal in the Gaussian
+case below. The running example is the scalar Gaussian autoregression of order
+one \citep{brockwell1991time},
+\begin{equation}
+  a_{k+1} \;=\; \alpha\, a_k + \eta_k ,
+  \qquad
+  \eta_k \stackrel{\text{iid}}{\sim} \Nd(0, \ivar),
+  \qquad
+  \ivar = 1-\alpha^2,
+  \qquad a_0 \sim \Nd(0,1),
+  \qquad |\alpha| < 1,
+  \label{eq:ar1}
+\end{equation}
+with kernel $\kernel(a' \mid a) = \Nd(a'; \alpha a, \ivar)$. Since
+$\operatorname{Var}(a_{k+1}) = \alpha^2\operatorname{Var}(a_k) + \ivar$, the
+choice $\ivar = 1-\alpha^2$ holds the marginal variance at one, so
+$a_k \sim \Nd(0,1)$ for every $k$; and unrolling the recursion,
+$a_{k+d} = \alpha^{d} a_k + (\text{innovations independent of } a_k)$, gives
+\begin{equation}
+  (\Sigz)_{ij} \;:=\; \Cov(a_i, a_j) \;=\; \alpha^{|i-j|} .
+  \label{eq:g-ar1-covariance}
+\end{equation}
+Because $a_0$ is drawn from the fixed point of $\kernel$, the chain is
+strictly stationary, and $\Sigz$ is symmetric Toeplitz: dense for
+$\alpha \ne 0$, with correlations decaying geometrically at the correlation
+length $\tau = -1/\ln|\alpha|$. The coupling is global although the mechanism
+is local; the locality is in the inverse.
+
+Every frame is corrupted independently by the Ornstein--Uhlenbeck channel of
+Section~\ref{sec:sm-diffusion}, $\dd X_t = -X_t\,\dd t + \sqrt2\,\dd W_t$
+from $X_0 = a$, whose solution is $X_t \mid a \sim \Nd(a e^{-t}, \Deltat)$ with
+$\Deltat = 1 - e^{-2t}$ \citep{uhlenbeck1930theory, gardiner2009stochastic}.
+Stacking the $\nsites$ frames,
+\begin{equation}
+  x \;=\; e^{-t} a + \sqrt{\Deltat}\;\xi,
+  \qquad \xi \sim \Nd(0, I_{\nsites}),\quad \xi \perp a ,
+  \label{eq:ou-channel}
+\end{equation}
+and the object of study is the joint score of the noisy sequence,
+\begin{equation}
+  \score(x, t) \;=\; \nabla_x \log P_t(x) \;\in\; \R^{\nsites},
+  \qquad
+  P_t(x) = \int_{\R^{\nsites}} P_0(a) \prod_{k=0}^{\nsites-1}
+    \Nd\big(x_k;\, e^{-t}a_k,\, \Deltat\big)\, \dd a ,
+  \label{eq:g-object}
+\end{equation}
+the gradient taken with respect to all $\nsites$ noisy frames at once
+(Figure~\ref{fig:thesis-pipeline}).
+
+\begin{figure}[t]\centering
+\begin{tikzpicture}[
+  latent/.style={circle, draw, minimum size=6.4mm, inner sep=0pt, font=\small},
+  obs/.style={circle, draw, fill=black!12, minimum size=6.4mm, inner sep=0pt, font=\small},
+  fac/.style={rectangle, draw, fill=black, minimum size=1.8mm, inner sep=0pt},
+  box/.style={rectangle, draw, rounded corners=1.6pt, align=center,
+              inner sep=3.6pt, font=\small, text width=45mm},
+  lbl/.style={font=\small},
+  >={Stealth}, scale=0.95, every node/.style={transform shape}]
+\foreach \i in {0,1,2,3}{ \node[latent] (a\i) at (1.5*\i, 0) {$a_{\i}$}; }
+\foreach \i/\j in {0/1,1/2,2/3}{
+  \node[fac] (k\i) at (1.5*\i+0.75, 0) {};
+  \draw (a\i) -- (k\i) -- (a\j);
+}
+\node[lbl, left=2.5mm of a0, align=right] {clean\\chain};
+\node[lbl, above=1.5mm of k1] {$\kernel(a_{k}\mid a_{k-1})$};
+\foreach \i in {0,1,2,3}{
+  \node[obs] (x\i) at (1.5*\i, -1.75) {$x_{\i}$};
+  \draw[->, thick] (a\i) -- (x\i);
+}
+\node[lbl, left=2.5mm of x0, align=right] {noised\\at time $t$};
+\node[lbl] at (2.25,-2.75) {$x_k = e^{-t}a_k + \sqrt{\Deltat}\,\varepsilon_k$};
+\coordinate (j) at (6.1,-1.75);
+\node[box] (bp)    at (9.3, 0.15) {exact inference\\[1pt]
+  {\footnotesize BP, and EM--BP when $\kernel$ is unknown}};
+\node[box] (net)   at (9.3,-3.65) {trained network\\[1pt]
+  {\footnotesize denoising score matching}};
+\node[box] (score) at (9.3,-1.75) {joint score\\[1pt] $\nabla_x \log p_t(x)$};
+\draw[thick] (x3) -- (j);
+\draw[->, thick] (j) |- (bp.west);
+\draw[->, thick] (j) |- (net.west);
+\draw[->, thick] (j) -- (score.west);
+\draw[->, thick] (bp.south)  -- (score.north);
+\draw[->, thick] (net.north) -- (score.south);
+\node[lbl, right=2mm of score, align=left, font=\footnotesize]
+  {compared at\\equal data};
+\end{tikzpicture}
+\caption[What this thesis computes, and the comparison it makes]{The object of
+the thesis and the two ways it is obtained. A Markov chain generates a clean
+trajectory; the OU channel corrupts every coordinate independently, so each
+observation attaches to the latent chain on its own and the posterior stays a
+chain. That makes the joint score exactly computable by message passing, with
+the kernel known (Chapters~\ref{ch:gaussian-bp} and~\ref{ch:laplace}) or
+estimated from noised sequences (Chapter~\ref{ch:em-method}). The same score
+is what a denoising-score-matching network approximates without being given
+the chain; Chapter~\ref{ch:em-results} measures what supplying it is worth.}
+\label{fig:thesis-pipeline}
+\end{figure}
+
+\paragraph{Why the joint score.}
+The smallest example already contains the argument. Two consecutive states of
+\eqref{eq:ar1} have $\Sigz = \begin{psmallmatrix}1&\alpha\\\alpha&1\end{psmallmatrix}$;
+noising both coordinates independently through \eqref{eq:ou-channel} leaves
+$\operatorname{Var}(x_i) = e^{-2t} + \Deltat = 1$ and gives
+$\Cov(x_0,x_1) = \alpha e^{-2t} =: r_t$, so
+\begin{equation}
+  \begin{pmatrix}x_0\\x_1\end{pmatrix} \sim \Nd(0, \Sigt),
+  \qquad
+  \Sigt = \begin{pmatrix}1 & r_t\\ r_t & 1\end{pmatrix},
+  \qquad
+  x_0, x_1 \sim \Nd(0,1),
+  \qquad
+  s^{\mathrm{marg}}_{t,k}(x_k) = -x_k .
+  \label{eq:dev-L2-marginal}
+\end{equation}
+Each one-frame marginal score contains no $\alpha$ at all. The joint score,
+from $\Sigt^{-1} = (1-r_t^2)^{-1}\begin{psmallmatrix}1&-r_t\\-r_t&1\end{psmallmatrix}$,
+is
+\begin{equation}
+  \boxed{\;
+  s_t(x_0,x_1)
+  \;=\;
+  -\frac{1}{1-r_t^2}
+  \begin{pmatrix} x_0 - r_t x_1\\ x_1 - r_t x_0 \end{pmatrix}.
+  \;}
+  \label{eq:dev-L2-score}
+\end{equation}
+The temporal coupling is invisible to every one-frame score, whose density
+carries zero Fisher information about $\alpha$, and explicit in the joint
+score; by \eqref{eq:tweedie-joint} computing the latter is an inference
+problem over the whole trajectory.
+
+\section{The clean law: the precision is tridiagonal}
+\label{sec:g-clean}\label{sec:g-precision}
+
+The score will depend not on $\Sigz$ but on its inverse, the \emph{precision}
+$\Qz := \Sigz^{-1}$.
+
+\begin{proposition}[Tridiagonal precision]\label{prop:g-Q0}
+For the chain \eqref{eq:ar1},
+\begin{equation}
+  \Qz
+  =
+  \frac{1}{\ivar}
+  \begin{pmatrix}
+    1          & -\alpha       &              &              & 0\\
+    -\alpha    & 1+\alpha^2    & -\alpha      &              & \\
+               & \ddots        & \ddots       & \ddots       & \\
+               &               & -\alpha      & 1+\alpha^2   & -\alpha\\
+    0          &               &              & -\alpha      & 1
+  \end{pmatrix},
+  \qquad (\Qz)_{ij} = 0 \ \text{ for } |i-j| \ge 2 .
+  \label{eq:g-Q0}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For a centred Gaussian, $-2\log P_0(a) = a^\T \Qz a + \mathrm{const}$, and
+the Markov factorisation \eqref{eq:chain-factorisation} of \eqref{eq:ar1}
+gives $-2\log P_0(a) = a_0^2 + \sigma_\eta^{-2}\sum_{k=0}^{\nsites-2}(a_{k+1} -
+\alpha a_k)^2 + \mathrm{const}$. Reading the quadratic form off this sum:
+each product $a_k a_{k+1}$ appears once with coefficient $-2\alpha/\ivar$,
+no product of non-adjacent coordinates appears, an interior $a_m^2$ appears in
+two transition factors with total coefficient $(1+\alpha^2)/\ivar$, and the
+endpoints appear in one, the left one together with its prior,
+$a_0^2(1 + \alpha^2/\ivar) = a_0^2/\ivar$ because $\ivar = 1-\alpha^2$.
+\end{proof}
+
+The zeros have a direct meaning: for a jointly Gaussian vector,
+$(\Qz)_{ij} = 0$ if and only if $a_i \perp a_j$ given the remaining
+coordinates, so tridiagonality is the matrix expression of first-order Markov
+structure (for any smooth Markov density the Hessian of $-\log P$ vanishes at
+$|i-j| \ge 2$; here it is constant and equals $\Qz$). The same matrix predicts
+a hidden frame from the others, $\E[a_k \mid a_{\setminus k}] =
+-(\Qz)_{kk}^{-1}\sum_{l \ne k}(\Qz)_{kl} a_l$, which for an interior frame is
+\begin{equation}
+  \E[a_k \mid a_{\setminus k}]
+  \;=\; \frac{\alpha}{1+\alpha^2}\,\big(a_{k-1} + a_{k+1}\big):
+  \label{eq:g-cond-mean}
+\end{equation}
+all information the clean chain supplies about $a_k$ is mediated by its two
+neighbours. This exact locality does not survive the channel at the level of
+the observed variables, which is the effect the rest of the chapter measures.
+
+\section{The noisy law, and the score two ways}
+\label{sec:g-noisy}\label{sec:g-score}
+
+\begin{proposition}[Noised law]\label{prop:g-Sigt}
+Under \eqref{eq:ou-channel} the noisy trajectory is Gaussian,
+$P_t(x) = \Nd(x; 0, \Sigt)$ with
+\begin{equation}
+  \boxed{\;\Sigt \;=\; e^{-2t}\Sigz + \Deltat I_{\nsites}\;},
+  \qquad
+  (\Sigt)_{ij} = e^{-2t}\alpha^{|i-j|} + \Deltat\,\delta_{ij} .
+  \label{eq:g-Sigt}
+\end{equation}
+\end{proposition}
+
+\noindent The proof is one line: $x$ is a sum of independent Gaussians with
+covariances $e^{-2t}\Sigz$ and $\Deltat I$. On the diagonal
+$e^{-2t} + \Deltat = 1$, so every frame stays marginally $\Nd(0,1)$ at every
+$t$ (the channel is variance preserving); off the diagonal every entry is
+shrunk by the single factor $e^{-2t}$, so $\Sigt$ is Toeplitz and dense at
+every finite $t$, interpolating from $\Sigz$ at $t=0$ to $I$ as
+$t \to \infty$. Since $\log P_t(x) = -\tfrac12 x^\T \Qt x + \mathrm{const}$,
+\begin{equation}
+  \boxed{\;\score(x, t) \;=\; -\,\Qt\, x,
+  \qquad \Qt := \Sigt^{-1}.\;}
+  \label{eq:g-score-matrix}
+\end{equation}
+The joint score is linear in $x$, the signature of a Gaussian $P_t$, and its
+whole content is $\Qt$: row $k$ says which frames the denoiser of frame $k$
+draws on and how strongly. At $\nsites = 2$ this is \eqref{eq:dev-L2-score}.
+The important change is in the precision, not the covariance: at $t = 0$,
+$\Qt = \Qz$ is tridiagonal; for $t > 0$, adding $\Deltat I$ to the covariance
+and inverting destroys that structure, and $\Qt$ is dense.
+
+\paragraph{The Bayesian route.} The score--posterior identity
+\eqref{eq:tweedie-joint} gives the same object as a posterior mean,
+\begin{equation}
+  \score_k(x,t) \;=\; \frac{e^{-t}\,\E[a_k\mid x]-x_k}{\Deltat} ,
+  \label{eq:g-tweedie}
+\end{equation}
+and that posterior has a structure the marginal law lacks.
+
+\begin{proposition}[Posterior of the clean chain]\label{prop:g-posterior}
+$P(a \mid x) = \Nd(a; m, J^{-1})$ with
+\begin{equation}
+  \boxed{\;
+  J \;=\; \Qz + \frac{e^{-2t}}{\Deltat}\,I_{\nsites},
+  \qquad
+  h \;=\; \frac{e^{-t}}{\Deltat}\,x,
+  \qquad
+  m \;=\; \E[a \mid x] \;=\; J^{-1} h .
+  \;}
+  \label{eq:g-posterior-precision}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+$-2\log P(a\mid x) = a^\T\Qz a + \Deltat^{-1}\|x - e^{-t}a\|^2 + \mathrm{const}
+= a^\T (\Qz + e^{-2t}\Deltat^{-1} I)\, a - 2\,(e^{-t}\Deltat^{-1}x)^\T a +
+\mathrm{const}$, which is a Gaussian in information form with precision $J$
+and field $h$.
+\end{proof}
+
+The two routes agree exactly. From $J = \Deltat^{-1}\Sigz^{-1}(\Deltat I +
+e^{-2t}\Sigz) = \Deltat^{-1}\Sigz^{-1}\Sigt$ one has $J^{-1} = \Deltat\,\Qt\Sigz$,
+and substituting $m = e^{-t}\Deltat^{-1}J^{-1}x$ into \eqref{eq:g-tweedie},
+\begin{equation}
+  \frac{e^{-t} m - x}{\Deltat}
+  = \frac{1}{\Deltat}\Big[\Qt\big(e^{-2t}\Sigz\big) - I\Big]x
+  = \frac{1}{\Deltat}\Big[\Qt\big(\Sigt - \Deltat I\big) - I\Big]x
+  = -\,\Qt\,x .
+  \label{eq:g-two-score-routes}
+\end{equation}
+What \eqref{eq:g-posterior-precision} adds is structural: the channel enters
+$J$ \emph{on the diagonal only}, because conditional on $a$ each observation
+depends on its own $a_k$ alone, so the posterior precision of the clean chain
+stays tridiagonal at every $t$ while the marginal precision $\Qt$ of the
+noisy data is dense. The Bayesian route is the one that survives beyond the
+Gaussian case (Chapter~\ref{ch:laplace}), and the tridiagonal $J$ is what
+makes it cheap (Chapter~\ref{ch:gaussian-bp}).
+
+\section{The spectral form}
+\label{sec:g-lifecycle}
+
+Between the tridiagonal $\Qz$ at $t=0$ and the identity at $t=\infty$ lies the
+whole lifecycle of the couplings, and one tool resolves it: the forward map
+\eqref{eq:g-Sigt} is affine in $\Sigz$. Write $\Sigz = U\operatorname{diag}(\omega_i)U^\T$
+with $U$ orthogonal and $\omega_i > 0$.
+
+\begin{theorem}[Spectral form and decoupling]\label{thm:g-three-forms}\label{thm:g-decouple}
+For every $t \ge 0$,
+\begin{equation}
+  \boxed{\;
+  \Sigt = U \operatorname{diag}\big( \lambda_i(t) \big) U^\T,
+  \qquad
+  \Qt = U \operatorname{diag}\!\big( 1/\lambda_i(t) \big) U^\T,
+  \qquad
+  \lambda_i(t) = e^{-2t} \omega_i + \Deltat .
+  \;}
+  \label{eq:g-Qt-spec}
+\end{equation}
+In the coordinates $\tilde x = U^\T x$ the noisy law factorises,
+$P_t(\tilde x) = \prod_i \Nd(\tilde x_i; 0, \lambda_i(t))$, the score splits
+into scalar components $\tilde\score_i = -\tilde x_i/\lambda_i(t)$, and the
+reverse-time dynamics decouple into $\nsites$ independent scalar linear
+Gaussian diffusions, one per mode.
+\end{theorem}
+
+\begin{proof}
+$I = UU^\T$ is diagonal in every orthonormal basis, so $e^{-2t}\Sigz +
+\Deltat I = U\operatorname{diag}(e^{-2t}\omega_i + \Deltat)U^\T$, and every
+$\lambda_i(t) \ge \Deltat > 0$ for $t > 0$ (and $\lambda_i(0) = \omega_i > 0$),
+so the inverse is diagonal in the same basis. Then
+$\Cov(\tilde x) = U^\T\Sigt U$ is diagonal, an uncorrelated Gaussian is
+independent, $\tilde\score = -U^\T \Qt U \tilde x$, and an orthogonal image of
+white noise is white, so the reverse SDE \eqref{eq:sm-reverse} separates
+coordinate by coordinate.
+\end{proof}
+
+Diffusion never rotates the problem: the eigenvectors are frozen for all $t$
+and only the eigenvalues move, each towards $1$
+(Figure~\ref{fig:g-eigen-relax}). In the eigenbasis the chain is $\nsites$
+scalar denoising problems with signal-to-noise ratios $e^{-2t}\omega_i/\Deltat$;
+everything non-trivial in the frame basis, the dense $\Qt$ and the band that
+fills and empties, is this diagonal object seen through the fixed rotation
+$U$.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.9\linewidth]{fig_eigen_relax.pdf}
+\caption[Eigen-axes fixed, eigenvalues relax to one]{The spectral form
+\eqref{eq:g-Qt-spec} as geometry ($\alpha = 0.7$, $\nsites = 24$).
+\emph{Left:} the covariance ellipse in the eigenbasis of $\Sigz$ at four
+diffusion times; its axes are fixed and only the semi-axes
+$\sqrt{\lambda_i(t)}$ change until the ellipse is the unit circle.
+\emph{Right:} the eigenvalue flow $\lambda_i(t)$ for all modes.}
+\label{fig:g-eigen-relax}
+\end{figure}
+
+Two rearrangements of \eqref{eq:g-Sigt} are used later. Factoring
+$\Deltat$ gives $\Qt = \Deltat^{-1}(I + \gamma_t\Sigz)^{-1}$ with the
+signal-to-noise ratio $\gamma_t = e^{-2t}/\Deltat$ running from $\infty$ to
+$0$, so $\Qt \approx e^{2t}\Qz$ for small $t$ and $\Qt \approx I$ for large
+$t$: the precision is local at both ends of the schedule. Factoring
+$e^{-2t}$ instead, with $c_t := e^{2t}-1 \sim 2t$, gives the
+\emph{resolvent form}
+\begin{equation}
+  \Qt \;=\; e^{2t}\,\Qz\,\big(I + c_t\Qz\big)^{-1}
+  \;=\; e^{2t}\sum_{m=0}^{\infty} (-c_t)^m\,\Qz^{\,m+1}
+  \qquad \big(c_t\,\lambda_{\max}(\Qz) < 1\big),
+  \label{eq:g-Qt-resolvent}
+\end{equation}
+the Neumann series converging near $t = 0$. Since $\Qz$ is tridiagonal,
+$\Qz^{m}$ has bandwidth $m$, so two frames at distance $d$ are first coupled
+by the term $\Qz^{d}$, which enters with coefficient $c_t^{\,d-1}$: the dense
+precision does not appear everywhere at once, but fills outward from the
+diagonal one graph distance per order in $t$.
+
+\section{The lifecycle of the precision}
+\label{sec:g-tridiag-loss}\label{sec:g-bulk-lifecycle}
+
+Sparsity is a property of a matrix in a basis. In the eigenbasis the problem
+is diagonal at all times; in the frame basis, the operationally meaningful
+one, the zeros of $\Qz$ are a cancellation that diffusion destroys. The
+destruction answers three questions: when, how, and how much
+(Figure~\ref{fig:g-sparsity-lifecycle}).
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.9\linewidth]{fig_sparsity_lifecycle.pdf}
+\caption[The sparsity lifecycle of $\Sigt$ and $\Qt$]{Magnitude heatmaps
+(log grey scale) of $|\Sigt|$ (top) and $|\Qt|$ (bottom), $\alpha = 0.85$,
+$\nsites = 24$, at five diffusion times with their signal-to-noise ratios
+$\gamma_t$. At $t = 0$ the covariance is dense and the precision tridiagonal;
+as $t$ grows the covariance contracts onto its diagonal while the precision
+band fills outward, then fades, until both are within $O(e^{-2t})$ of the
+identity.}
+\label{fig:g-sparsity-lifecycle}
+\end{figure}
+
+\paragraph{When: immediately.} For $\alpha \ne 0$ every off-diagonal entry of
+$\Qt$ is non-zero at every $t > 0$. Analyticity in $t$ alone does not give
+this, since an analytic function can vanish at isolated times; the resolvent
+does. From \eqref{eq:g-Qt-resolvent},
+$\Qt = (e^{2t}/c_t)\big[I - (I + c_t\Qz)^{-1}\big]$, so for $i \ne j$ the
+entry $(\Qt)_{ij}$ is a multiple of an off-diagonal entry of the inverse of
+$B := I + c_t\Qz$, a symmetric positive-definite tridiagonal matrix with
+non-zero off-diagonal entries $-c_t\alpha/\ivar$. The inverse of such an
+irreducible tridiagonal matrix has entries $(B^{-1})_{ij}$, $i \le j$, equal
+to $(-1)^{i+j}$ times a product of the off-diagonal entries between $i$ and
+$j$ and of leading and trailing principal minors, all strictly positive
+because $B \succ 0$; no factor vanishes. The same formula gives the sign
+pattern: for $\alpha > 0$ all off-diagonal couplings of $\Qt$ are negative
+(attractive at every distance), for $\alpha < 0$ they alternate with
+$|i-j|$.
+
+\paragraph{How: one diagonal per order in $t$.}
+
+\begin{theorem}[Band-fill leading order]\label{thm:g-bandfill}
+For small $t$ and frame distance $d \ge 1$,
+\begin{equation}
+  (\Qt)_{i, i+d}
+  \;=\; (-1)^{d-1}\, (2t)^{d-1}\, \big( \Qz^{\,d} \big)_{i, i+d}
+  \;+\; O(t^{d}) .
+  \label{eq:g-bandfill}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+In \eqref{eq:g-Qt-resolvent} substitute $c_t = 2t + O(t^2)$ and
+$e^{2t} = 1 + O(t)$. The entry at distance $d$ receives its first
+contribution from the single term $m = d-1$, with prefactor
+$(-c_t)^{d-1} = (-1)^{d-1}(2t)^{d-1}(1 + O(t))$; every later term is
+$O(t^{d})$.
+\end{proof}
+
+\paragraph{How much: the off-tridiagonal mass.} Structure is measured with
+the Frobenius norm $\|A\|_F = (\sum_{ij}A_{ij}^2)^{1/2}$, which is additive
+over disjoint entry sets. Let $\Pi$ project onto the Markov band
+$\{|i-j| \le 1\}$ that $\Qz$ occupies, so that $\Pi\Qt$ is the
+nearest-neighbour approximation of the score operator; then
+\begin{equation}
+  \|\Qt\|_F^2
+  = \|\operatorname{diag}\Qt\|_F^2
+  + \|\Pi\Qt - \operatorname{diag}\Qt\|_F^2
+  + M_\perp(t)^2,
+  \qquad
+  M_\perp(t) := \|\Qt - \Pi\Qt\|_F ,
+  \label{eq:g-frob-split}
+\end{equation}
+and $M_\perp$ is the norm of exactly the couplings a Markov model may not
+carry. At small $t$, \eqref{eq:g-bandfill} gives
+$(\Qt)_{i,i+2} = -2t(\Qz^2)_{i,i+2} + O(t^2)$, so $M_\perp$ leaves zero
+linearly in $t$. At large $t$, expanding $\Sigt = I + e^{-2t}(\Sigz - I)$,
+\begin{equation}
+  \Qt = I - e^{-2t}(\Sigz - I) + e^{-4t}(\Sigz - I)^2 + O(e^{-6t}),
+  \label{eq:g-larget}
+\end{equation}
+so every deviation from the identity decays at the single rate $e^{-2t}$ and
+the score approaches the isotropic $-x$. In between, $M_\perp$ rises, peaks
+and falls (Figure~\ref{fig:g-markov-survival}): the noisy sequence is most
+non-Markov at intermediate diffusion times, yet even at the peak the
+off-tridiagonal mass stays below one tenth of the clean nearest-neighbour
+mass, in this norm and at the displayed $(\alpha,\nsites)$. The lifecycle in
+one line: tridiagonal at $t=0$; densifying at rate $t^{\,d-1}$ per diagonal
+$d$; maximally coupled at intermediate $t$; isotropic as $t \to \infty$ at
+rate $e^{-2t}$. Chapter~\ref{ch:gaussian-bp} asks what it costs to ignore the
+mass outside the band.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.9\linewidth]{fig_markov_survival.pdf}
+\caption[How much Markov structure survives diffusion]{Frobenius lifecycle of
+the inter-frame coupling of $\Qt$ ($\alpha = 0.9$, $\nsites = 48$), each mass
+normalised by the nearest-neighbour coupling mass of $\Qz$. The
+nearest-neighbour (Markov) mass decays monotonically, $\propto e^{-2t}$ once
+noise dominates. The off-tridiagonal mass rises from zero, peaks at
+$t^\star \approx 0.05$, the least Markov point of the schedule, then decays
+with the rest of the structure; its peak is below $10\%$ of the original
+coupling.}
+\label{fig:g-markov-survival}
+\end{figure}

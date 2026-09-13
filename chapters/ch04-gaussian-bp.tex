@@ -1,0 +1,395 @@
+% ============================================================
+% Chapter 4 -- The Gaussian chain by belief propagation
+%
+% Introduces only the factor-graph and sum-product facts the thesis needs,
+% then the chain sweeps, the Gaussian closure (= Kalman/RTS) and the measured
+% price of locality.
+% ============================================================
+
+\chapter{The Gaussian Chain by Belief Propagation}
+\label{ch:gaussian-bp}\label{ch:graphs}\label{ch:graphical}
+
+Chapter~\ref{ch:gaussian} obtained the joint score by inverting the dense
+$\nsites\times\nsites$ matrix $\Sigt$, at $O(\nsites^3)$. That cost belongs
+to the route, not to the problem: the posterior precision $J$ of
+Proposition~\ref{prop:g-posterior} is tridiagonal, so a structured solve
+delivers the same answer in $O(\nsites)$. This chapter obtains the score by
+the message-passing form of that solve, sum--product on the factor graph of
+the posterior, generic and exact on any chain; for the Gaussian chain a
+message collapses to two numbers and the recursion is the Kalman filter
+followed by the Rauch--Tung--Striebel smoother. The chapter closes with the
+cost of locality: what truncating the evidence range does to the score.
+
+\section{Factor graphs and the sum--product algorithm}
+\label{sec:factor-graphs}\label{sec:sum-product}\label{sec:mrf}
+
+A factor graph makes a factorisation graphical
+\citep{kschischang2001factor}: given $p(x) = Z^{-1}\prod_a \psi_a(x_{\partial a})$
+it is the bipartite graph with a variable node per $x_i$, a factor node per
+$\psi_a$, and an edge whenever $x_i \in x_{\partial a}$. A connected factor
+graph with one fewer edge than nodes is a \emph{tree}. Sum--product belief
+propagation (BP) passes messages along every edge
+\citep{pearl1988probabilistic, mezard2009information}: variable-to-factor
+messages multiply the incoming factor messages from all \emph{other}
+neighbours, and factor-to-variable messages integrate the factor against the
+incoming variable messages,
+\begin{equation}
+  \nu_{i \to a}(x_i) \propto
+    \prod_{b \in \partial i \setminus a} \hat\nu_{b \to i}(x_i),
+  \qquad
+  \hat\nu_{a \to i}(x_i) \propto
+    \int \psi_a(x_{\partial a})
+    \prod_{j \in \partial a \setminus i} \nu_{j \to a}(x_j)\;
+    \dd x_{\partial a \setminus i},
+  \label{eq:bp-rules}
+\end{equation}
+with the belief at node $i$ proportional to $\prod_{a \in \partial i}
+\hat\nu_{a \to i}(x_i)$ (Figure~\ref{fig:bp-messages}). The ``exclude the
+recipient'' rule is the heart of the algorithm: the message $i \to a$
+summarises everything node $i$ knows except what it learned from $a$, so no
+evidence is counted twice along a path.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.78\linewidth]{fig_mezard_bp_messages.png}
+\caption[The two sum--product update rules]{The two halves of
+\eqref{eq:bp-rules}. \emph{Left:} the message from variable $j$ to factor
+$a$, a function of the incoming factor messages from every other factor
+neighbour $b \ne a$. \emph{Right:} the message from factor $a$ to variable
+$j$, a function of the incoming variable messages from every other variable
+neighbour $k \ne j$. The original carries iteration superscripts; on a tree
+one inward and one outward sweep suffice. Reproduced from
+\citet{mezard2009information}, their Figure~14.3.}
+\label{fig:bp-messages}
+\end{figure}
+
+\begin{theorem}[Tree exactness of sum--product]\label{thm:tree-exact}
+On a tree-shaped factor graph, one inward and one outward pass of
+\eqref{eq:bp-rules} compute the exact node and factor marginals of $p$
+\citep[Theorem~14.1]{mezard2009information}. The beliefs are unique; the
+unnormalised messages are defined up to positive constants.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Each edge of a tree splits the graph into two disjoint halves, so the message
+crossing it is exactly the partial sum over the half behind it, and no
+evidence reaches a node twice. Induction from the leaves inward terminates
+with every marginal having absorbed each factor once.
+\end{proof}
+
+On graphs with cycles the same updates, iterated, define loopy BP, which is
+approximate \citep{weiss2001correctness}; none of that is needed here. Bayes'
+rule multiplies the chain prior \eqref{eq:chain-factorisation} by the
+per-frame likelihoods of \eqref{eq:ou-channel}, and nothing in the likelihood
+couples two frames, so for the Gaussian chain
+\begin{equation}
+  p(a \,|\, x) \;\propto\;
+  \underbrace{\psi_{\mathrm{pr}}(a_0)}_{\Nd(a_0;\,0,\,1)}
+  \prod_{k=0}^{\nsites-2}
+  \underbrace{\psi^{(k)}_{\mathrm{tr}}(a_k, a_{k+1})}
+            _{\Nd(a_{k+1};\,\alpha a_k,\,\ivar)}
+  \prod_{k=0}^{\nsites-1}
+  \underbrace{\psi^{(k)}_{\mathrm{ob}}(a_k)}
+            _{\Nd(x_k;\,e^{-t}a_k,\,\Deltat)} ,
+  \label{eq:bp-posterior}
+\end{equation}
+a hidden Markov model \citep{rabiner1989tutorial} with the data $x_k$ absorbed
+into unary observation factors. Its factor graph has $\nsites$ variable
+nodes, $2\nsites$ factor nodes and $3\nsites - 1$ edges: a tree, a spine of
+variables linked by transition factors with one evidence leaf per node
+(Figure~\ref{fig:posterior-factor-graph}). Conditioning on the data did not
+change the graph of the prior, because independent per-node observation
+re-weights a node potential and never joins two spine nodes; correlated
+observation noise would add edges and break the construction. Nothing in this
+paragraph used Gaussianity: the posterior of \emph{any} chain prior under
+coordinatewise noise is a tree, and Theorem~\ref{thm:tree-exact} applies to
+it.
+
+\begin{figure}[t]\centering
+\begin{tikzpicture}[
+  latent/.style={circle, draw, minimum size=7mm, inner sep=1pt},
+  obs/.style={circle, draw, fill=black!10, minimum size=7mm, inner sep=1pt},
+  fac/.style={rectangle, draw, fill=black, minimum size=2.2mm, inner sep=0pt},
+  node distance=9mm, scale=0.92, every node/.style={transform shape}]
+\foreach \i in {1,2,3,4}{
+  \node[latent] (a\i) at (2.1*\i, 0) {$a_{\i}$};
+  \node[fac] (f\i) at (2.1*\i, -1.0) {};
+  \node[obs] (x\i) at (2.1*\i, -2.0) {$x_{\i}$};
+  \draw (a\i) -- (f\i) -- (x\i);
+}
+\foreach \i/\j in {1/2,2/3,3/4}{
+  \node[fac] (w\i) at (2.1*\i+1.05, 0) {};
+  \draw (a\i) -- (w\i) -- (a\j);
+}
+\node[above=1.5mm of w1] {\small $\kernel(a_{k}\mid a_{k-1})$};
+\node[right=2mm of f4] {\small $\like(x_k\mid a_k)$};
+\draw[-{Stealth}, thick] (1.15,1.35) -- (2.55,1.35) node[midway,above] {\small $\lmsg$};
+\draw[-{Stealth}, thick] (9.35,1.35) -- (7.95,1.35) node[midway,above] {\small $\rmsg$};
+\end{tikzpicture}
+\caption[Posterior factor graph of a noised Markov chain]{The posterior factor
+graph of a Markov chain observed through the coordinatewise channel. Open
+circles are latent variables, shaded circles observations, squares factors.
+Each transition factor joins two adjacent latent variables; each observation
+enters through a unary factor attached to a single latent variable. The
+posterior graph is therefore still a chain, Theorem~\ref{thm:tree-exact}
+applies, and the arrows show the two message sweeps.}
+\label{fig:posterior-factor-graph}
+\end{figure}
+
+Tree exactness is a property of the graph and says nothing about whether the
+messages can be \emph{represented}: for discrete variables a message is a
+finite vector, for continuous variables a density, and the recursion is made
+computable by closure in a finite-dimensional family
+(Section~\ref{sec:bp-gaussian}), by a numerical grid (the reference solver
+of Chapter~\ref{ch:laplace}), or by projection onto a tractable family at a
+cost Chapter~\ref{ch:laplace} measures.
+
+\section{The chain sweeps and their cost}
+\label{sec:bp-chain}\label{sec:bp-sweep}
+
+On the tree of Figure~\ref{fig:posterior-factor-graph} the schedule of
+\eqref{eq:bp-rules} collapses to one forward and one backward pass.
+
+\begin{proposition}[Chain sweeps]\label{prop:bp-convA}
+Define
+\begin{align}
+  \mu_{\to 0}(a_0) &:= \psi_{\mathrm{pr}}(a_0),
+  &
+  \mu_{\to k+1}(a_{k+1}) &:= \int
+    \psi^{(k)}_{\mathrm{tr}}(a_k, a_{k+1})\,
+    \psi^{(k)}_{\mathrm{ob}}(a_k)\,
+    \mu_{\to k}(a_k)\; \dd a_k ,
+  \label{eq:bp-fwd}\\
+  \mu_{\leftarrow \nsites-1}(a_{\nsites-1}) &:= 1,
+  &
+  \mu_{\leftarrow k-1}(a_{k-1}) &:= \int
+    \psi^{(k-1)}_{\mathrm{tr}}(a_{k-1}, a_k)\,
+    \psi^{(k)}_{\mathrm{ob}}(a_k)\,
+    \mu_{\leftarrow k}(a_k)\; \dd a_k .
+  \label{eq:bp-bwd}
+\end{align}
+Then for every $k$,
+\begin{equation}
+  p(a_k \,|\, x) \;\propto\;
+  \mu_{\to k}(a_k)\;
+  \psi^{(k)}_{\mathrm{ob}}(a_k)\;
+  \mu_{\leftarrow k}(a_k) ,
+  \label{eq:bp-combine}
+\end{equation}
+where $\mu_{\to k}$ depends on $x_0,\dots,x_{k-1}$ only, $\mu_{\leftarrow k}$
+on $x_{k+1},\dots,x_{\nsites-1}$ only, and the local evidence enters once.
+\end{proposition}
+
+\begin{proof}
+Fix $k$ and split the factors of \eqref{eq:bp-posterior} into those left of
+$a_k$, the local observation, and those right of $a_k$. With $a_k$ held
+fixed the two sides share no variable, so integrating out everything else
+factorises into a left integral, which is $\mu_{\to k}(a_k)$ by definition,
+and a right integral, which is $\mu_{\leftarrow k}(a_k)$. Peeling off the last
+integration variable of the left integral gives \eqref{eq:bp-fwd}; the first
+of the right integral gives \eqref{eq:bp-bwd}.
+\end{proof}
+
+For a chain of $K$-state variables every message is a vector in $\R^K$, one
+transition update is a $K \times K$ matrix--vector product, and a
+forward--backward sweep sends $O(\nsites)$ of them: time $O(\nsites K^2)$
+and space $O(\nsites K)$, linear in the sequence length.
+
+\section{The Gaussian closure: Kalman filtering and RTS smoothing}
+\label{sec:bp-gaussian}
+
+Two facts close the recursion algebraically: a product of Gaussians in the
+same variable is Gaussian, and an affine image of a Gaussian plus independent
+Gaussian noise is Gaussian. Write an unnormalised scalar Gaussian in natural
+form, $\mu(a) \propto \exp(-\tfrac12\lambda a^2 + r a)$, with precision
+$\lambda$ and field $r$, so mean $r/\lambda$ and variance $1/\lambda$. The
+observation factor is itself Gaussian in $a_k$,
+$\psi^{(k)}_{\mathrm{ob}}(a_k) \propto \exp\big(-\tfrac12\lambda_{\mathrm{ob}} a_k^2
++ r_{\mathrm{ob},k} a_k\big)$ with
+\begin{equation}
+  \lambda_{\mathrm{ob}} = \frac{e^{-2t}}{\Deltat},
+  \qquad
+  r_{\mathrm{ob},k} = \frac{e^{-t}x_k}{\Deltat}:
+  \label{eq:bp-observation-parameters}
+\end{equation}
+a pseudo-observation at the deconvolved location $e^{t}x_k$ with precision
+$e^{-2t}/\Deltat$.
+
+\begin{theorem}[Gaussian closure of BP on the chain]\label{thm:bp-closure}
+For the Gaussian AR(1) chain observed through the OU channel every
+sum--product message and every belief is Gaussian. With $(\lambda, r)$ the
+natural parameters of the message arriving at site $k$ and
+$(\bar\lambda, \bar r) = (\lambda + \lambda_{\mathrm{ob}},\, r + r_{\mathrm{ob},k})$
+after absorbing the local observation, the sweeps are
+\begin{equation}
+  \lambda_{\to k+1} = \frac{\bar\lambda}{\alpha^2 + \ivar\bar\lambda},
+  \quad
+  r_{\to k+1} = \frac{\alpha\bar r}{\alpha^2 + \ivar\bar\lambda};
+  \qquad
+  \lambda_{\leftarrow k-1} = \frac{\alpha^2\bar\lambda}{1 + \ivar\bar\lambda},
+  \quad
+  r_{\leftarrow k-1} = \frac{\alpha\bar r}{1 + \ivar\bar\lambda},
+  \label{eq:bp-forward-precision}
+\end{equation}
+and the smoothing belief at site $k$ adds the three natural parameters,
+\begin{equation}
+  \lambda_k^{\mathrm{post}} = \lambda_{\to k} + \lambda_{\mathrm{ob}} + \lambda_{\leftarrow k},
+  \qquad
+  r_k^{\mathrm{post}} = r_{\to k} + r_{\mathrm{ob},k} + r_{\leftarrow k},
+  \qquad
+  \E[a_k \mid x] = \frac{r_k^{\mathrm{post}}}{\lambda_k^{\mathrm{post}}},
+  \label{eq:bp-belief-mean}
+\end{equation}
+from which \eqref{eq:g-tweedie} gives the score. Each update is $O(1)$, so all
+posterior marginals, and hence the complete joint score, are obtained exactly
+in $O(\nsites)$ time and space.
+\end{theorem}
+
+\begin{proof}
+Multiplying Gaussian factors adds natural parameters, which gives
+$(\bar\lambda, \bar r)$. Forward, $a_k \sim \Nd(\bar r/\bar\lambda, 1/\bar\lambda)$
+pushed through $a_{k+1} = \alpha a_k + \eta_k$ is
+$\Nd(\alpha\bar r/\bar\lambda,\ \ivar + \alpha^2/\bar\lambda)$, whose natural
+parameters are the first pair in \eqref{eq:bp-forward-precision}. Backward,
+$\int \Nd(a_k; \alpha a_{k-1}, \ivar)\exp(-\tfrac12\bar\lambda a_k^2 + \bar r a_k)\,\dd a_k$
+is a Gaussian function of $a_{k-1}$ with the second pair. The belief
+\eqref{eq:bp-combine} is a product of three Gaussians. No approximation is
+introduced at any step: the family is closed under the two operations the
+algorithm uses, and the graph is a tree.
+\end{proof}
+
+Run in mean--variance arithmetic the forward sweep is the Kalman filter,
+predict $(m, v) \mapsto (\alpha m,\ \alpha^2 v + \ivar)$ followed by a
+precision-weighted update with the observation, and combining it with the
+backward sweep is the Rauch--Tung--Striebel smoother, update for update
+\citep{kalman1960new, rauch1965maximum}: the two classical literatures
+compute one object. The closure is not the Gaussian approximation of TAP or
+approximate message passing \citep{thouless1977solution, donoho2009message},
+which compress many weak incoming messages into Gaussian updates with an
+Onsager correction in a large-system limit; here the messages are Gaussian
+because multiplication and marginalisation are exact operations on the
+family, on a tree of finite degree. Tree exactness holds for any innovation
+law while closure holds only because the model is Gaussian, and
+Chapter~\ref{ch:laplace} is about the second property failing while the first
+survives. Numerically, the audit suite runs BP against the matrix route
+\eqref{eq:g-score-matrix} over $80$ configurations
+($\nsites \in \{2,3,5,8,16\}$, $\alpha \in \{0.2, 0.5, 0.9, -0.4\}$,
+$t \in \{0.05, 0.3, 1, 3\}$): maximum disagreement $1.3 \times 10^{-15}$ on
+posterior means and $1.2 \times 10^{-14}$ on scores, double-precision
+rounding accumulated along the recursion, reproduced by an independent
+implementation written from the recursion alone (Appendix~\ref{app:repro}).
+One qualitative detail from an $\nsites = 3$ instance: at
+$x = (1.2, -0.4, 0.8)$ the score component $S_1$ is positive although
+$x_1 < 0$, because the neighbours pull the posterior mean of the middle frame
+positive, which no per-frame score can produce.
+
+\section{The price of locality}
+\label{sec:bp-locality}\label{sec:g-bulk}\label{sec:g-locality}\label{sec:bp-truncation}
+
+Belief propagation on the chain is exact but not local: the message reaching
+frame $k$ has travelled the whole sequence, and $\Qt$ is dense for every
+$t > 0$. How much of the score survives if evidence is allowed to travel only
+a few frames? There are two ways to go local.
+
+\emph{Truncate the answer.} Keep the entries of the exact operator within a
+band and use what is left,
+\begin{equation}
+  \widehat S^{(b)}(x,t) \;=\; -\,\Qt^{(b)} x,
+  \qquad
+  \big(\Qt^{(b)}\big)_{ij} = (\Qt)_{ij}\,\mathbf{1}\{|i-j| \le b\};
+  \label{eq:bp-banded}
+\end{equation}
+$b = 1$ is the tridiagonal, Markov, truncation of the score.
+\emph{Truncate the algorithm.} Let the messages of
+Proposition~\ref{prop:bp-convA} travel at most $r$ hops before frame $k$ is
+read off, replacing the message beyond the cut by the stationary prior
+marginal. Because a contiguous window of a stationary AR(1) chain is itself a
+stationary AR(1) chain, this is exact inference on the window,
+\begin{equation}
+  m^{(r)}_k \;=\; \E\big[a_k \,\big|\, x_{k-r}, \dots, x_{k+r}\big],
+  \qquad
+  \widehat S^{(r)}_k(x,t) \;=\; \frac{e^{-t} m^{(r)}_k - x_k}{\Deltat}.
+  \label{eq:bp-windowed}
+\end{equation}
+Both estimators are linear, $\widehat S = -Mx$, so their error against
+$S = -\Qt x$ can be averaged over the data law $x \sim \Nd(0,\Sigt)$ without
+sampling. Using $\E[x^\T A x] = \operatorname{tr}(A\Sigt)$ and
+$\operatorname{tr}(\Qt\Sigt\Qt) = \operatorname{tr}\Qt$, the relative RMS
+score error is the closed form
+\begin{equation}
+  \boxed{\;
+  \varepsilon(M)
+  :=
+  \sqrt{\frac{\E\|(M-\Qt)x\|^2}{\E\|\Qt x\|^2}}
+  =
+  \sqrt{
+    \frac{\operatorname{tr}\!\big[(M-\Qt)\,\Sigt\,(M-\Qt)^{\T}\big]}
+         {\operatorname{tr}\Qt}
+  } ,
+  \;}
+  \label{eq:bp-relerr}
+\end{equation}
+a population error, not a sampled estimate: $\varepsilon = 0.1$ means the RMS
+approximation error is a tenth of the RMS size of the exact score.
+Table~\ref{tab:g-truncation} and Figure~\ref{fig:truncation} evaluate it for
+both families.
+
+\begin{center}
+\begin{minipage}{\linewidth}\centering
+\captionof{table}[The price of locality]{Relative RMS score error
+\eqref{eq:bp-relerr} of the two truncations ($\nsites = 40$, $\alpha = 0.8$);
+every entry is closed-form. The last two rows are derived: the fraction of the
+no-neighbour error removed by admitting a single hop, and the penalty for
+truncating the answer rather than the algorithm at equal budget.}
+\label{tab:g-truncation}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+relative RMS score error & $t = 0.05$ & $t = 0.3$ & $t = 1$ & $t = 3$ \\
+\midrule
+no neighbours, $r = 0$        & $0.815$ & $0.567$ & $0.194$ & $0.0045$ \\
+one hop, $r = 1$              & $0.123$ & $0.235$ & $0.130$ & $0.0035$ \\
+two hops, $r = 2$             & $0.020$ & $0.107$ & $0.089$ & $0.0028$ \\
+\addlinespace
+banded answer, $b = 1$        & $0.210$ & $0.302$ & $0.135$ & $0.0035$ \\
+banded answer, $b = 2$        & $0.032$ & $0.134$ & $0.092$ & $0.0028$ \\
+\midrule
+removed by the first hop      & $85\%$  & $59\%$  & $33\%$  & $21\%$ \\
+penalty, $b{=}1$ over $r{=}1$ & $1.71\times$ & $1.28\times$ & $1.03\times$ & $1.00\times$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+The first row is the cost of treating the frames as independent: at
+$t = 0.05$ the isolated-frame score is wrong by $82\%$ in relative RMS, so
+almost all of the score at small diffusion times \emph{is} inter-frame
+structure, and the error does not vanish as $t \to 0$ because the $r = 0$
+estimator converges to $-x$ while the exact score converges to $-\Qz x$. A
+single nearest-neighbour exchange, the Markov band and nothing more, removes
+$85\%$ of it, and two hops remove $98\%$. The removed fraction falls with
+diffusion time, but the first row shows why the band is not mattering less:
+by $t = 3$ the entire inter-frame content of the score is worth $0.0045$ in
+relative error, so nothing is left for any hop to recover. The band carries
+the largest share of the coupling exactly where the coupling is large. At
+equal budget, truncating the inference beats truncating the score matrix at
+small $t$ ($0.123$ against $0.210$ at $t = 0.05$), and the gap closes as $t$
+grows. The error of the radius-$r$ estimator decays geometrically in $r$ at
+a rate that worsens with $t$; the closed-form influence-decay rate behind
+that geometry is derived in Chapter~\ref{ch:em-results}, where it predicts
+the best receptive field of a learned score head.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.92\linewidth]{fig_truncation.pdf}
+\caption[The price of locality]{The two truncations ($\nsites = 40$,
+$\alpha = 0.8$; every value closed-form by \eqref{eq:bp-relerr}).
+\emph{Left:} relative RMS score error against diffusion time, for message
+range $r$ (solid) and matrix band $b$ (dashed). For $r \ge 1$ both are worst
+at intermediate $t$ and vanish at both ends, at $t \to 0$ because the clean
+score is tridiagonal; the no-neighbour estimator is the exception, since the
+clean score of frame $k$ genuinely uses its neighbours whenever
+$\alpha \ne 0$. \emph{Right:} the same error against the locality budget at
+three diffusion times: geometric decay at a rate that worsens with $t$, with
+the banded answer (squares) above the windowed inference (circles) at every
+budget.}
+\label{fig:truncation}
+\end{figure}

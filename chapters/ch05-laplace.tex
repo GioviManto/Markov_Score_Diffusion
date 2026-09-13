@@ -1,0 +1,413 @@
+% ============================================================
+% Chapter 5 -- Beyond Gaussianity: Laplace innovations
+% ============================================================
+
+\chapter{Beyond Gaussianity: Laplace Innovations and the Gaussian-Message
+Approximation}\label{ch:laplace}\label{sec:bp-nongaussian}
+% The full title wraps the running head onto a second line; the mark carries
+% a one-line form.
+\chaptermark{Beyond Gaussianity: Laplace Innovations}
+
+Every exact result of Chapters~\ref{ch:gaussian} and~\ref{ch:gaussian-bp}
+rests on the closure of the Gaussian family under the two operations the
+model performs, multiplying densities and marginalising. This chapter removes
+that property in the most controlled way available and answers RQ3: the AR(1)
+recursion, the OU channel and the factor-graph structure are kept, and only
+the innovation law changes, from Gaussian to Laplace.
+
+\section{What changes, and what is preserved}\label{sec:l-model}\label{sec:l-nonlinear}
+
+The Laplace chain keeps the initial law and the second-order structure of
+\eqref{eq:ar1} fixed,
+\begin{equation}
+  a_0 \sim \Nd(0,1), \qquad
+  a_k = \alpha\, a_{k-1} + \varepsilon_k, \qquad
+  \varepsilon_k \sim \mathrm{Laplace}(0, b) \ \text{i.i.d.}, \qquad
+  b = \sqrt{(1-\alpha^2)/2},
+  \label{eq:l-chain-prior}
+\end{equation}
+so that $\operatorname{Var}(\varepsilon_k) = 1-\alpha^2$, the chain has unit
+marginal variance and $\Cov(a_j,a_k) = \alpha^{|j-k|}$ exactly as before. The
+Gaussian and Laplace chains agree on every second moment and differ only
+beyond them. The score--posterior identity holds for any prior, so with
+$\mu := e^{-t}$,
+\begin{equation}
+  \score_k(x,t) \;=\; \frac{\mu\, \E[a_k \mid x] \;-\; x_k}{\Deltat} ;
+  \label{eq:l-score-identity}
+\end{equation}
+the posterior still factorises over the tree of
+Figure~\ref{fig:posterior-factor-graph}, so the sweeps
+\eqref{eq:bp-fwd}--\eqref{eq:bp-bwd} still compute exact smoothing marginals,
+and the OU likelihood factors are still Gaussian in $a_k$. What is lost is
+that the messages are no longer Gaussian and the posterior mean, hence the
+score, is no longer linear in $x$ (Figure~\ref{fig:l-nonlinear}).
+
+The two chains first differ at fourth order. A centred Laplace variable of
+variance $v$ has fourth cumulant $3v^2$, excess kurtosis $3$; the chain
+\emph{state}, a weighted sum of one Gaussian seed and $k$ Laplace innovations,
+inherits a milder and position-dependent value, since fourth cumulants of
+independent sums add with the fourth power of the coefficients:
+\begin{equation}
+    \kappa_4(a_k)
+    = 3(1-\alpha^2)^2\sum_{m=0}^{k-1}\alpha^{4m}
+    = 3\,\frac{1-\alpha^2}{1+\alpha^2}\,\bigl(1-\alpha^{4k}\bigr),
+    \qquad
+    \boxed{\;\kappa_4(x_{t,k}) = e^{-4t}\,\kappa_4(a_k)\;}
+    \label{eq:l-state-kurtosis}
+\end{equation}
+the second identity because the channel adds an independent Gaussian with
+$\kappa_4 = 0$. At $\alpha = 0.85$ the bulk value is $\approx 0.48$, not $3$;
+the chain is covariance-stationary by construction but not strictly
+stationary, because the Gaussian initial law is not the stationary law of the
+Laplace recursion; and Laplace-driven non-Gaussianity survives every finite
+diffusion time but decays as $e^{-4t}$, while the second moment is preserved
+exactly. Both facts return in Chapters~\ref{ch:em-kernel}
+and~\ref{ch:em-results}.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_laplace_nonlinear.pdf}
+\caption[Laplace innovations: same variance, nonlinear score]{Laplace
+(vermilion, solid) against Gaussian (blue, dashed) at $\alpha = 0.85$.
+\emph{Left:} the two innovation laws on a log scale, same variance
+$1-\alpha^2$, different shape. \emph{Centre and right:} the joint score
+\eqref{eq:l-score-identity} at the middle frame of a chain of $\nsites = 9$
+as $x_k$ is swept with the other frames at zero, by grid BP
+(Section~\ref{sec:l-grid}) against the covariance-matched Gaussian chain,
+which is exactly what the Gaussian closure returns
+(Theorem~\ref{thm:l-lmmse}). At $t = 0.05$ the Laplace score saturates near
+$\pm 5.1$ while the Gaussian one grows without bound; at $t = 1$ the two
+coincide on the same scale.}
+\label{fig:l-nonlinear}
+\end{figure}
+
+\section{Where closed forms stop}\label{sec:l-chain}
+
+\begin{theorem}[Joint score from chain messages]\label{thm:l-markov-score}
+For any chain prior, in particular \eqref{eq:l-chain-prior}, and the OU
+likelihood, the joint score is \eqref{eq:l-score-identity} with
+\begin{equation}
+  \E[a_k \mid x]
+  = \frac{\displaystyle\int a_k\; \lmsg_k(a_k)\;
+      \psi^{(k)}_{\mathrm{ob}}(a_k)\; \rmsg_k(a_k)\;\dd a_k}
+     {\displaystyle\int \lmsg_k(a_k)\;
+      \psi^{(k)}_{\mathrm{ob}}(a_k)\; \rmsg_k(a_k)\;\dd a_k},
+  \label{eq:l-markov-score}
+\end{equation}
+the messages being those of Proposition~\ref{prop:bp-convA}.
+\end{theorem}
+
+\noindent Computational locality survives; what does not survive is the
+collapse of a message to two parameters. The first message can still be
+written down: with $M(a'\mid a) = (2b)^{-1}e^{-|a'-\alpha a|/b}$ and
+$y = x' - \mu\alpha a$, splitting the convolution
+$\int M(a'\mid a)\,\Nd(x'; \mu a', \Deltat)\,\dd a'$ at the single kink and
+completing the square on each half-line gives
+\begin{equation}
+  I(y) = \frac{e^{\Deltat/(2\mu^2b^2)}}{2\mu b}
+  \Big[ e^{-y/(\mu b)}\,\Phi\!\Big(\tfrac{y}{\sqrt{\Deltat}} - \tfrac{\sqrt{\Deltat}}{\mu b}\Big)
+      + e^{y/(\mu b)}\,\Phi\!\Big(-\tfrac{y}{\sqrt{\Deltat}} - \tfrac{\sqrt{\Deltat}}{\mu b}\Big) \Big],
+  \label{eq:l-first-message}
+\end{equation}
+with $\Phi$ the standard Gaussian cdf. Closure is lost at the very next
+update: the incoming message is now a sum of terms $e^{ca}\Phi(da+e)$, and
+integrating it against the next Laplace transition requires half-line
+integrals of $e^{-qa^2+\ell a}\Phi(da+e)$, higher-dimensional Gaussian
+probabilities outside the normal--Laplace family, so each step increases the
+functional complexity; changing to innovation coordinates only moves the
+dependence from the prior into a dense likelihood. Exact BP remains valid,
+and its messages must be represented numerically.
+
+\section{Grid belief propagation}
+\label{sec:l-grid}
+
+A message is a density on $\R$. It is represented by its values on $\ngrid$
+equispaced points $g_i = -A + ih$, $h = 2A/(\ngrid-1)$, of a truncated
+interval $[-A, A]$, and every integral of
+\eqref{eq:bp-fwd}--\eqref{eq:bp-bwd} becomes a composite trapezoidal
+quadrature with weights $w_i = h$ in the interior and $h/2$ at the two
+endpoints. The transition enters as a matrix and the likelihood as a diagonal,
+$K_{ij} = M(g_i \mid g_j)$ and $(\ell_k)_i = \Nd(x_k; \mu g_i, \Deltat)$, and
+with $\odot$ the elementwise product the sweeps read
+\begin{align}
+  f_0 &\;\propto\; p_0 \odot \ell_0,
+  &f_k &\;\propto\; \ell_k \odot K\big( w \odot f_{k-1} \big),
+  \quad k = 1,\dots,\nsites-1,
+  \label{eq:l-grid-fwd}\\[2pt]
+  \beta_{\nsites-1} &\;=\; \mathbf{1},
+  &\beta_k &\;\propto\; K^\T \big( w \odot \ell_{k+1} \odot \beta_{k+1} \big),
+  \quad k = \nsites-2,\dots,0 ,
+  \label{eq:l-grid-bwd}
+\end{align}
+with belief $\mathrm{bel}_k = f_k \odot \beta_k$, posterior mean
+$\widehat m_k = \sum_i w_i g_i (\mathrm{bel}_k)_i / \sum_i w_i (\mathrm{bel}_k)_i$
+and score $\widehat\score_k = (\mu\widehat m_k - x_k)/\Deltat$. Each step is
+one matrix--vector product, so the solver costs $O(\nsites\ngrid^2)$ time and
+$O(\nsites\ngrid)$ space: sum--product over a finite alphabet, the alphabet
+now a discretisation. Three choices fix the representation
+(Table~\ref{tab:l-grid-choices}).
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[The three choices of the grid solver]{The three choices
+that fix grid BP, what each is set to, and what fixes it.}
+\label{tab:l-grid-choices}
+\begin{tabular}{@{}p{0.2\linewidth}p{0.24\linewidth}p{0.5\linewidth}@{}}
+\toprule
+choice & setting & what fixes it \\
+\midrule
+renormalisation & forward messages to unit mass, backward to unit maximum, after every step
+  & free, since messages are defined up to a constant (Theorem~\ref{thm:tree-exact}) and the ratio $\widehat m_k$ is invariant; necessary, since without it a chain of $\nsites = 32$ underflows \\
+truncation $A$ & $A = 8$
+  & the exponential tail beyond $|a| = 8$ carries below $10^{-9}$ of the mass for every $\alpha$ used; the mass in the outermost cells is logged per run \\
+resolution $\ngrid$ & $\ngrid = 401$ (reference $801$)
+  & the likelihood in $a$-coordinates has width $\sqrt{\Deltat}/\mu \approx \sqrt{2t}$ at small $t$; the gate
+  \begin{equation}
+    \sqrt{2t} \;\gtrsim\; 3h = 6A/(\ngrid - 1)
+    \label{eq:l-resolution}
+  \end{equation}
+  keeps it wider than the spacing, and it is this gate, not the innovation law, that sets the smallest $t$ reported \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\paragraph{Validation.} Grid BP is a numerical approximation of the
+functional recursion and serves as a reference only inside a validated
+regime, established on the Gaussian chain where Chapter~\ref{ch:gaussian}
+gives the truth. For smooth, rapidly decaying integrands the trapezoidal rule
+converges superalgebraically, so failure is abrupt, and the measurement shows
+exactly that: at $\ngrid = 101$, $A = 8$ the relative score error sits at the
+double-precision floor down to $t \approx 0.03$, is $10^{-10}$ at $t = 0.02$
+and reaches the percent scale by $t = 0.005$. The gate
+\eqref{eq:l-resolution} is conservative relative to that onset, and the
+working $\ngrid = 401$ clears it with room to spare ($3h = 0.12$ against
+$\sqrt{2t} = 0.32$ at the smallest reported $t = 0.05$). For the Laplace
+kernel the integrand has a kink and no spectral statement is invoked; the
+reference is certified by self-convergence, the error between $\ngrid = 401$
+and $801$ staying $10^4$ to $10^7$ times smaller than every effect measured
+below (Figure~\ref{fig:bp-closure}, left). Self-convergence cannot test the
+domain width, which the half-width sweep of \codefile{exp\_18}
+($\gdtrunccells$ cells over $A \in \{4,6,8,10\}$) settles: the posterior mass
+reaching the outermost cells is $\gdtruncfour$ at $A = 4$, $\gdtruncsix$ at
+$A = 6$, $\gdtrunceight$ at the working $A = 8$ and $\gdtruncten$ at
+$A = 10$, two orders below the smallest closure error reported here. Within
+this regime grid BP is treated as the reference score; outside it no claim is
+made.
+
+One identity governs how everything is reported. For any two solvers with
+posterior means $\widehat m$ and $m_{\mathrm{ref}}$,
+\eqref{eq:l-score-identity} gives exactly
+\begin{equation}
+  \widehat s - s_{\mathrm{ref}}
+  = \frac{e^{-t}}{\Deltat}\,\big( \widehat m - m_{\mathrm{ref}} \big),
+  \qquad
+  \frac{e^{-t}}{\Deltat} \sim \frac{1}{2t} \;\; (t \downarrow 0):
+  \label{eq:bp-master-error}
+\end{equation}
+every score error is an amplified posterior-mean error, its residual logged in
+every experiment between $10^{-15}$ and $10^{-12}$, and small diffusion times
+are the difficult regime because whatever an approximation does to the
+posterior mean is amplified by $1/2t$ in the score.
+
+\section{The Gaussian-message approximation, measured}
+\label{sec:l-closure}
+
+\emph{Gaussian-projected BP} runs the same forward--backward recursion as
+grid BP but projects every transition message onto the Gaussian family by
+moment matching: $\Pi_{\mathrm G} f$ is the Gaussian with the mean and
+variance of $f/\!\int f$. The first result says what that computes.
+
+\begin{theorem}[Gaussian closure is the LMMSE estimator]
+\label{thm:l-lmmse}
+Consider moment-projected sum--product on the chain
+\eqref{eq:l-chain-prior} with $\alpha \ne 0$, Gaussian unary likelihoods,
+$\E[a_0] = 0$, innovations of mean zero and variance $\ivar$, and a Gaussian
+(or projected) initial message. Its posterior means coincide exactly with
+those of the covariance-matched Gaussian model,
+\begin{equation}
+  \widehat a_{\mathrm{LMMSE}}
+  = \Cov(a,x)\Cov(x)^{-1}x
+  = e^{-t}\Sigz \bigl(e^{-2t}\Sigz+\Deltat I\bigr)^{-1}x .
+  \label{eq:l-lmmse}
+\end{equation}
+Hence the closure returns the same estimator for every innovation law sharing
+the moments $(0,\ivar)$.
+\end{theorem}
+
+\begin{proof}
+By induction every projected message equals the corresponding exact message
+of the covariance-matched Gaussian chain. The initial messages coincide by
+hypothesis. Multiplication by the Gaussian likelihood is the same
+precision-weighted update in both models. A Gaussian message with moments
+$(m, v)$ pushed through $a_i = \alpha a_{i-1} + \varepsilon_i$ has moments
+$(\alpha m,\ \alpha^2 v + \ivar)$, and the backward transition integral,
+viewed as a density in the preceding state, has moments
+$(m/\alpha,\ (v + \ivar)/\alpha^2)$; both maps depend on the innovation law
+only through $(0, \ivar)$, so after $\Pi_{\mathrm G}$ the projected message is
+exactly the Gaussian chain's. (The terminal message $\rmsg_{\nsites-1} \equiv 1$
+is not normalisable; the backward induction starts at the terminal likelihood,
+the first object actually propagated, and $\alpha \ne 0$ is used in the
+backward map.) All beliefs therefore coincide with the Gaussian chain's, whose
+posterior mean is $\Cov(a,x)\Cov(x)^{-1}x$ with $\Cov(a,x) = e^{-t}\Sigz$ and
+$\Cov(x) = e^{-2t}\Sigz + \Deltat I$.
+\end{proof}
+
+Gaussian-projected BP is therefore not a heuristic Gaussianisation but the
+best second-order linear estimator, and comparing it with grid BP measures
+the loss from discarding structure beyond the first two moments. The
+\emph{estimator} is the same for every innovation law with matched moments;
+its \emph{error} against the true posterior is not, because each law has its
+own nonlinear posterior, and Section~\ref{sec:l-innovation-sweep} measures how
+differently the same estimator misses different truths.
+
+\paragraph{Three metrics.} The relative score error is what the diffusion
+model consumes, but by \eqref{eq:bp-master-error} it is the posterior-mean
+error multiplied by $e^{-t}/\Deltat$ and divided by the norm of the reference
+score, both of which move by orders of magnitude across the schedule, so on
+its own it cannot distinguish an approximation that improves from one whose
+errors are scaled away. The primary metric is therefore the posterior mean,
+which carries a risk interpretation.
+
+\begin{proposition}[Excess-risk decomposition]\label{prop:l-excess}
+For $m(x) = \E[a\mid x]$ and any estimator $\widehat a(x)$ with finite second
+moment,
+$\E\|a - \widehat a(x)\|^2 = \E\|a - m(x)\|^2 + \E\|m(x) - \widehat a(x)\|^2$.
+\end{proposition}
+
+\begin{proof}
+Expand $a - \widehat a = (a-m) + (m - \widehat a)$; the cross term vanishes
+after conditioning on $x$, since $\E[a - m(x)\mid x] = 0$ and both $m$ and
+$\widehat a$ are functions of $x$.
+\end{proof}
+
+\noindent With $\widehat a = \widehat a_{\mathrm{LMMSE}}$ the gap between the
+two posterior means is exactly the excess denoising risk of using second
+moments only. It is reported normalised by the signal energy
+$\E\|a\|^2 = \nsites$,
+\begin{equation}
+  \varepsilon_{\mathrm{PM}}
+  \;=\;
+  \sqrt{\tfrac{1}{\nsites}\,
+        \E\big\| \widehat a_{\mathrm{LMMSE}} - \E[a \mid x] \big\|^2 } ,
+  \label{eq:l-epspm}
+\end{equation}
+dimensionless, free of the prefactor and stable at both ends of the schedule.
+Two secondary metrics accompany it: the excess-risk fraction
+$\E\|m - \widehat a\|^2/\E\|a - m\|^2$, the percentage by which closure raises
+the denoising error above the floor set by the posterior itself, and the
+relative score error, because it is what the generative process sees.
+
+\begin{center}
+\begin{minipage}{\linewidth}\centering
+\captionof{table}[Gaussian-closure error across diffusion time]{Gaussian
+closure against validated grid BP on the Laplace chain ($\alpha=0.85$,
+$\nsites=32$, $60$ trials per $t$, reference $\ngrid=801$), one sweep
+sampled densely for $t\lesssim0.3$. Left group: the posterior approximation
+before the prefactor, $\varepsilon_{\mathrm{PM}}$ \eqref{eq:l-epspm} with
+its $10$--$90\%$ band, the same normalised to $t=0.02$, and the excess MSE of
+Proposition~\ref{prop:l-excess} as a percentage of the MMSE floor. Last
+column: the resulting discrepancy in the score.}
+\label{tab:l-closure}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lccccc c@{}}
+\toprule
+& \multicolumn{5}{c}{\textit{posterior inference}}
+& \textit{score} \\
+\cmidrule(lr){2-6}\cmidrule(l){7-7}
+$t$
+& $\varepsilon_{\mathrm{PM}}$
+& $10$--$90\%$
+& $\varepsilon_{\mathrm{PM}}/\varepsilon_{\mathrm{PM}}^{\,0.02}$
+& \shortstack{excess MSE\\{}[\% floor]}
+& \shortstack{MMSE\\floor}
+& \shortstack{rel.\ score\\error} \\
+\midrule
+$0.02$  & $0.036$  & $(0.029,\,0.052)$   & $1.00$ & $3.9$   & $0.032$ & $0.38$ \\
+$0.032$ & $0.040$  & $(0.034,\,0.057)$   & $1.14$ & $3.4$   & $0.047$ & $0.30$ \\
+$0.05$  & $0.050$  & $(0.036,\,0.079)$   & $1.42$ & $3.9$   & $0.066$ & $0.27$ \\
+$0.072$ & $0.053$  & $(0.038,\,0.082)$   & $\mathbf{1.50}$ & $3.1$ & $0.089$ & $0.20$ \\
+$0.105$ & $0.050$  & $(0.037,\,0.100)$   & $1.41$ & $2.1$   & $0.114$ & $0.14$ \\
+$0.153$ & $0.043$  & $(0.034,\,0.085)$   & $1.20$ & $1.2$   & $0.151$ & $0.10$ \\
+$0.222$ & $0.038$  & $(0.033,\,0.058)$   & $1.06$ & $0.74$  & $0.193$ & $0.065$ \\
+$0.322$ & $0.033$  & $(0.027,\,0.059)$   & $0.93$ & $0.43$  & $0.253$ & $0.041$ \\
+\addlinespace
+$0.98$  & $0.016$  & $(0.012,\,0.028)$   & $0.45$ & $0.045$ & $0.584$ & $7.3\times10^{-3}$ \\
+$2.07$  & $0.0018$ & $(0.0013,\,0.0038)$ & $0.05$ & $<0.01$ & $0.916$ & $2.4\times10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\paragraph{The measurement.} Table~\ref{tab:l-closure} and
+Figures~\ref{fig:l-metrics} and~\ref{fig:bp-closure} report the sweep, and
+two readings of it disagree. Read the last column and the closure improves
+steadily as noise is added: the relative score error falls by a factor of
+$3.6$ between $t = 0.02$ and $t = 0.15$. Read $\varepsilon_{\mathrm{PM}}$ and
+it does not: the posterior-mean error \emph{rises} by half over
+$t \in [0.02, 0.07]$, is still larger at $t = 0.15$ than at $t = 0.02$, and
+begins to decay only past $t \simeq 0.3$. The gap between the readings is the
+prefactor of \eqref{eq:bp-master-error} and the shrinking norm of the
+reference score, neither of which reports on the inference. As a denoiser,
+the excess over the MMSE floor falls from $3.9\%$ at $t = 0.05$ to $0.43\%$
+at $t = 0.32$ and below $0.05\%$ once $t \gtrsim 1$, while the floor itself
+grows from $0.07$ to $0.92$: the approximation error shrinks as the
+irreducible uncertainty grows. Direction survives magnitude: the probability
+that a trial exceeds $10\%$ relative score error is $1.00$ through
+$t \simeq 0.07$ and zero by $t \simeq 0.7$, whereas the median cosine
+similarity to the reference score is already $0.964$ at $t = 0.05$ and above
+$0.99$ by $t \simeq 0.11$. Gaussian closure loses how strongly to move before
+it loses where to move. The peak in $\varepsilon_{\mathrm{PM}}$ separates two
+easy regimes: as $t \to 0$ each latent state is pinned by its own
+near-noiseless observation, and at large $t$ the Gaussian noise washes out
+the higher-order structure of the innovation law; the largest error sits
+where the evidence is weak enough for the prior's shape to matter and strong
+enough not to have been erased. The Laplace posterior is log-concave and
+unimodal at every $t > 0$, so its worst trials are heavy-tailed and kinked
+rather than bimodal; this is a qualitative mechanism for the aggregate curve,
+not a measurement of posterior non-Gaussianity.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fig_laplace_metrics.pdf}
+\caption[The Gaussian closure under three metrics]{The same experiment under
+three metrics ($\alpha=0.85$, $\nsites=32$, $60$ trials per $t$).
+\emph{Left:} the posterior-mean error \eqref{eq:l-epspm}, median and
+$10$--$90\%$ band, not monotone: it peaks at $t\simeq0.07$.
+\emph{Centre:} the same runs through the relative score error, which falls
+by $3.6\times$ over the interval on which $\varepsilon_{\mathrm{PM}}$ is
+flat. \emph{Right:} the excess denoising MSE of
+Proposition~\ref{prop:l-excess} as a percentage of the MMSE floor.}
+\label{fig:l-metrics}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fig_laplace_closure.pdf}
+\caption[Gaussian-closure score error against grid BP]{The score-side view.
+\emph{Left:} median relative score error with its $10$--$90\%$ band, against
+the grid-BP self-convergence error ($\ngrid=401$ versus $801$) on identical
+data; the closure error exceeds the numerical budget by three to five orders
+of magnitude, so the measurement is limited by the closure, not the
+quadrature. \emph{Right:} relative score error against $1-\cos$ of the angle
+between projected and reference score vectors; directional error is one to
+two orders of magnitude smaller than magnitude error at every $t$.}
+\label{fig:bp-closure}
+\end{figure}
+
+\paragraph{Varying the innovation law.}\label{sec:l-innovation-sweep}
+Holding $\Cov(a_i,a_j)=\alpha^{|i-j|}$ fixed, the innovation law is varied
+over Laplace, Student-$t$ with $\nu\in\{5,8\}$, and symmetric Gaussian
+mixtures of increasing separation. Across every family substantial closure
+error is confined to $t\lesssim0.4$ and falls to about $10^{-3}$ or below by
+$t=2.4$. At $t=0.05$ and $\alpha=0.5$ the median relative score error is
+$0.94$ for a strongly bimodal mixture, $0.52$ for Laplace, $0.32$ for
+Student-$t$ with $\nu = 5$, and $0.07$ for a mildly bimodal mixture. Strong
+bimodality is the hardest case, a single Gaussian sitting between two
+separated posterior modes. Stronger chain correlation helps: for Laplace
+innovations at $t=0.05$ the median error falls from roughly one half at
+$\alpha=0.5$ to $0.27$ at $\alpha=0.85$ and $0.13$ at $\alpha=0.95$, so
+informative neighbours reduce the weight the local non-Gaussian shape
+carries, an interpretation rather than a measured mechanism. The estimator is
+fixed by the model class; the size of its error is each law's own.

@@ -1,340 +1,120 @@
-\chapter{Reproducibility}\label{app:repro}
+% ============================================================
+% Appendix A -- Reproducibility: provenance, figure-to-code map, protocol
+% facts, environment, and the aggregation of the headline ratios. The full
+% working is in the research repository (research/CODE_README.md).
+% ============================================================
 
-% This appendix is dense with monospace paths, which TeX will not hyphenate. At
-% the default tolerance it prefers to run a line past the right margin over
-% breaking early, and five paragraphs here did exactly that. Raising the
-% tolerance for the appendix trades a little inter-word stretch for text that
-% stays inside the text block.
-% Path-heavy tables and URLs need looser lines than the body, but \sloppy
-% over a whole appendix buys that with visibly loose interword spacing on
-% ordinary prose. \emergencystretch is only drawn on when a paragraph would
-% otherwise overfull, so normal paragraphs set normally.
+\chapter{Reproducibility}\label{app:repro}\label{app:aggregation}\label{app:aggregation-chapter}
+
 \setlength{\emergencystretch}{2em}
 
-\section{Figure-to-code map}
+\section{Build identifier and figure-to-code map}
 
-Every computed figure in this thesis is built by a script in this folder's
-\texttt{tools/}: \texttt{make\_thesis\_figures.py} and one
-\texttt{fig\_chNN.py} per results chapter, all styled through
-\texttt{tools/figstyle.py} (one palette and layout module, so every figure
-looks like it came from the same hand; text is embedded as TrueType). The
-closed-form panels are recomputed from the formulas at build time; the
-measured panels read the frozen research outputs under
-\texttt{research/outputs/frozen/} directly --- the same files
-the generated tables read, so a figure and the table beside it cannot
-disagree about a number. Randomness, where used, is seeded. Seven figures are
-reproduced from the literature with attribution in their captions and are not
-built here (\texttt{fig\_song\_dog}, \texttt{fig\_song\_sde},
-\texttt{fig\_bachtis\_cascade}, \texttt{fig\_bonnaire\_memorize},
-\texttt{fig\_biroli\_regimes}, \texttt{fig\_mezard\_bp\_messages},
-\texttt{fig\_unet\_architecture}); two are Ti\emph{k}Z schematics drawn in
-the source.
+Every number in the thesis is produced by a script from frozen experiment
+outputs under \texttt{research/outputs/frozen/}; none is typed by hand
+(Table~\ref{tab:figure-map}). The quoted experiment numbers are defined once
+as macros in \texttt{sections/} and cited by name, so tables, figures and
+text share one aggregation rule by construction. The build manifest records
+the state this document was made from: repository revision \bmreposha{},
+generated inputs \bmgenerated{} over \bmgeneratedcount{} files, figures
+\bmfigures{} over \bmfigurecount{} files, engine \bmtectonic{}. It fixes the
+source side only; the provenance of the frozen outputs is disclosed below.
 
-\begin{center}
-\begin{minipage}{\linewidth}\small\centering
-\captionof{table}[Figure-to-code map]{Every computed figure, the file it is
-committed as, and the script that builds it. Scripts marked \emph{frozen}
-read the frozen research outputs; the others recompute closed forms.}
+\begin{table}[tbp]\small\centering
+\caption[Figure-to-code map]{Every computed figure and generated
+table, and the script under \texttt{tools/} (thesis) or
+\texttt{research/tools/} (research package) that builds it, with the frozen
+experiment it reads where it reads one. Figure~\ref{fig:bp-messages} is
+reproduced from the literature.}
 \label{tab:figure-map}
-\begin{tabular}{@{}lll@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.42\linewidth}p{0.54\linewidth}@{}}
 \toprule
-Figure & File & Built by \\
+figure / table & built by \\
 \midrule
-\ref{fig:sm-corruption} & \texttt{fig\_forward\_corruption.pdf} & \texttt{make\_thesis\_figures}, closed forms \\
-\ref{fig:toymodel} & \texttt{fig\_marginal\_blindness.pdf} & \texttt{make\_thesis\_figures}, closed forms \\
-\ref{fig:ring-model-dynamics} & \texttt{fig\_ring\_model\_dynamics.pdf} & \texttt{make\_thesis\_figures}, simulation \\
-\ref{fig:ring-model-channel} & \texttt{fig\_ring\_model\_channel.pdf} & \texttt{make\_thesis\_figures}, simulation \\
-\ref{fig:ring-gauge} & \texttt{fig\_ring\_gauge.pdf} & \texttt{make\_thesis\_figures}, simulation \\
-\ref{fig:g-eigen-relax} & \texttt{fig\_eigen\_relax.pdf} & \texttt{fig\_ch05}, closed forms \\
-\ref{fig:g-sparsity-lifecycle} & \texttt{fig\_sparsity\_lifecycle.pdf} & \texttt{fig\_ch05}, closed forms \\
-\ref{fig:g-markov-survival} & \texttt{fig\_markov\_survival.pdf} & \texttt{fig\_ch05}, closed forms \\
-\ref{fig:truncation} & \texttt{fig\_truncation.pdf} & \texttt{fig\_ch06}, closed forms \\
-\ref{fig:l-nonlinear} & \texttt{fig\_laplace\_nonlinear.pdf} & \texttt{fig\_ch07}, quadrature \\
-\ref{fig:l-metrics} & \texttt{fig\_laplace\_metrics.pdf} & \texttt{fig\_ch07}, exp.~02, frozen \\
-\ref{fig:bp-closure} & \texttt{fig\_laplace\_closure.pdf} & \texttt{fig\_ch07}, exp.~02, frozen \\
-\ref{fig:em-grid} & \texttt{fig\_em\_grid.pdf} & \texttt{fig\_ch08}, exp.~01/18, frozen \\
-\ref{fig:em-diagnostics} & \texttt{fig\_em\_diagnostics.pdf} & \texttt{fig\_ch08}, exps.~18 and 06, frozen \\
-\ref{fig:em-innovation} & \texttt{fig\_em\_innovation.pdf} & \texttt{fig\_ch08}, exp.~06, frozen \\
-\ref{fig:em-two-rates} & \texttt{fig\_em\_two\_rates.pdf} & \texttt{fig\_ch09}, exp.~27, frozen \\
-\ref{fig:em-value-of-structure} & \texttt{fig\_value\_of\_structure.pdf} & \texttt{fig\_ch10}, exp.~07/31, frozen \\
-\ref{fig:em-screening} & \texttt{fig\_screening.pdf} & \texttt{fig\_ch10}, exp.~31 screen, frozen \\
-\ref{fig:em-capacity} & \texttt{fig\_capacity.pdf} & \texttt{fig\_ch10}, exp.~32, frozen \\
-\ref{fig:em-nonmarkov} & \texttt{fig\_nonmarkov.pdf} & \texttt{fig\_ch10}, exp.~21 clean rerun \\
-\ref{fig:em-information} & \texttt{fig\_information.pdf} & \texttt{fig\_ch10}, exp.~22, frozen \\
+Figure~\ref{fig:sm-corruption} & \texttt{make\_thesis\_figures}, closed forms \\
+Figures~\ref{fig:g-eigen-relax}, \ref{fig:g-sparsity-lifecycle}, \ref{fig:g-markov-survival} & \texttt{fig\_ch05}, closed forms \\
+Figure~\ref{fig:truncation} & \texttt{fig\_ch06}, closed forms \\
+Figures~\ref{fig:l-nonlinear}, \ref{fig:l-metrics}, \ref{fig:bp-closure} & \texttt{fig\_ch07}, quadrature; exp.~02 (frozen) \\
+Figures~\ref{fig:em-grid}, \ref{fig:em-diagnostics}, \ref{fig:em-innovation} & \texttt{fig\_ch08}, exps.~01, 18, 06 (frozen) \\
+Figure~\ref{fig:em-two-rates} & \texttt{fig\_ch09}, exp.~27 (frozen) \\
+Figures~\ref{fig:em-value-of-structure}, \ref{fig:em-screening}, \ref{fig:em-capacity}, \ref{fig:em-nonmarkov}, \ref{fig:em-information} & \texttt{fig\_ch10}, exps.~07, 31, 32, 21, 22 (frozen) \\
+Table~\ref{tab:pointwise} & \texttt{make\_tab\_efficiency}, exp.~07 \\
+Tables~\ref{tab:screening}, \ref{tab:structured}, \ref{tab:aggregation-structured} & \texttt{make\_tab\_screening}, \texttt{make\_tab\_structured}, \texttt{make\_aggregation\_structured}, exp.~31 \\
+Tables~\ref{tab:capacity}, \ref{tab:nonmarkov}, \ref{tab:em-convergence} & \texttt{make\_tab\_capacity} (exp.~32), \texttt{make\_tab\_nonmarkov} (exp.~21), \texttt{make\_convergence\_numbers} (exps.~27, 06) \\
+Laplace oracle of Table~\ref{tab:em-oracle-laplace} & \texttt{make\_laplace\_oracle}, quadrature \\
 \bottomrule
 \end{tabular}
-\end{minipage}
-\end{center}
+\end{table}
 
-\section[The learning experiments]{The learning experiments of
-Chapters~\ref{ch:em-method} and~\ref{ch:em-results}}\label{sec:repro-learning}
+\section{Provenance and protocol facts}\label{sec:repro-provenance}\label{sec:repro-learning}
 
-The closed-form and quadrature studies above are deterministic and run on a
-laptop. The estimator comparisons are neither, and they are gated
-differently.
+The closed-form and quadrature studies are deterministic and run on a laptop;
+the estimator comparisons ran under SLURM from the scripts in \texttt{hpc/},
+and four provenance routes appear, in decreasing order of strength.
+\emph{Certified:} \texttt{exp\_31} (screen and confirmatory comparison) and
+\texttt{exp\_32} (capacity) were deployed by a script that refuses a dirty
+tree, ships a \texttt{git archive} of the commit and records its digest.
+\emph{Legacy digest, empty intersection:} \texttt{exp\_07}, the headline
+comparison, predates that script and is citable because the intersection of
+each run's recorded dirty-file list with its own import closure is empty, a
+check recomputed on every regeneration; the one row where it was not,
+$\nseq = 8192$, is withdrawn. \emph{Recorded configuration only:} the
+validation and diagnostic runs (\texttt{exp\_01}, \texttt{02}, \texttt{06},
+\texttt{18}, \texttt{22}, \texttt{27}) carry the resolved configuration and
+seeds but an empty revision field, and the claims resting on them are stated
+as measured curves and orderings. \emph{Certified after rerun:}
+\texttt{exp\_21}, behind Table~\ref{tab:nonmarkov}, is a clean-deployment
+rerun whose Gaussian arm reproduces the run it replaces on every quoted
+number.
 
-\paragraph{Provenance.} Runs deployed by \texttt{hpc/deploy\_clean.sh} are
-certified: the script refuses to build from a dirty tree, ships a
-\texttt{git archive} of the commit rather than the working tree, records the
-SHA-256 of that tarball, and extracts on the cluster under the commit id so that
-a run cannot overwrite or edit its own source. The motivating failure is
-preserved in that script's header: an earlier two-step stamp-then-rsync path
-produced \texttt{outputs/exp\_12\_scaled/}, whose recorded commit cannot have
-run the recorded command, and whose numbers are therefore not recoverable and
-are not cited in this thesis. \texttt{tools/provenance\_gate.py} intersects a
-run's recorded dirty-file list with the import closure of its own experiment
-module, so that uncommitted work elsewhere in the tree is distinguished from
-uncommitted work on the code path that produced the numbers. That distinction
-does the work below, because the two are not equally serious.
+Both arms of the headline comparison select their budget on a disjoint
+validation bundle, agreeing with the test-set optimum in $\netagree\%$ and
+$\emagree\%$ of cells; rerunning $\nseq = \nseqcalib$ at the raised budget of
+the $\nseq = \extendedn$ row moves its pooled ratio by
+$\budgetdelta \pm \budgetdeltase$, in the direction that makes the capped
+table conservative for the structured arm. The resolution gate excludes
+$\ndropped$ of $\ncellstotal$ cells whose narrowest fitted component is under
+two grid cells wide; including them changes no ratio by more than
+$\dropshift$. The screen ran $\screenconfigs$ configurations over
+$\screendevseeds$ development seeds disjoint from the confirmatory seeds, with
+learning rates \screenlrs{}, both output heads and a checkpoint ladder from
+$\screenckptlo$ to $\screenckpthi$ steps. The settling times of
+Section~\ref{sec:em-stopping-times} come from the $\convcap$-iteration shard
+of \texttt{exp\_27}, the only run length at which no configuration settles at
+its own cap. The environment is Python $\ge 3.10$ with NumPy, SciPy, pandas
+and Matplotlib, float64 throughout, the neural baselines in pure NumPy with
+an explicit random generator so that training is reproducible from the
+recorded seed; these are version floors rather than a lock, so byte-level
+reproduction is not claimed, only determinism given the seeds on a fixed
+installation. The document compiles with one run of
+\texttt{tectonic main.tex}, and \texttt{check.sh} reports unresolved
+references, undefined citations, duplicate labels and overfull boxes.
 
-\paragraph{How each run is certified.}\label{sec:repro-provenance}
-Not every experiment here was run after
-\texttt{deploy\_clean.sh} existed, so four routes appear, in decreasing
-order of strength. Nothing cited in this thesis hides which route it took. The development record behind each
-route, which deployments failed, and why each check was added, is in
-\compendium{}.
+\section{How the reported ratios were aggregated}\label{sec:aggregation-headline}
 
-\emph{Certified.} \texttt{exp\_31}, the architecture screen and the
-confirmatory comparison, and \texttt{exp\_32}, capacity, were deployed by the
-script and pass \texttt{require\_clean} unmodified. Every number in
-Sections~\ref{sec:em-architecture} and~\ref{sec:em-capacity} comes from them.
+A ratio is a nonlinear function of two means, so it depends on the order in
+which averaging is done, and both reported ratios were recomputed under
+alternative aggregations of the same frozen cells, refitting nothing. For
+the headline (Table~\ref{tab:pointwise}) the reported estimand is the
+schedule-pooled paired per-seed ratio of \eqref{eq:em-pooling}; the mean of
+per-(seed, level) ratios, which earlier drafts reported, is systematically
+the largest alternative ($\ratiocellwiselo$--$\ratiocellwisehi\times$ against
+the pooled $\ratiolo$--$\ratiohi\times$), because a per-level ratio at a level
+with little reference energy can be very large while contributing little.
+The direction is the same under every aggregation, every paired bootstrap
+interval over seeds sits well clear of one, and no aggregation produces a
+reversal at any size; resolved by noise level, the per-level ratio peaks near
+$t \approx 0.5$, and EM--BP is beaten outright in $\nreversed$ of
+$\ncellsused$ cells. For the structure-aware comparison the reported estimand
+is not uniformly the largest, but the floor across the four aggregations is
+$\structaggfloor\times$ with a spread of $\structaggspread$
+(Table~\ref{tab:aggregation-structured}), so the reading of a low single-digit
+multiple at the smallest training set growing to roughly six at the largest
+survives every one of them.
 
-\emph{Legacy digest, empty intersection.} \texttt{exp\_07}, the headline
-efficiency comparison, its validation-selection audit and its budget
-calibration, predates the script. Its records carry a commit, a host, a job
-id, a resolved configuration and a dirty-file list, but no
-archive digest, so the plain gate refuses it. What makes it citable is
-narrower and checkable: the intersection of each run's recorded dirty list with
-its own import closure is \emph{empty}, so no uncommitted edit could have
-reached the code that produced the numbers.
-\texttt{make\_tab\_efficiency.py} recomputes that intersection on every run
-and refuses if it is ever non-empty, not resting on a check performed
-once by hand. The one \texttt{exp\_07} row where the intersection was
-\emph{not} empty, $\nseq = 8192$, whose dirty list contained the
-experiment, the frozen configuration and \texttt{src/em.py}, is withdrawn
-and appears nowhere in this thesis.
+\providecommand{\headlinetable}{Table~\ref{tab:pointwise}}
+\providecommand{\structuredtable}{Table~\ref{tab:structured}}
+\input{sections/tab-aggregation-structured}
 
-\emph{Recorded configuration only.} The validation and diagnostic runs ---
-\texttt{exp\_01} and \texttt{exp\_18} (grid validation and diagnostics),
-\texttt{exp\_02} (the Gaussian-closure sweep), \texttt{exp\_06} (parameter
-recovery), \texttt{exp\_22} (the Fisher-information curves of
-Section~\ref{sec:em-shape-information}) and \texttt{exp\_27} (the settling
-times of Section~\ref{sec:em-stopping-times}) --- predate even the commit
-recording: their \texttt{params} files carry the resolved configuration,
-host, timestamp and, where run under SLURM, the job id, but an empty revision
-field. They are reproducible by rerunning the committed experiment code under
-the recorded configuration (the quadrature studies are deterministic; the
-rest record their seeds), and the claims that rest on them are stated at
-matching strength in the chapters --- measured curves and orderings, not
-certified point values. This is the weakest of the four routes and is
-disclosed as such.
-
-\emph{Certified after rerun.} \texttt{exp\_21}, behind
-Table~\ref{tab:nonmarkov} and Figure~\ref{fig:em-nonmarkov}, is reported from
-\texttt{outputs/frozen/exp\_21\_clean}: fifteen cells from two git-archive
-deployments, every one with an empty dirty list. It replaces an earlier run
-whose recorded commit did not reconstruct the program, and the Gaussian arm
-reproduces that run on every number quoted here, to the precision printed.
-Because the Laplace and Gaussian arms were deployed separately, the rerun spans
-two commits, so \texttt{make\_tab\_nonmarkov.py} refuses unless no single cell
-pools commits \emph{and} every file in the experiment's sixteen-file import
-closure is byte-identical between them. Both hold, and the check runs on every
-regeneration.
-
-\paragraph{Generated numbers.} No efficiency, structured-baseline or
-aggregation number in this thesis is typed. Each is defined once as a macro in
-\texttt{thesis/sections/}, written there by one of the thirteen generators
-below, each reading the recorded outputs directly. Nine live under
-\texttt{research/tools/}; three are thesis-side scripts that emit the macros
-their own captions quote (\texttt{fig\_ch10},
-\texttt{make\_laplace\_oracle} and \texttt{make\_build\_manifest}).
-\texttt{make\_ref\_energy} is the fourteenth name and writes no macro at all:
-it recovers the per-level reference energies of the frozen test bundle that
-the pooled estimand needs, and the others read what it produces.
-
-\begin{center}\small
-\begin{tabular}{@{}ll@{}}
-\texttt{make\_tab\_efficiency} & \texttt{make\_aggregation\_robustness} \\
-\texttt{make\_tab\_structured} & \texttt{make\_aggregation\_structured} \\
-\texttt{make\_tab\_screening}  & \texttt{make\_convergence\_numbers} \\
-\texttt{make\_tab\_capacity}   & \texttt{make\_grid\_diagnostics} \\
-\texttt{make\_tab\_nonmarkov}  & \texttt{make\_ref\_energy} \\
-\texttt{fig\_ch10}             & \texttt{make\_laplace\_oracle} \\
-\texttt{make\_build\_manifest} & \\
-\end{tabular}
-\end{center}
-
-\noindent The prose then cites the macro rather than the value, so tables,
-figures and text share a size grid and an aggregation rule by construction
-and not by inspection.
-
-\paragraph{What Table~\ref{tab:pointwise} covers.} Five qualifications, kept
-here and not in the caption, which had grown into a methods subsection
-set in small type. The estimand is the schedule-pooled relative error of
-Eq.~\eqref{eq:em-pooling}: per-level squared error and reference score energy
-are pooled before the square root, per seed, with the per-level reference
-energies of the frozen test bundle recovered deterministically by
-\codefile{tools/make\_ref\_energy.py} (the bundle is shared across seeds,
-so those energies are twelve numbers, validated against exp\_31's stored
-sums). Both arms select their optimisation budget on a disjoint
-validation bundle, the network its parameterisation \emph{and} training
-length, EM--BP its iteration count, and that choice agrees with the
-test-set optimum in $\netagree\%$ and $\emagree\%$ of cells respectively, so
-the protocol is symmetric and the selection is close to an oracle without
-being one. The $\nseq=\extendedn$ row uses a raised budget, the caps having
-been set for $\nseq\le\nseqcalib$; rerunning $\nseq=\nseqcalib$ at that budget
-on the same seeds moves its pooled ratio by $\budgetdelta\pm\budgetdeltase$
---- small against the ratio's own size, and in the direction that makes the
-capped table conservative for the structured arm, so the caps do not carry
-the comparison. The resolution gate excludes $\ndropped$ of
-$\ncellstotal$ cells, because in those the narrowest fitted mixture component is
-under two grid cells wide; including them changes no ratio by more than
-$\dropshift$. The network wins in $\nreversed$ of the $\ncellsused$ reported
-cells, both at the smallest sizes --- Appendix~\ref{app:aggregation} resolves
-where the advantage is largest.
-
-\paragraph{What Table~\ref{tab:structured} covers.} The confirmatory run scores
-three regions per cell --- \structregionlist{} --- of which the table displays
-two; the third is the predeclared interior slice, and it is the one the
-architecture screen selects on. That is why the $\structcells$ scored cells are
-$\structseeds \times \structsizes \times \structregions$ and not the
-$\structseeds \times \structsizes \times 2$ a two-column table suggests. The
-count is a descriptive diagnostic and not a replication count: regions are a
-scoring choice applied after fitting, and sizes share nothing but the seed, so
-the inferential unit behind each displayed row is the $\structseeds$ paired
-seeds. Both arms are checkpointed and selected on a validation bundle disjoint
-from the test bundle, and neither bundle is shared with training.
-
-\paragraph{The architecture screen.} Table~\ref{tab:screening} reports it in
-full. Its source is \texttt{screening.csv} under
-\texttt{outputs/frozen/exp\_31\_screen/} at commit \texttt{569a67c}, which is the
-artifact the confirmatory run names in its own recorded configuration
-(\texttt{winners=auto:} that path) rather than a reconstruction. $\screenconfigs$ configurations over $\screendevseeds$
-development seeds, at two training sizes, with learning rates
-\screenlrs{}, both output parameterisations, and a checkpoint ladder from
-$\screenckptlo$ to $\screenckpthi$ steps shared across all three
-architectures. Selection pools squared error and reference energy over the
-development seeds and sizes before the square root, scored on
-the \screenregion{} region --- the same accumulation as the selector inside
-the confirmatory job, which is what makes the screen table document the
-screen that ran; the development seeds are numbered from $10000$ and
-share no seed with the confirmatory set, so the reported interval is not a
-selection artefact. The winner is the window head at radius
-$\screenwinnerradius$, width $\screenwinnerwidth$, learning rate
-$\screenwinnerlr$, \screenwinnermode{} parameterisation. Parameter counts
-across the grids are \screenwindowparams{} (window), \screenbimpparams{}
-(message passing) and \screenconvparams{} (dilated convolution): the arm with
-the most capacity placed last, which is the relevant check on whether the
-comparison was tuned evenly.
-
-\paragraph{The convergence sweep.}
-The settling times of Section~\ref{sec:em-stopping-times} come from
-\texttt{outputs/frozen/}\allowbreak\texttt{exp\_27\_*}, run on 16 August
-2026 under SLURM job
-\texttt{628601} and its shards --- a recorded-configuration-only run in the
-sense above, so the gate refuses it by default and the generator passes
-\texttt{allow\_legacy}; the route disclosure above goes with it.
-The quoted numbers come
-from the $\convcap$-iteration shard, the only run length in the sweep at which
-no configuration settles at its own cap; the $400$-iteration shard is censored
-by its cap and its settling times are lower bounds, so it is used only for the
-count of configurations that miss a $\convbudget$-iteration budget, which
-censoring cannot inflate. The measurement replaces a figure of ``on the order of
-$2000$ iterations'' that appeared in earlier drafts and was never measured: it
-had been carried over from a diagnostic that ran a fit \emph{out to} $2000$
-iterations to show its per-edge gain had plateaued.
-
-\paragraph{The transition array's normalisation.} Stated in
-Section~\ref{sec:em-numerical} and repeated here because it determines which
-probabilistic object the M-step optimises: columns are \emph{not} renormalised
-under the quadrature weights, so the fitted object is the continuum kernel read
-through a quadrature rule and the surrogate carries no $\theta$-dependent
-log-normaliser. The column-mass residual is the measured distance to a
-normalised finite-state kernel.
-
-\paragraph{Excluded inputs.} $\nseq=8192$ is excluded from both
-Table~\ref{tab:pointwise} and Figure~\ref{fig:em-value-of-structure}: the
-intersection of its dirty list with \texttt{exp\_07}'s import closure
-contains the experiment, the frozen configuration and \texttt{src/em.py}
-themselves, so the run is not recoverable. The $\nseq=4096$ rows are
-retained: their intersection is empty, so no edit in that tree could have
-moved those numbers.
-
-\section{Environment}
-
-Python $\geq 3.10$ with NumPy, SciPy, pandas and Matplotlib. The neural
-baselines of Chapter~\ref{ch:em-results} are implemented in pure NumPy
-(\texttt{src/nnet.py} for the fully connected denoiser,
-\texttt{src/seq\_nets.py} and \texttt{src/local\_head.py} for the
-locality-respecting architectures) with an explicit
-\texttt{numpy.random.Generator} driving initialisation and minibatch order,
-so training is stochastic but reproducible from the recorded seed. Two
-optional dependencies are used and neither is on the exactness path: CuPy,
-selected by the \texttt{BP\_DEVICE} environment variable, runs the same
-single BP implementation on a GPU, \texttt{tests/test\_backend\_parity.py}
-asserts the two devices agree, so a device change fails a test rather than
-moving a number quietly, and PyTorch, imported lazily in
-\texttt{src/fid.py} alone, for the generative metric. Arithmetic is float64
-throughout.
-
-The sweeps of Chapters~\ref{ch:em-method} and~\ref{ch:em-results} run under
-SLURM from the batch scripts in \texttt{hpc/}, one per experiment. The
-document compiles with a single run of \texttt{tectonic main.tex}.
-
-Those are version floors rather than a lock. They do not pin the BLAS and
-LAPACK implementations behind NumPy, the SciPy special-function versions, or
-the \TeX{} bundle, and each of those can move a last digit; the parity test
-above catches a device change but not a library one. Byte-level reproduction
-of the frozen outputs is therefore not claimed --- only that the pipeline is
-deterministic given its seeds on a fixed installation, which is what the
-digests below record.
-
-\section{Build manifest}
-
-The consistency checks this document runs are internal to it, so they cannot
-tell a reader which sources produced it. This manifest can. It is written at
-build time by the generator
-\codefile{tools/\allowbreak make\_build\_manifest.py}, and records the state
-the artefact was made from:
-
-\begin{center}
-\begin{minipage}{\linewidth}\small
-\begin{tabular}{@{}ll@{}}
-\toprule
-repository revision & \bmreposha{} \\
-thesis subtree & last touched \bmthesissha{}, \bmthesisstate{} \\
-research subtree & last touched \bmresearchsha{}, \bmresearchstate{} \\
-generated inputs & \bmgenerated{} over \bmgeneratedcount{} files \\
-figures & \bmfigures{} over \bmfigurecount{} files \\
-previous \texttt{main.pdf} & \bmpdf{} \\
-engine & \bmtectonic{} \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\end{center}
-
-\noindent
-This build was made from \bmlayout{}. The documents and the research package
-live in one repository either way, so the revision is a single fact; the rows
-below it record the last commit that touched each subtree and whether that
-subtree carries uncommitted edits, both path-limited, so unrelated work
-elsewhere in the tree flags neither. Where the repository root \emph{is} the
-thesis, and in any repository whose history is a single commit, the three
-values coincide --- not a degenerate manifest but an accurate one: there is
-only one revision to name.
-
-Three honest caveats. The PDF digest is necessarily that of the build before
-this one, since writing the manifest changes the input to the current build;
-it fixes the artefact one step back rather than pretending to hash itself. The
-recorded revision is likewise one step behind in a repository with history,
-since a manifest committed in a commit cannot name that commit; in a
-single-commit publication it names that commit itself. And
-a manifest fixes the \emph{source} side only: it says which code and which
-generated inputs produced this document, not that the frozen experiment
-outputs are themselves certified --- that is the route-by-route disclosure of
-Section~\ref{sec:repro-provenance}, empty revision fields included.
-
-% Undo the appendix's loosened line breaking, which would otherwise leak
-% into the appendices that follow. This was \fussy, the partner of a
-% \sloppy that no longer exists.
 \setlength{\emergencystretch}{0pt}

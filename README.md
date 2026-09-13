@@ -7,7 +7,11 @@ diffusion models over Markov-chain data.
 
 **Supervisor:** Marc Mézard · **Advisor:** Jérôme Garnier-Brun
 
-The compiled document is [`main.pdf`](main.pdf).
+The compiled document is [`main.pdf`](main.pdf), the concise submission
+(about 100 pages). The extended research record (about 230 pages, every
+derivation written out, plus the rotating-ring precursor study) is preserved
+at the git tag `extended-thesis-pre-compression` and as
+[`archive/extended-thesis-230pp.pdf`](archive/extended-thesis-230pp.pdf).
 
 ## What the thesis shows
 
@@ -52,15 +56,15 @@ inspect a stale PDF after a failed build.
 | `main.tex` | document skeleton: front matter, chapter order, back matter |
 | `title.tex`, `abstract.tex` | the registered title and the abstract, for the submission system |
 | `preamble.tex`, `notation.tex` | packages, typography, theorem environments, macros |
-| `chapters/` | eleven chapters, two appendices, the AI disclosure and acknowledgements |
+| `chapters/` | nine chapters, one appendix, the AI disclosure and acknowledgements |
 | `sections/` | **generated** tables and number macros — do not hand-edit |
-| `figures/` | generated figure PDFs, plus seven literature reproductions (PNG) |
+| `figures/` | generated figure PDFs, plus one literature reproduction (PNG) |
 | `tools/` | figure generators, the house style, the Laplace-oracle and build-manifest generators |
 | `references.bib` | bibliography, shared with the companion paper |
 | `research/` | the research package: BP and EM implementations, experiments, the frozen outputs, the generators, and the test suite ([details](research/CODE_README.md)) |
 
-Every number in `sections/` and every figure in `figures/` is produced by a
-script from frozen experiment outputs; none is typed by hand. Those scripts and
+Every number in `sections/` and every computed figure in `figures/` is produced
+by a script from frozen experiment outputs; none is typed by hand. Those scripts and
 those outputs are in [`research/`](research/CODE_README.md), so the chain from
 raw experiment to printed number is in this repository end to end. Appendix A
 documents the provenance of each experiment route by route, including the
@@ -71,7 +75,8 @@ tying this PDF to the repository state it was made from.
 
 Large language models were used as assistive tools for code development,
 manuscript review and language editing; no result, number or figure was
-produced by one. The full statement is the first section of the thesis.
+produced by one. The full statement is the first section of the thesis, and
+the systems used are referenced in the bibliography.
 
 ## License
 
@@ -80,13 +85,12 @@ figure generators and the build tooling in this repository.
 
 One thing the licence does not cover, because it is not mine to license:
 
-- **Seven figures reproduced from published work** — `fig_song_dog`,
-  `fig_song_sde`, `fig_bachtis_cascade`, `fig_bonnaire_memorize`,
-  `fig_biroli_regimes`, `fig_mezard_bp_messages` and `fig_unet_architecture`.
-  Each is attributed in its caption and remains the property of its original
-  authors and publishers; they are included here under the terms that permit
-  their use in this thesis, and reuse elsewhere needs permission from the
-  respective rights holders.
+- **One figure reproduced from published work** — `fig_mezard_bp_messages`
+  (Mézard and Montanari, 2009, Figure 14.3). It is attributed in its caption
+  and remains the property of its original authors and publisher; it is
+  included here under the terms that permit its use in this thesis, and reuse
+  elsewhere needs permission from the rights holders. (The extended version at
+  the tag above carries six further reproductions, attributed the same way.)
 
 The frozen experiment outputs in `research/outputs/frozen/` are my own
 measurements and are covered by the same grant; `research/REDACTIONS.md`
