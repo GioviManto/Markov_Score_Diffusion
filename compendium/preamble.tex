@@ -1,32 +1,19 @@
 % ============================================================
 % Preamble — Bocconi MSc thesis format (Guide to the University §10.3)
-%   A4, left/right margins 2.5 cm, 26–30 lines per page, 12 pt body in
-%   Arial, numbered pages, no title page/abstract in body, no personal info.
+%   A4, left/right margins 2.5 cm, 26–30 lines per page, 12 pt body,
+%   numbered pages, no title page/abstract in body, no personal info.
 % ============================================================
 
-% ---------- fonts ----------
-% Body text in Arial, the family the university guide recommends (12 pt is
-% the hard requirement; the family is a recommendation). The build needs a
-% Unicode engine (tectonic locally; on Overleaf set the compiler to XeLaTeX).
-% Three tiers: font files in fonts/ (Arial.ttf, Arial Bold.ttf, Arial
-% Italic.ttf, Arial Bold Italic.ttf, for an Overleaf project), then the
-% system's Arial, then TeX Gyre Heros, a metric-compatible Helvetica clone
-% shipped with every TeX distribution, so the page count does not move.
-% Mathematics stays in the Computer Modern math fonts, the usual pairing for
-% a sans-serif thesis body.
-\usepackage{fontspec}
-\IfFileExists{fonts/Arial.ttf}{%
-  \setmainfont{Arial}[Path=fonts/, Extension=.ttf,
-    BoldFont=Arial Bold, ItalicFont=Arial Italic,
-    BoldItalicFont=Arial Bold Italic]}{%
-  \IfFontExistsTF{Arial}{\setmainfont{Arial}}{%
-    \setmainfont{texgyreheros}[Extension=.otf, UprightFont=*-regular,
-      BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]}}
+% ---------- encoding & fonts ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage{microtype}
 
 % ---------- geometry: 2.5 cm side margins, ~29 text lines/page ----------
 % headheight=15pt: fancyhdr needs 13.6pt for the \small running head; at the
-% LaTeX default of 12pt the head box overflowed downward into the text block.
+% LaTeX default of 12pt the head box overflowed downward into the text block,
+% striking the top edge of every [t] float.
 \usepackage[a4paper,hmargin=2.5cm,textheight=630pt,vcentering,headheight=15pt]{geometry}
 \usepackage{setspace}
 \setstretch{1.5}   % 12pt x 1.5 -> ~29 lines per page (within the 26-30 rule)
@@ -41,43 +28,52 @@
 % figures/, sections/ and references.bib are local copies, refreshed from the
 % research repository by sync-assets.sh.
 \graphicspath{{figures/}}
-% Float policy: let a page be mostly float before LaTeX moves the float to a
-% page of its own, which otherwise leaves near-empty prose pages.
-\renewcommand{\topfraction}{0.9}
-\renewcommand{\bottomfraction}{0.7}
-\renewcommand{\textfraction}{0.08}
-\renewcommand{\floatpagefraction}{0.8}
-\setcounter{topnumber}{3}
-\setcounter{totalnumber}{4}
 \usepackage{booktabs}
-\usepackage{enumitem}      % compact lists (research questions, contributions)
 \usepackage[font=small,labelfont=bf,margin=1em]{caption}
 \usepackage{subcaption}
 \usepackage{capt-of}          % \captionof, used by the shared generated tables
 \usepackage{xcolor}
+
+% ---------- code listings ----------
+\usepackage{listings}
+\definecolor{codebg}{RGB}{247,247,245}
+\definecolor{codekw}{RGB}{26,58,92}
+\definecolor{codecm}{RGB}{110,110,110}
+\definecolor{codestr}{RGB}{140,60,20}
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize\linespread{1.05}\selectfont,
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecm}\itshape,
+  stringstyle=\color{codestr},
+  backgroundcolor=\color{codebg},
+  frame=single, framerule=0.3pt, rulecolor=\color{black!25},
+  numbers=left, numberstyle=\tiny\color{black!45}, numbersep=7pt,
+  breaklines=true, showstringspaces=false,
+  aboveskip=1em, belowskip=1em, columns=fullflexible, keepspaces=true
+}
+
+% ---------- toolbox environment (step-by-step derivations) ----------
 \usepackage{etoolbox}
-% Chapter heads: the report class leaves 50pt above and 40pt below the
-% title block; tightened to 20pt/30pt so a chapter opening does not waste a
-% third of its page. Line spacing and font size are untouched.
-\makeatletter
-\patchcmd{\@makechapterhead}{\vspace*{50\p@}}{\vspace*{20\p@}}{}{}
-\patchcmd{\@makechapterhead}{\vskip 40\p@}{\vskip 30\p@}{}{}
-\patchcmd{\@makeschapterhead}{\vspace*{50\p@}}{\vspace*{20\p@}}{}{}
-\patchcmd{\@makeschapterhead}{\vskip 40\p@}{\vskip 30\p@}{}{}
-% Section and subsection heads: the class skips (3.5ex/2.3ex, 3.25ex/1.5ex)
-% are reduced by about a third; heading fonts are unchanged.
-\renewcommand\section{\@startsection{section}{1}{\z@}%
-  {-2.6ex \@plus -1ex \@minus -.2ex}{1.6ex \@plus.2ex}%
-  {\normalfont\Large\bfseries}}
-\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
-  {-2.4ex\@plus -1ex \@minus -.2ex}{1.2ex \@plus .2ex}%
-  {\normalfont\large\bfseries}}
-\makeatother
 % Table bodies at \small with opened-up rows: at full body size against the
 % 1.5-spaced prose the tabulars read cramped, and \small also matches them to
 % their captions. Scoped to the float so math arrays are untouched, and
 % applied via AtBeginEnvironment so the shared generated tables need no edit.
 \AtBeginEnvironment{table}{\small\renewcommand{\arraystretch}{1.18}}
+\usepackage[most]{tcolorbox}
+\newcounter{toolbox}[chapter]
+\renewcommand{\thetoolbox}{\thechapter.\arabic{toolbox}}
+% optional first argument: a label (placed via `phantom' so it survives
+% breakable boxes); mandatory second argument: the title.
+\newtcolorbox{toolbox}[2][]{%
+  breakable, enhanced,
+  colback=black!3, colframe=black!55,
+  boxrule=0.4pt, arc=1.2mm, left=2mm, right=2mm, top=1.5mm, bottom=1.5mm,
+  phantom={\refstepcounter{toolbox}\ifblank{#1}{}{\label{#1}}},
+  title={\small\bfseries Toolbox~\thetoolbox\ --- #2},
+  fonttitle=\normalfont, coltitle=white, colbacktitle=black!55,
+  before skip=1.2em, after skip=1.2em
+}
 
 % ---------- theorem environments ----------
 \theoremstyle{plain}
@@ -107,7 +103,7 @@
 
 % ---------- hyperlinks ----------
 % Coloured rather than hidden: every cross-reference, equation number, figure
-% reference and citation is clickable, and the reader can see that it is.
+% reference and citation is clickable, and the reader can now see that it is.
 % The colours are dark enough to read as black on a monochrome printout.
 \definecolor{linkint}{RGB}{31,72,110}   % internal: chapters, figures, equations
 \definecolor{linkcite}{RGB}{31,95,91}   % citations
@@ -123,19 +119,25 @@
   bookmarksopenlevel=1,
   pdfstartview={FitH},
   pdfpagemode=UseOutlines,
-  pdftitle={Learning Scores for Markovian Dynamics in Generative Diffusion},
+  pdftitle={Belief Propagation for Generative Diffusion on Dynamic Objects},
   pdfsubject={MSc thesis, Data Science and Business Analytics, Bocconi University}
 }
 \urlstyle{same}
 % cleveref must be loaded after hyperref. It prints the object's name with the
 % number, so a reference cannot drift out of step with what it points at.
 \usepackage[nameinlink,noabbrev]{cleveref}
+\crefname{toolbox}{Toolbox}{Toolboxes}
+\Crefname{toolbox}{Toolbox}{Toolboxes}
 
 % ---------- notation macros (consistent with the research notes) ----------
+% Same rendering as shared/notation.tex, which the thesis does not \input
+% (it carries its own notation block). Kept in step with it deliberately: a
+% chapter that cites a file by name should look the same in every document.
 \providecommand{\codefile}[1]{\texttt{\small #1}}
 % The thesis writes the training-set size N where the paper writes M. Shared
 % generated sections use \nseq, so alias it here rather than forking the
-% generator: the numbers must be identical in both documents.
+% generator: the numbers must be identical in both documents, and a second copy
+% of the file is exactly how they would stop being.
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, fit}
 \providecommand{\like}{\ell_t}                  % unary likelihood factor
@@ -147,18 +149,34 @@
 % Same reason, for the autoregressive coefficient: shared/notation.tex sets
 % \corr to \rho, and the shared non-Markov table is written through it.
 \providecommand{\corr}{\alpha}
-% The innovation variance, one macro so the chapters cannot drift apart.
+% The innovation variance. Chapters 5 and Appendix B already wrote it
+% \sigma_\eta^2; Chapters 6, 8 and 9 wrote it q, which is also the geometric
+% decay rate q(\alpha,t) of Chapter 5. One macro, so the two cannot drift apart
+% again and so the collision with q stays fixed.
 \newcommand{\ivar}{\sigma_\eta^2}
-% Grid resolution, rendered as the shared figures label it.
+% Grid resolution. Chapters 6 and 8 wrote this as a bare M, which collided
+% twice: with the Markov transition kernel M of Chapter 2 (used again in
+% Chapter 6's one-step proposition) and with the shared figures, whose axes
+% are labelled N_g because the paper writes M for the training-set size.
+% shared/notation.tex already renders it this way, so this alias makes the
+% figures agree with the prose in both documents.
 \providecommand{\ngrid}{N_{\mathrm{g}}}
+% Conditional covariance. shared/notation.tex defines this; the thesis carries
+% its own notation block, and building without it silently typeset
+% \Cov(A\mid h) as "(A | h)" wherever Overleaf's nonstop mode dropped the
+% undefined macro (Chapter 4's Hessian derivation).
 \providecommand{\Cov}{\operatorname{Cov}}
 % Where THIS document keeps its provenance discussion. Shared generated
-% sections cite it through this macro instead of a literal label.
+% sections cite it through this macro instead of a literal label, because the
+% paper and the thesis file that material under different appendix names and a
+% hard \ref resolves in one and prints "??" in the other.
 \providecommand{\provenanceappendix}{Appendix~\ref{app:repro}}
-% The companion compendium (compendium/) is the extended research record of
-% this thesis: every derivation written out, and the precursor studies.
-\newcommand{\compendium}{the companion compendium}
-\newcommand{\Compendium}{The companion compendium}
+% This volume IS the companion compendium now. The two macros below used to
+% point at the earlier technical compendium (background derivations,
+% experiment ledger, claim audit), which is superseded and kept in
+% archive/; the phrase is retargeted so those references stay truthful.
+\newcommand{\compendium}{the archived technical compendium}
+\newcommand{\Compendium}{The archived technical compendium}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Prob}{\mathbb{P}}

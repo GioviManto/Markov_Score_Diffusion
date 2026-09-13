@@ -1,0 +1,1193 @@
+% Canonical bibliography for all four documents. EDIT THIS FILE, NEVER A COPY.
+%
+% overleaf/build.sh copies this into workshop/, paper/, compendium/ and
+% thesis/ as references.bib on every build, because Overleaf's BibTeX cannot
+% read through `..` and silently produces a bibliography with every citation
+% dropped when asked to. Those four copies are build products: anything typed
+% into one is overwritten by the next build without warning.
+%
+% Merged once from the paper's and the thesis's separate files, which shared 14
+% keys for the same works formatted differently. The paper's entries won those
+% clashes because they carry eprint/archivePrefix and DOI fields. This is now the
+% single source -- add references here, not in a per-document copy.
+
+
+
+
+
+
+
+
+
+
+
+% --- Time reversal and the Fokker--Planck equation -------------------------
+
+
+
+@article{haussmann1986,
+  title   = {Time reversal of diffusions},
+  author  = {Haussmann, Ulrich G. and Pardoux, Etienne},
+  journal = {The Annals of Probability},
+  volume  = {14}, number = {4}, pages = {1188--1205}, year = {1986}}
+
+@book{risken1989,
+  title     = {The {Fokker--Planck} Equation: Methods of Solution and Applications},
+  author    = {Risken, Hannes},
+  edition   = {2nd}, publisher = {Springer}, year = {1989}}
+
+% --- The score / posterior-mean identity -----------------------------------
+
+
+
+
+
+
+
+
+
+
+
+% --- Estimation theory -----------------------------------------------------
+
+@book{lehmann1998,
+  title     = {Theory of Point Estimation},
+  author    = {Lehmann, Erich L. and Casella, George},
+  edition   = {2nd}, publisher = {Springer}, year = {1998}}
+
+@book{kay1993,
+  title     = {Fundamentals of Statistical Signal Processing: Estimation Theory},
+  author    = {Kay, Steven M.},
+  publisher = {Prentice Hall}, year = {1993}}
+
+% --- Graphical models and message passing ----------------------------------
+
+@book{pearl1988,
+  title     = {Probabilistic Reasoning in Intelligent Systems},
+  author    = {Pearl, Judea},
+  publisher = {Morgan Kaufmann}, year = {1988}}
+
+
+
+
+
+@article{wainwright2008,
+  title   = {Graphical models, exponential families, and variational inference},
+  author  = {Wainwright, Martin J. and Jordan, Michael I.},
+  journal = {Foundations and Trends in Machine Learning},
+  volume  = {1}, number = {1--2}, pages = {1--305}, year = {2008}}
+
+% --- Forward--backward, Kalman, RTS ----------------------------------------
+
+@article{baum1970,
+  title   = {A maximization technique occurring in the statistical analysis of
+             probabilistic functions of {Markov} chains},
+  author  = {Baum, Leonard E. and Petrie, Ted and Soules, George and Weiss, Norman},
+  journal = {The Annals of Mathematical Statistics},
+  volume  = {41}, number = {1}, pages = {164--171}, year = {1970}}
+
+
+
+
+
+
+
+@book{cappe2005,
+  title     = {Inference in Hidden {Markov} Models},
+  author    = {Capp\'e, Olivier and Moulines, Eric and Ryd\'en, Tobias},
+  publisher = {Springer}, year = {2005}}
+
+% --- Continuous-state HMM inference: the numerical methods grid BP sits
+% --- among, and the identifiability results that bound what estimating a
+% --- transition kernel from noisy observations can recover.
+
+@article{kitagawa1987,
+  title   = {Non-{Gaussian} state-space modeling of nonstationary time series},
+  author  = {Kitagawa, Genshiro},
+  journal = {Journal of the American Statistical Association},
+  volume  = {82}, number = {400}, pages = {1032--1041}, year = {1987}}
+
+@article{alspach1972,
+  title   = {Nonlinear {Bayesian} estimation using {Gaussian} sum approximations},
+  author  = {Alspach, Daniel L. and Sorenson, Harold W.},
+  journal = {IEEE Transactions on Automatic Control},
+  volume  = {17}, number = {4}, pages = {439--448}, year = {1972}}
+
+@inproceedings{minka2001,
+  title     = {Expectation propagation for approximate {Bayesian} inference},
+  author    = {Minka, Thomas P.},
+  booktitle = {Uncertainty in Artificial Intelligence (UAI)},
+  pages     = {362--369}, year = {2001}}
+
+@article{gordon1993,
+  title   = {Novel approach to nonlinear/non-{Gaussian} {Bayesian} state estimation},
+  author  = {Gordon, Neil J. and Salmond, David J. and Smith, Adrian F. M.},
+  journal = {IEE Proceedings F --- Radar and Signal Processing},
+  volume  = {140}, number = {2}, pages = {107--113}, year = {1993}}
+
+@book{sarkka2013,
+  title     = {Bayesian Filtering and Smoothing},
+  author    = {S\"arkk\"a, Simo},
+  publisher = {Cambridge University Press}, year = {2013}}
+
+@article{allman2009,
+  title   = {Identifiability of parameters in latent structure models with many
+             observed variables},
+  author  = {Allman, Elizabeth S. and Matias, Catherine and Rhodes, John A.},
+  journal = {The Annals of Statistics},
+  volume  = {37}, number = {6A}, pages = {3099--3132}, year = {2009}}
+
+% --- EM, generalized EM, Fisher's identity ---------------------------------
+
+
+
+@article{wu1983,
+  title   = {On the convergence properties of the {EM} algorithm},
+  author  = {Wu, C. F. Jeff},
+  journal = {The Annals of Statistics},
+  volume  = {11}, number = {1}, pages = {95--103}, year = {1983}}
+
+
+
+@article{fisher1925,
+  title   = {Theory of statistical estimation},
+  author  = {Fisher, Ronald A.},
+  journal = {Mathematical Proceedings of the Cambridge Philosophical Society},
+  volume  = {22}, number = {5}, pages = {700--725}, year = {1925}}
+
+@article{louis1982,
+  title   = {Finding the observed information matrix when using the {EM} algorithm},
+  author  = {Louis, Thomas A.},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  volume  = {44}, number = {2}, pages = {226--233}, year = {1982}}
+
+% --- Mixture identifiability ------------------------------------------------
+
+@article{teicher1963,
+  title   = {Identifiability of finite mixtures},
+  author  = {Teicher, Henry},
+  journal = {The Annals of Mathematical Statistics},
+  volume  = {34}, number = {4}, pages = {1265--1269}, year = {1963}}
+
+@article{yakowitz1968,
+  title   = {On the identifiability of finite mixtures},
+  author  = {Yakowitz, Sidney J. and Spragins, John D.},
+  journal = {The Annals of Mathematical Statistics},
+  volume  = {39}, number = {1}, pages = {209--214}, year = {1968}}
+
+% --- Statistical mechanics of diffusion: memorisation vs generalisation -----
+%
+% This is the group the motivation comes from. The question the whole project
+% is organised around -- why a model whose loss is minimised by the empirical
+% score nonetheless generalises -- is posed and attacked here.
+
+
+
+@article{biroli2024dynamical,
+  title   = {Dynamical regimes of diffusion models},
+  author  = {Biroli, Giulio and Bonnaire, Tony and de Bortoli, Valentin and
+             M\'ezard, Marc},
+  journal = {Nature Communications},
+  volume  = {15}, pages = {9957}, year = {2024},
+  doi     = {10.1038/s41467-024-54281-3}}
+
+@inproceedings{bonnaire2025memorize,
+  title     = {Why diffusion models don't memorize: the role of implicit
+               dynamical regularization in training},
+  author    = {Bonnaire, Tony and Urfin, Rapha{\"e}l and Biroli, Giulio and
+               M\'ezard, Marc},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {Oral presentation; arXiv:2505.17638}}
+
+@misc{achilli2026speciation,
+  title         = {Theory of speciation transitions in diffusion models with
+                   general class structure},
+  author        = {Achilli, Beatrice and Benedetti, Marco and Biroli, Giulio and
+                   M\'ezard, Marc},
+  year          = {2026}, eprint = {2602.04404}, archivePrefix = {arXiv}}
+
+@misc{achilli2024losing,
+  title         = {Losing dimensions: geometric memorization in generative diffusion},
+  author        = {Achilli, Beatrice and Ventura, Enrico and Silvestri, Gianluigi
+                   and Pham, Bao and Raya, Gabriel and Krotov, Dmitry and
+                   Lucibello, Carlo and Ambrogioni, Luca},
+  year          = {2024}, eprint = {2410.08727}, archivePrefix = {arXiv}}
+
+@inproceedings{raya2023spontaneous,
+  title     = {Spontaneous symmetry breaking in generative diffusion models},
+  author    = {Raya, Gabriel and Ambrogioni, Luca},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume    = {36}, year = {2023}}
+
+@inproceedings{kadkhodaie2024generalization,
+  title     = {Generalization in diffusion models arises from geometry-adaptive
+               harmonic representations},
+  author    = {Kadkhodaie, Zahra and Guth, Florentin and Simoncelli, Eero P. and
+               Mallat, St\'ephane},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2024},
+  note      = {Outstanding Paper award}}
+
+@article{ghio2024sampling,
+  title   = {Sampling with flows, diffusion, and autoregressive neural networks
+             from a spin-glass perspective},
+  author  = {Ghio, Davide and Dandi, Yatin and Krzakala, Florent and
+             Zdeborov\'a, Lenka},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {121}, number = {27}, pages = {e2311810121}, year = {2024}}
+
+@misc{cui2025solvable,
+  title         = {A solvable model of learning generative diffusion: theory and
+                   insights},
+  author        = {Cui, Hugo and Pehlevan, Cengiz and Lu, Yue M.},
+  year          = {2025}, eprint = {2501.03937}, archivePrefix = {arXiv}}
+
+% --- Tractable structured data, and architectures that implement inference ---
+%
+% These frame the open question the paper deliberately leaves open: WHICH
+% architecture exploits Markovianity, and at what depth.
+
+@article{sclocchi2025phase,
+  title   = {A phase transition in diffusion models reveals the hierarchical nature of data},
+  author  = {Sclocchi, Antonio and Favero, Alessandro and Wyart, Matthieu},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {122}, number = {1}, pages = {e2408799121}, year = {2025}}
+
+@inproceedings{sclocchi2025probing,
+  title     = {Probing the latent hierarchical structure of data via diffusion models},
+  author    = {Sclocchi, Antonio and Favero, Alessandro and Levi, Noam Itzhak and
+               Wyart, Matthieu},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2025},
+  note      = {arXiv:2410.13770}}
+
+@inproceedings{favero2025compositional,
+  title     = {How compositional generalization and creativity improve as
+               diffusion models are trained},
+  author    = {Favero, Alessandro and Sclocchi, Antonio and Cagnetta, Francesco
+               and Frossard, Pascal and Wyart, Matthieu},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2025}}
+
+@misc{favero2025bigger,
+  title         = {Bigger isn't always memorizing: early stopping
+                   overparameterized diffusion models},
+  author        = {Favero, Alessandro and Sclocchi, Antonio and Wyart, Matthieu},
+  year          = {2025}, eprint = {2505.16959}, archivePrefix = {arXiv}}
+
+@misc{garnierbrun2026biased,
+  title         = {Biased generalization in diffusion models},
+  author        = {Garnier-Brun, J\'er\^ome and Biggio, Luca and Beltrame, Davide
+                   and M\'ezard, Marc and Saglietti, Luca},
+  year          = {2026}, eprint = {2603.03469}, archivePrefix = {arXiv},
+  note          = {Spotlight, International Conference on Machine Learning}}
+
+@misc{garnierbrun2024transformers,
+  title         = {How transformers learn structured data: insights from
+                   hierarchical filtering},
+  author        = {Garnier-Brun, J\'er\^ome and M\'ezard, Marc and Moscato, Emanuele
+                   and Saglietti, Luca},
+  year          = {2024}, eprint = {2408.15138}, archivePrefix = {arXiv}}
+
+
+
+@article{crouse1998wavelet,
+  title   = {Wavelet-based statistical signal processing using hidden {Markov}
+             models},
+  author  = {Crouse, Matthew S. and Nowak, Robert D. and Baraniuk, Richard G.},
+  journal = {IEEE Transactions on Signal Processing},
+  volume  = {46}, number = {4}, pages = {886--902}, year = {1998}}
+
+@misc{kamb2024analytic,
+  title         = {An analytic theory of creativity in convolutional diffusion models},
+  author        = {Kamb, Mason and Ganguli, Surya},
+  year          = {2024}, eprint = {2412.20292}, archivePrefix = {arXiv}}
+
+% ============================================================
+% References — verified entries only; author-date (apalike)
+% ============================================================
+
+% ---------- classical mechanics & statistical mechanics ----------
+
+@book{goldstein2002classical,
+  title     = {Classical Mechanics},
+  author    = {Goldstein, Herbert and Poole, Charles P. and Safko, John L.},
+  edition   = {3},
+  publisher = {Addison-Wesley},
+  address   = {San Francisco},
+  year      = {2002}
+}
+
+@book{landau1980statistical,
+  title     = {Statistical Physics, Part 1},
+  author    = {Landau, Lev D. and Lifshitz, Evgeny M.},
+  edition   = {3},
+  publisher = {Pergamon Press},
+  address   = {Oxford},
+  year      = {1980}
+}
+
+@article{jaynes1957information,
+  title   = {Information theory and statistical mechanics},
+  author  = {Jaynes, Edwin T.},
+  journal = {Physical Review},
+  volume  = {106},
+  number  = {4},
+  pages   = {620--630},
+  year    = {1957}
+}
+
+@article{ising1925beitrag,
+  title   = {Beitrag zur {T}heorie des {F}erromagnetismus},
+  author  = {Ising, Ernst},
+  journal = {Zeitschrift f{\"u}r Physik},
+  volume  = {31},
+  number  = {1},
+  pages   = {253--258},
+  year    = {1925}
+}
+
+@article{onsager1944crystal,
+  title   = {Crystal statistics. {I}. {A} two-dimensional model with an order-disorder transition},
+  author  = {Onsager, Lars},
+  journal = {Physical Review},
+  volume  = {65},
+  number  = {3-4},
+  pages   = {117--149},
+  year    = {1944}
+}
+
+@article{edwards1975theory,
+  title   = {Theory of spin glasses},
+  author  = {Edwards, Samuel F. and Anderson, Philip W.},
+  journal = {Journal of Physics F: Metal Physics},
+  volume  = {5},
+  number  = {5},
+  pages   = {965--974},
+  year    = {1975}
+}
+
+@article{sherrington1975solvable,
+  title   = {Solvable model of a spin-glass},
+  author  = {Sherrington, David and Kirkpatrick, Scott},
+  journal = {Physical Review Letters},
+  volume  = {35},
+  number  = {26},
+  pages   = {1792--1796},
+  year    = {1975}
+}
+
+@article{thouless1977solution,
+  title   = {Solution of `{S}olvable model of a spin glass'},
+  author  = {Thouless, David J. and Anderson, Philip W. and Palmer, Richard G.},
+  journal = {Philosophical Magazine},
+  volume  = {35},
+  number  = {3},
+  pages   = {593--601},
+  year    = {1977}
+}
+
+@book{mezard1987spin,
+  title     = {Spin Glass Theory and Beyond},
+  author    = {M{\'e}zard, Marc and Parisi, Giorgio and Virasoro, Miguel A.},
+  publisher = {World Scientific},
+  address   = {Singapore},
+  year      = {1987}
+}
+
+% ---------- stochastic processes, MCMC ----------
+
+@article{metropolis1953equation,
+  title   = {Equation of state calculations by fast computing machines},
+  author  = {Metropolis, Nicholas and Rosenbluth, Arianna W. and Rosenbluth, Marshall N. and Teller, Augusta H. and Teller, Edward},
+  journal = {The Journal of Chemical Physics},
+  volume  = {21},
+  number  = {6},
+  pages   = {1087--1092},
+  year    = {1953}
+}
+
+@article{hastings1970monte,
+  title   = {Monte {C}arlo sampling methods using {M}arkov chains and their applications},
+  author  = {Hastings, W. Keith},
+  journal = {Biometrika},
+  volume  = {57},
+  number  = {1},
+  pages   = {97--109},
+  year    = {1970}
+}
+
+@article{geman1984stochastic,
+  title   = {Stochastic relaxation, {G}ibbs distributions, and the {B}ayesian restoration of images},
+  author  = {Geman, Stuart and Geman, Donald},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {6},
+  number  = {6},
+  pages   = {721--741},
+  year    = {1984}
+}
+
+@book{robert2004monte,
+  title     = {Monte {C}arlo Statistical Methods},
+  author    = {Robert, Christian P. and Casella, George},
+  edition   = {2},
+  publisher = {Springer},
+  address   = {New York},
+  year      = {2004}
+}
+
+@book{brockwell1991time,
+  title     = {Time Series: Theory and Methods},
+  author    = {Brockwell, Peter J. and Davis, Richard A.},
+  edition   = {2},
+  publisher = {Springer},
+  address   = {New York},
+  year      = {1991}
+}
+
+% ---------- SDEs, Ito, OU, Fokker-Planck ----------
+
+@article{uhlenbeck1930theory,
+  title   = {On the theory of the {B}rownian motion},
+  author  = {Uhlenbeck, George E. and Ornstein, Leonard S.},
+  journal = {Physical Review},
+  volume  = {36},
+  number  = {5},
+  pages   = {823--841},
+  year    = {1930}
+}
+
+@article{ito1944stochastic,
+  title   = {Stochastic integral},
+  author  = {It{\^o}, Kiyosi},
+  journal = {Proceedings of the Imperial Academy, Tokyo},
+  volume  = {20},
+  number  = {8},
+  pages   = {519--524},
+  year    = {1944}
+}
+
+@book{oksendal2003stochastic,
+  title     = {Stochastic Differential Equations: An Introduction with Applications},
+  author    = {{\O}ksendal, Bernt},
+  edition   = {6},
+  publisher = {Springer},
+  address   = {Berlin},
+  year      = {2003}
+}
+
+@book{gardiner2009stochastic,
+  title     = {Stochastic Methods: A Handbook for the Natural and Social Sciences},
+  author    = {Gardiner, Crispin W.},
+  edition   = {4},
+  publisher = {Springer},
+  address   = {Berlin},
+  year      = {2009}
+}
+
+
+
+@article{anderson1982reverse,
+  title   = {Reverse-time diffusion equation models},
+  author  = {Anderson, Brian D. O.},
+  journal = {Stochastic Processes and their Applications},
+  volume  = {12},
+  number  = {3},
+  pages   = {313--326},
+  year    = {1982}
+}
+
+% ---------- energy-based models, graphical models ----------
+
+@article{besag1974spatial,
+  title   = {Spatial interaction and the statistical analysis of lattice systems},
+  author  = {Besag, Julian},
+  journal = {Journal of the Royal Statistical Society: Series B},
+  volume  = {36},
+  number  = {2},
+  pages   = {192--225},
+  year    = {1974}
+}
+
+@article{ackley1985learning,
+  title   = {A learning algorithm for {B}oltzmann machines},
+  author  = {Ackley, David H. and Hinton, Geoffrey E. and Sejnowski, Terrence J.},
+  journal = {Cognitive Science},
+  volume  = {9},
+  number  = {1},
+  pages   = {147--169},
+  year    = {1985}
+}
+
+@incollection{lecun2006tutorial,
+  title     = {A tutorial on energy-based learning},
+  author    = {LeCun, Yann and Chopra, Sumit and Hadsell, Raia and Ranzato, Marc'Aurelio and Huang, Fu Jie},
+  booktitle = {Predicting Structured Data},
+  editor    = {Bak{\i}r, G{\"o}khan and Hofmann, Thomas and Sch{\"o}lkopf, Bernhard and Smola, Alexander J. and Taskar, Ben and Vishwanathan, S.V.N.},
+  publisher = {MIT Press},
+  address   = {Cambridge, MA},
+  year      = {2006}
+}
+
+@article{rabiner1989tutorial,
+  title   = {A tutorial on hidden {M}arkov models and selected applications in speech recognition},
+  author  = {Rabiner, Lawrence R.},
+  journal = {Proceedings of the IEEE},
+  volume  = {77},
+  number  = {2},
+  pages   = {257--286},
+  year    = {1989}
+}
+
+@book{pearl1988probabilistic,
+  title     = {Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference},
+  author    = {Pearl, Judea},
+  publisher = {Morgan Kaufmann},
+  address   = {San Mateo, CA},
+  year      = {1988}
+}
+
+@article{kschischang2001factor,
+  title   = {Factor graphs and the sum--product algorithm},
+  author  = {Kschischang, Frank R. and Frey, Brendan J. and Loeliger, Hans-Andrea},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {47},
+  number  = {2},
+  pages   = {498--519},
+  year    = {2001}
+}
+
+@book{bishop2006pattern,
+  title     = {Pattern Recognition and Machine Learning},
+  author    = {Bishop, Christopher M.},
+  publisher = {Springer},
+  address   = {New York},
+  year      = {2006}
+}
+
+@book{mezard2009information,
+  title     = {Information, Physics, and Computation},
+  author    = {M{\'e}zard, Marc and Montanari, Andrea},
+  publisher = {Oxford University Press},
+  address   = {Oxford},
+  year      = {2009}
+}
+
+@book{koller2009probabilistic,
+  title     = {Probabilistic Graphical Models: Principles and Techniques},
+  author    = {Koller, Daphne and Friedman, Nir},
+  publisher = {MIT Press},
+  address   = {Cambridge, MA},
+  year      = {2009}
+}
+
+% ---------- belief propagation, Gaussian BP, Kalman ----------
+
+@article{weiss2001correctness,
+  title   = {Correctness of belief propagation in {G}aussian graphical models of arbitrary topology},
+  author  = {Weiss, Yair and Freeman, William T.},
+  journal = {Neural Computation},
+  volume  = {13},
+  number  = {10},
+  pages   = {2173--2200},
+  year    = {2001}
+}
+
+@article{malioutov2006walk,
+  title   = {Walk-sums and belief propagation in {G}aussian graphical models},
+  author  = {Malioutov, Dmitry M. and Johnson, Jason K. and Willsky, Alan S.},
+  journal = {Journal of Machine Learning Research},
+  volume  = {7},
+  pages   = {2031--2064},
+  year    = {2006}
+}
+
+@article{kalman1960new,
+  title   = {A new approach to linear filtering and prediction problems},
+  author  = {Kalman, Rudolph E.},
+  journal = {Journal of Basic Engineering},
+  volume  = {82},
+  number  = {1},
+  pages   = {35--45},
+  year    = {1960}
+}
+
+@article{rauch1965maximum,
+  title   = {Maximum likelihood estimates of linear dynamic systems},
+  author  = {Rauch, Herbert E. and Tung, Frank and Striebel, Charlotte T.},
+  journal = {AIAA Journal},
+  volume  = {3},
+  number  = {8},
+  pages   = {1445--1450},
+  year    = {1965}
+}
+
+% ---------- AMP / TAP / statistical physics of inference ----------
+
+@article{donoho2009message,
+  title   = {Message-passing algorithms for compressed sensing},
+  author  = {Donoho, David L. and Maleki, Arian and Montanari, Andrea},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {106},
+  number  = {45},
+  pages   = {18914--18919},
+  year    = {2009}
+}
+
+@article{zdeborova2016statistical,
+  title   = {Statistical physics of inference: thresholds and algorithms},
+  author  = {Zdeborov{\'a}, Lenka and Krzakala, Florent},
+  journal = {Advances in Physics},
+  volume  = {65},
+  number  = {5},
+  pages   = {453--552},
+  year    = {2016}
+}
+
+@misc{genovese2026amp,
+  title         = {Derivation of the {AMP} equations from belief propagation for the $\ell_2$ minimisation problem},
+  author        = {Genovese, Giuseppe and Piana, Arianna},
+  year          = {2026},
+  howpublished  = {arXiv:2602.15191 [math.PR]},
+  note          = {\url{https://arxiv.org/abs/2602.15191} [last access: 14/07/26]}
+}
+
+% ---------- diffusion models: core ----------
+
+@inproceedings{sohl2015deep,
+  title     = {Deep unsupervised learning using nonequilibrium thermodynamics},
+  author    = {Sohl-Dickstein, Jascha and Weiss, Eric and Maheswaranathan, Niru and Ganguli, Surya},
+  booktitle = {Proceedings of the 32nd International Conference on Machine Learning (ICML)},
+  pages     = {2256--2265},
+  year      = {2015}
+}
+
+@inproceedings{ho2020denoising,
+  title     = {Denoising diffusion probabilistic models},
+  author    = {Ho, Jonathan and Jain, Ajay and Abbeel, Pieter},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {33},
+  pages     = {6840--6851},
+  year      = {2020}
+}
+
+@inproceedings{song2019generative,
+  title     = {Generative modeling by estimating gradients of the data distribution},
+  author    = {Song, Yang and Ermon, Stefano},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {32},
+  year      = {2019}
+}
+
+@inproceedings{song2021scorebased,
+  title     = {Score-based generative modeling through stochastic differential equations},
+  author    = {Song, Yang and Sohl-Dickstein, Jascha and Kingma, Diederik P. and Kumar, Abhishek and Ermon, Stefano and Poole, Ben},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021}
+}
+
+@misc{song2021blog,
+  title        = {Generative modeling by estimating gradients of the data distribution (blog post)},
+  author       = {Song, Yang},
+  year         = {2021},
+  howpublished = {\url{https://yang-song.net/blog/2021/score/} [last access: 14/07/26]}
+}
+
+@inproceedings{karras2022elucidating,
+  title     = {Elucidating the design space of diffusion-based generative models},
+  author    = {Karras, Tero and Aittala, Miika and Aila, Timo and Laine, Samuli},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {35},
+  pages     = {26565--26577},
+  year      = {2022}
+}
+
+@article{hyvarinen2005estimation,
+  title   = {Estimation of non-normalized statistical models by score matching},
+  author  = {Hyv{\"a}rinen, Aapo},
+  journal = {Journal of Machine Learning Research},
+  volume  = {6},
+  pages   = {695--709},
+  year    = {2005}
+}
+
+@article{vincent2011connection,
+  title   = {A connection between score matching and denoising autoencoders},
+  author  = {Vincent, Pascal},
+  journal = {Neural Computation},
+  volume  = {23},
+  number  = {7},
+  pages   = {1661--1674},
+  year    = {2011}
+}
+
+% ---------- empirical Bayes / Tweedie ----------
+
+@inproceedings{robbins1956empirical,
+  title     = {An empirical {B}ayes approach to statistics},
+  author    = {Robbins, Herbert},
+  booktitle = {Proceedings of the Third Berkeley Symposium on Mathematical Statistics and Probability},
+  volume    = {1},
+  pages     = {157--163},
+  year      = {1956}
+}
+
+@article{miyasawa1961empirical,
+  title   = {An empirical {B}ayes estimator of the mean of a normal population},
+  author  = {Miyasawa, Koichi},
+  journal = {Bulletin of the International Statistical Institute},
+  volume  = {38},
+  number  = {4},
+  pages   = {181--188},
+  year    = {1961}
+}
+
+@article{efron2011tweedie,
+  title   = {Tweedie's formula and selection bias},
+  author  = {Efron, Bradley},
+  journal = {Journal of the American Statistical Association},
+  volume  = {106},
+  number  = {496},
+  pages   = {1602--1614},
+  year    = {2011}
+}
+
+% ---------- statistical physics of diffusion models ----------
+
+@article{biroli2023generative,
+  title   = {Generative diffusion in very large dimensions},
+  author  = {Biroli, Giulio and M{\'e}zard, Marc},
+  journal = {Journal of Statistical Mechanics: Theory and Experiment},
+  volume  = {2023},
+  number  = {9},
+  pages   = {093402},
+  year    = {2023}
+}
+
+@article{hopfield1982neural,
+  author  = {Hopfield, John J.},
+  title   = {Neural networks and physical systems with emergent collective
+             computational abilities},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {79},
+  number  = {8},
+  pages   = {2554--2558},
+  year    = {1982}
+}
+
+@book{hebb1949organization,
+  author    = {Hebb, Donald O.},
+  title     = {The Organization of Behavior: A Neuropsychological Theory},
+  publisher = {Wiley},
+  address   = {New York},
+  year      = {1949}
+}
+
+@article{amit1985storing,
+  author  = {Amit, Daniel J. and Gutfreund, Hanoch and Sompolinsky, Haim},
+  title   = {Storing infinite numbers of patterns in a spin-glass model of
+             neural networks},
+  journal = {Physical Review Letters},
+  volume  = {55},
+  number  = {14},
+  pages   = {1530--1533},
+  year    = {1985}
+}
+
+@article{mattis1976solvable,
+  author  = {Mattis, Daniel C.},
+  title   = {Solvable spin systems with random interactions},
+  journal = {Physics Letters A},
+  volume  = {56},
+  number  = {5},
+  pages   = {421--422},
+  year    = {1976}
+}
+
+@incollection{smolensky1986information,
+  author    = {Smolensky, Paul},
+  title     = {Information processing in dynamical systems: Foundations of
+               harmony theory},
+  booktitle = {Parallel Distributed Processing: Explorations in the
+               Microstructure of Cognition, Volume 1: Foundations},
+  editor    = {Rumelhart, David E. and McClelland, James L.},
+  publisher = {MIT Press},
+  address   = {Cambridge, MA},
+  pages     = {194--281},
+  year      = {1986}
+}
+
+@article{hinton2002training,
+  author  = {Hinton, Geoffrey E.},
+  title   = {Training products of experts by minimizing contrastive
+             divergence},
+  journal = {Neural Computation},
+  volume  = {14},
+  number  = {8},
+  pages   = {1771--1800},
+  year    = {2002}
+}
+
+@article{hinton2006fast,
+  author  = {Hinton, Geoffrey E. and Osindero, Simon and Teh, Yee-Whye},
+  title   = {A fast learning algorithm for deep belief nets},
+  journal = {Neural Computation},
+  volume  = {18},
+  number  = {7},
+  pages   = {1527--1554},
+  year    = {2006}
+}
+
+@article{gardner1988space,
+  author  = {Gardner, Elizabeth},
+  title   = {The space of interactions in neural network models},
+  journal = {Journal of Physics A: Mathematical and General},
+  volume  = {21},
+  number  = {1},
+  pages   = {257--270},
+  year    = {1988}
+}
+
+@article{rumelhart1986learning,
+  author  = {Rumelhart, David E. and Hinton, Geoffrey E. and Williams,
+             Ronald J.},
+  title   = {Learning representations by back-propagating errors},
+  journal = {Nature},
+  volume  = {323},
+  pages   = {533--536},
+  year    = {1986}
+}
+
+@inproceedings{krizhevsky2012imagenet,
+  author    = {Krizhevsky, Alex and Sutskever, Ilya and Hinton, Geoffrey E.},
+  title     = {{ImageNet} classification with deep convolutional neural
+               networks},
+  booktitle = {Advances in Neural Information Processing Systems 25},
+  year      = {2012}
+}
+
+@article{lecun2015deep,
+  author  = {LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey},
+  title   = {Deep learning},
+  journal = {Nature},
+  volume  = {521},
+  pages   = {436--444},
+  year    = {2015}
+}
+
+@article{mezard2017meanfield,
+  author  = {M{\'e}zard, Marc},
+  title   = {Mean-field message-passing equations in the {Hopfield} model
+             and its generalizations},
+  journal = {Physical Review E},
+  volume  = {95},
+  pages   = {022117},
+  year    = {2017}
+}
+
+@misc{nobel2024physics,
+  author       = {{The Royal Swedish Academy of Sciences}},
+  title        = {The {Nobel} {Prize} in {Physics} 2024},
+  howpublished = {\url{https://www.nobelprize.org/prizes/physics/2024/summary/}},
+  year         = {2024},
+  note         = {Last accessed 19 July 2026}
+}
+
+@inproceedings{saxe2014exact,
+  author    = {Saxe, Andrew M. and McClelland, James L. and Ganguli, Surya},
+  title     = {Exact solutions to the nonlinear dynamics of learning in deep
+               linear neural networks},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2014}
+}
+
+@article{decelle2017spectral,
+  author  = {Decelle, Aur{\'e}lien and Fissore, Giancarlo and Furtlehner,
+             Cyril},
+  title   = {Spectral dynamics of learning in restricted {Boltzmann}
+             machines},
+  journal = {EPL (Europhysics Letters)},
+  volume  = {119},
+  number  = {6},
+  pages   = {60001},
+  year    = {2017}
+}
+
+@article{tubiana2017emergence,
+  author  = {Tubiana, J{\'e}r{\^o}me and Monasson, R{\'e}mi},
+  title   = {Emergence of compositional representations in restricted
+             {Boltzmann} machines},
+  journal = {Physical Review Letters},
+  volume  = {118},
+  pages   = {138301},
+  year    = {2017}
+}
+
+@inproceedings{bachtis2024cascade,
+  author    = {Bachtis, Dimitrios and Biroli, Giulio and Decelle,
+               Aur{\'e}lien and Seoane, Beatriz},
+  title     = {Cascade of phase transitions in the training of energy-based
+               models},
+  booktitle = {Advances in Neural Information Processing Systems 37},
+  year      = {2024}
+}
+
+@article{carbone2025hitchhiker,
+  author  = {Carbone, Davide},
+  title   = {Hitchhiker's guide on the relation of energy-based models with
+             other generative models, sampling and statistical physics: a
+             comprehensive review},
+  journal = {Transactions on Machine Learning Research},
+  year    = {2025}
+}
+
+@inproceedings{goodfellow2014generative,
+  author    = {Goodfellow, Ian and Pouget-Abadie, Jean and Mirza, Mehdi and
+               Xu, Bing and Warde-Farley, David and Ozair, Sherjil and
+               Courville, Aaron and Bengio, Yoshua},
+  title     = {Generative adversarial nets},
+  booktitle = {Advances in Neural Information Processing Systems 27},
+  year      = {2014}
+}
+
+@inproceedings{kingma2014auto,
+  author    = {Kingma, Diederik P. and Welling, Max},
+  title     = {Auto-encoding variational {Bayes}},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2014}
+}
+
+@inproceedings{rezende2015variational,
+  author    = {Rezende, Danilo Jimenez and Mohamed, Shakir},
+  title     = {Variational inference with normalizing flows},
+  booktitle = {Proceedings of the 32nd International Conference on Machine
+               Learning},
+  pages     = {1530--1538},
+  year      = {2015}
+}
+
+@article{papamakarios2021normalizing,
+  author  = {Papamakarios, George and Nalisnick, Eric and Rezende, Danilo
+             Jimenez and Mohamed, Shakir and Lakshminarayanan, Balaji},
+  title   = {Normalizing flows for probabilistic modeling and inference},
+  journal = {Journal of Machine Learning Research},
+  volume  = {22},
+  number  = {57},
+  pages   = {1--64},
+  year    = {2021}
+}
+
+@inproceedings{chen2018neural,
+  author    = {Chen, Ricky T. Q. and Rubanova, Yulia and Bettencourt, Jesse
+               and Duvenaud, David},
+  title     = {Neural ordinary differential equations},
+  booktitle = {Advances in Neural Information Processing Systems 31},
+  year      = {2018}
+}
+
+@inproceedings{lipman2023flow,
+  author    = {Lipman, Yaron and Chen, Ricky T. Q. and Ben-Hamu, Heli and
+               Nickel, Maximilian and Le, Matthew},
+  title     = {Flow matching for generative modeling},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2023}
+}
+
+@inproceedings{albergo2023building,
+  author    = {Albergo, Michael S. and Vanden-Eijnden, Eric},
+  title     = {Building normalizing flows with stochastic interpolants},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2023}
+}
+
+% ---- added in v4 (2026-07-22): statistical physics of diffusion, U-Nets/BP, flows ----
+
+@phdthesis{achilli2026thesis,
+  author = {Achilli, Beatrice},
+  title  = {Statistical Physics of Generative Diffusion},
+  school = {Bocconi University},
+  year   = {2026}
+}
+
+@misc{mei2024unets,
+  author = {Mei, Song},
+  title  = {U-Nets as Belief Propagation: Efficient Classification, Denoising, and Diffusion in Generative Hierarchical Models},
+  year   = {2024},
+  note   = {arXiv:2404.18444}
+}
+
+@inproceedings{ronneberger2015unet,
+  author    = {Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas},
+  title     = {U-Net: Convolutional Networks for Biomedical Image Segmentation},
+  booktitle = {Medical Image Computing and Computer-Assisted Intervention (MICCAI)},
+  pages     = {234--241},
+  year      = {2015}
+}
+
+@misc{holderrieth2025flow,
+  author = {Holderrieth, Peter and Erives, Ezra},
+  title  = {An Introduction to Flow Matching and Diffusion Models},
+  year   = {2025},
+  note   = {arXiv:2506.02070; lecture notes for MIT course 6.S184}
+}
+
+@misc{krzakala2024statphys,
+  author = {Krzakala, Florent and Zdeborov{\'a}, Lenka},
+  title  = {Statistical Physics Methods in Optimization and Machine Learning: An Introduction to Replica, Cavity and Message-Passing Techniques},
+  year   = {2024},
+  note   = {Lecture notes}
+}
+
+@misc{lai2025principles,
+  author = {Lai, Chieh-Hsin and Song, Yang and Kim, Dongjun and Mitsufuji, Yuki},
+  title  = {The Principles of Diffusion Models: From Origins to Advances},
+  year   = {2025},
+  note   = {arXiv:2510.21890}
+}
+
+% ---- added 2026-07-26: deployment examples cited in Chapter 1 ----
+
+@inproceedings{rombach2022latent,
+  author    = {Rombach, Robin and Blattmann, Andreas and Lorenz, Dominik and
+               Esser, Patrick and Ommer, Bj{\"o}rn},
+  title     = {High-resolution image synthesis with latent diffusion models},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and
+               Pattern Recognition},
+  pages     = {10684--10695},
+  year      = {2022}
+}
+
+@article{abramson2024alphafold3,
+  author  = {Abramson, Josh and Adler, Jonas and Dunger, Jack and Evans,
+             Richard and Green, Tim and Pritzel, Alexander and Ronneberger,
+             Olaf and Willmore, Lindsay and Ballard, Andrew J. and Bambrick,
+             Joshua and Bodenstein, Sebastian W. and Evans, David A. and
+             Hung, Chia-Chun and O'Neill, Michael and Reiman, David and
+             Tunyasuvunakool, Kathryn and Wu, Zachary and {\v Z}emgulyt{\.e},
+             Akvil{\.e} and Jumper, John M.},
+  title   = {Accurate structure prediction of biomolecular interactions with
+             {AlphaFold} 3},
+  journal = {Nature},
+  volume  = {630},
+  pages   = {493--500},
+  year    = {2024}
+}
+
+@article{dempster1977maximum,
+  author  = {Dempster, A. P. and Laird, N. M. and Rubin, D. B.},
+  title   = {Maximum Likelihood from Incomplete Data via the {EM} Algorithm},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  volume  = {39},
+  number  = {1},
+  pages   = {1--38},
+  year    = {1977}
+}
+
+@article{meng1993maximum,
+  author  = {Meng, Xiao-Li and Rubin, Donald B.},
+  title   = {Maximum Likelihood Estimation via the {ECM} Algorithm: A General
+             Framework},
+  journal = {Biometrika},
+  volume  = {80},
+  number  = {2},
+  pages   = {267--278},
+  year    = {1993}
+}
+
+
+@inproceedings{vaswani2017attention,
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and
+               Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and
+               Kaiser, {\L}ukasz and Polosukhin, Illia},
+  title     = {Attention is all you need},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {30},
+  year      = {2017}
+}
+
+@inproceedings{vandenoord2016pixel,
+  author    = {van den Oord, A{\"a}ron and Kalchbrenner, Nal and
+               Kavukcuoglu, Koray},
+  title     = {Pixel recurrent neural networks},
+  booktitle = {Proceedings of the 33rd International Conference on Machine
+               Learning (ICML)},
+  pages     = {1747--1756},
+  year      = {2016}
+}
+
+@article{jarzynski1997nonequilibrium,
+  author  = {Jarzynski, C.},
+  title   = {Nonequilibrium Equality for Free Energy Differences},
+  journal = {Physical Review Letters},
+  volume  = {78},
+  number  = {14},
+  pages   = {2690--2693},
+  year    = {1997},
+  doi     = {10.1103/PhysRevLett.78.2690}
+}
+
+@article{crooks1999entropy,
+  author  = {Crooks, Gavin E.},
+  title   = {Entropy production fluctuation theorem and the nonequilibrium
+             work relation for free energy differences},
+  journal = {Physical Review E},
+  volume  = {60},
+  number  = {3},
+  pages   = {2721--2726},
+  year    = {1999},
+  doi     = {10.1103/PhysRevE.60.2721}
+}
+
+% ---- added 2026-08-16: the Mezard / Biroli / Bonnaire / Garnier-Brun line ----
+%
+% Verified individually against arXiv abstract pages on 2026-08-16; author
+% orders and venues are as printed there, not as reported by search engines.
+%
+% A note on Urbani, who was asked for by name: Pierfrancesco Urbani (IPhT,
+% Paris-Saclay) has no paper on generative diffusion models. His work is on
+% glasses, jamming and dynamical mean-field theory for learning dynamics, and
+% the nearest neighbour to this thesis is the DMFT-of-learning line below,
+% cited where the dynamics of training are discussed rather than as diffusion
+% literature. Nothing is cited to him that he did not write.
+
+@article{barahona1982computational,
+  author  = {Barahona, Francisco},
+  title   = {On the Computational Complexity of {I}sing Spin Glass Models},
+  journal = {Journal of Physics A: Mathematical and General},
+  volume  = {15},
+  number  = {10},
+  pages   = {3241--3253},
+  year    = {1982}
+}
+
+@article{jerrum1993polynomial,
+  author  = {Jerrum, Mark and Sinclair, Alistair},
+  title   = {Polynomial-Time Approximation Algorithms for the {I}sing Model},
+  journal = {SIAM Journal on Computing},
+  volume  = {22},
+  number  = {5},
+  pages   = {1087--1116},
+  year    = {1993}
+}
+
+@article{doob1942brownian,
+  author  = {Doob, Joseph L.},
+  title   = {The {B}rownian Movement and Stochastic Equations},
+  journal = {Annals of Mathematics},
+  volume  = {43},
+  number  = {2},
+  pages   = {351--369},
+  year    = {1942}
+}
+
+@article{chow1968approximating,
+  author  = {Chow, C. K. and Liu, C. N.},
+  title   = {Approximating Discrete Probability Distributions with Dependence
+             Trees},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {14},
+  number  = {3},
+  pages   = {462--467},
+  year    = {1968}
+}

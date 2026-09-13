@@ -1,0 +1,1286 @@
+\chapter{What Structure Buys, and Where It Stops Paying}
+\label{ch:em-results}
+
+Chapter~\ref{ch:em-method} built an estimator that is exact in its inference
+step and approximate only in its numerical representation and its optimisation
+budget. Chapter~\ref{ch:em-kernel} measured what it costs to run. This chapter
+asks what it is \emph{worth}, and the question is comparative: worth relative to
+a network trained on the same clean trajectories and given none of the
+structure. What each arm is allowed to observe of those trajectories differs,
+and Section~\ref{sec:em-estimand} states how before any number is quoted.
+
+\begin{quote}
+How much does supplying the chain reduce denoising error at a fixed number of
+clean trajectories; how much of that reduction survives against a baseline that is given
+locality but not the model; how much mixture capacity does the estimator need;
+and how far can the Markov assumption itself be wrong before the structure
+stops paying?
+\end{quote}
+
+\noindent The four are answered, at different strengths, and
+Section~\ref{sec:em-summary} states each at the strength its evidence supports.
+
+\section{What is compared, and how it is scored}\label{sec:em-estimand}
+
+\subsection{The estimand}
+
+Every headline number in this chapter is a ratio of two relative $L^2$ score
+errors.
+
+Fix a diffusion time $t$ and a test set $\{x^{(j)}\}_{j=1}^{J}$ of noised
+sequences drawn from the model of Section~\ref{sec:em-model}. Let
+$\score^{\star}(x,t) = \nabla_x \log p_t(x)$ be the exact joint score, supplied
+by the validated grid reference of Section~\ref{sec:l-grid} under the true
+kernel. For an estimator $\widehat{\score}$ write
+\begin{equation}
+  \mathcal{E}\big[\widehat{\score}; t\big]
+  \;=\;
+  \Bigg(
+  \frac{\sum_{j=1}^{J}\norm{\widehat{\score}(x^{(j)},t) - \score^{\star}(x^{(j)},t)}^2}
+       {\sum_{j=1}^{J}\norm{\score^{\star}(x^{(j)},t)}^2}
+  \Bigg)^{1/2},
+  \label{eq:em-relerr}
+\end{equation}
+the ratio of two Euclidean norms over the whole test set, so that $0.1$ means
+the estimate is wrong by a tenth of the signal's own size. It is scale free:
+multiplying the data by a constant leaves it unchanged. Pooling over the noise
+schedule $\mathcal{T}$ means pooling the two sums, not averaging the ratios,
+\begin{equation}
+  \mathcal{E}^2\big[\widehat{\score}\big]
+  \;=\;
+  \sum_{t \in \mathcal{T}} w_t \,\mathcal{E}^2\big[\widehat{\score}; t\big],
+  \qquad
+  w_t \;=\;
+  \frac{\E\norm{\score^{\star}(X_t,t)}^2}{\sum_{s \in \mathcal{T}}\E\norm{\score^{\star}(X_s,s)}^2}.
+  \label{eq:em-pooling}
+\end{equation}
+The weights are not a free choice and they are not uniform. In the
+implementation they are the measured reference score energies of the frozen
+test bundle, level by level; the variance-matched Gaussian chain explains
+their shape in closed form. There, $\score^{\star} = -\Sigt^{-1}x$ with
+$\Sigt = e^{-2t}\Sigz + \Deltat I$, so
+\begin{equation}
+  \E\norm{\score^{\star}(X_t,t)}^2 \;=\; \operatorname{tr}\Sigt^{-1},
+  \qquad
+  \Sigt^{-1} \to I \ \ (t \to \infty),
+  \label{eq:em-weights}
+\end{equation}
+and at the low-noise end the limit is \emph{finite}: since
+$\Sigz \succ 0$, $\Sigt \to \Sigz$ and
+\begin{equation}
+  \operatorname{tr}\Sigt^{-1}
+  \;=\; \operatorname{tr}\Qz
+  \;+\; 2t\,\big[\operatorname{tr}\Qz - \operatorname{tr}\Qz^2\big]
+  \;+\; O(t^2)
+  \qquad (t \downarrow 0),
+  \label{eq:em-weights-smallt}
+\end{equation}
+with no $1/t$ singularity --- the quantity that does diverge like $1/(2t)$ is
+the likelihood precision $e^{-2t}/\Deltat$ in latent coordinates, which is a
+different object. The trace nevertheless falls steeply across the schedule
+(from $\operatorname{tr}\Qz = 193.4$ at $t \to 0$ to $\nsites = 32$ at
+$t \to \infty$ for this $\alpha$ and $\nsites$; the linear coefficient in
+\eqref{eq:em-weights-smallt} is $-3140$), so the finite schedule still
+weights its lower-noise levels most heavily.
+Table~\ref{tab:em-locality} makes that concrete: under the closed-form
+weights the four smallest of the twelve levels carry $53.6\%$ of the pooled
+weight, and under the measured Laplace energies actually used for pooling the
+same four carry $54.5\%$. This matters twice
+below --- once when the window head's optimal radius is predicted, and once when
+its residual error is discussed.
+
+The two arms are the EM--BP estimator of Chapter~\ref{ch:em-method}, which is
+given the Markov factorisation, and a denoising-score-matching network trained
+by \eqref{eq:sm-dsm} with no structural information at all. Both are fitted
+from the same $\nseq$ clean trajectories, and that --- not ``the same data''
+--- is the equality the protocol enforces. What each arm is allowed to see of
+those trajectories is not the same, and the difference runs \emph{against} the
+result reported here, so it is stated plainly rather than left to the
+appendix:
+
+\begin{itemize}
+  \item EM--BP sees one noised realisation $x$ of each trajectory and never
+  sees the clean trajectory $a$ at all; the noised bundle is frozen before
+  fitting begins.
+  \item The network is trained on \emph{paired} $(a, x)$ data, as
+  \eqref{eq:sm-dsm} requires, and redraws the diffusion time and the
+  corrupting noise at every gradient step, so over a run it consumes many
+  distinct noisy views of each clean trajectory rather than one.
+\end{itemize}
+
+\noindent
+Supplying the Markov factorisation is thus traded against supplying the clean
+signal and unlimited corruptions of it, and both asymmetries are deliberate:
+the baseline is the standard training recipe for this model class, and
+weakening it to match EM--BP's view would measure a handicap rather than a
+structural advantage. The consequence for reading
+\eqref{eq:em-ratio} is that the ratio is a statement about
+\emph{value per clean trajectory} under the two standard recipes, not about
+generic data efficiency at a matched information interface.
+Table~\ref{tab:em-architectures} records what each arm in the wider ladder is
+given.
+Writing $\mathcal{E}_{\mathrm{base}}$ and $\mathcal{E}_{\mathrm{EM}}$ for
+their errors on a common test set, the reported quantity is
+\begin{equation}
+  R \;=\; \frac{\mathcal{E}_{\mathrm{base}}}{\mathcal{E}_{\mathrm{EM}}},
+  \qquad R > 1 \ \text{means the structured estimator is more accurate,}
+  \label{eq:em-ratio}
+\end{equation}
+evaluated cell by cell, a cell being one (training-set size, seed) pair, with
+both arms re-fitted independently in every cell.
+
+One aggregation choice remains, and it matters because \eqref{eq:em-ratio} is a
+ratio of the quantities \eqref{eq:em-relerr} and not a linear functional of
+them. This chapter reports exactly the pooled definition above, paired at the
+seed level: for each seed and size, squared error and reference energy are
+summed over the twelve levels before the square root, giving one pooled error
+per arm; the ratio \eqref{eq:em-ratio} is formed within the seed from those
+two pooled errors; and the reported number is the mean of the sixteen paired
+per-seed ratios, with its standard error. The seed is the inferential unit
+throughout --- the twelve levels share a training set and a fitted model.
+Appendix~\ref{app:aggregation} recomputes the same cells under four
+alternative summaries; the direction and the order of magnitude are the same
+in all of them, but the values are not interchangeable: the mean of
+per-level ratios, which earlier drafts reported, is systematically the
+largest ($\ratiocellwiselo$--$\ratiocellwisehi\times$ on these cells,
+against the pooled $\ratiolo$--$\ratiohi\times$), because it lets levels
+with little reference energy count as much as levels with a great deal.
+
+\subsection{The common protocol}
+
+Every comparison in Sections~\ref{sec:em-pointwise} to~\ref{sec:em-capacity}
+runs on the same data-generating model and the same schedule.
+Table~\ref{tab:em-protocol} fixes it once so that the sections need not repeat
+it; Section~\ref{sec:em-nonmarkov}, which deliberately changes the prior, and
+Section~\ref{sec:em-shape-information}, which is a likelihood calculation rather
+than a fit, state their own departures.
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[The protocol shared by every comparison]{The protocol shared
+by the comparisons of Sections~\ref{sec:em-pointwise}--\ref{sec:em-capacity}.
+The generating prior is a Laplace AR(1) chain, so the reference score is
+genuinely nonlinear (Chapter~\ref{ch:laplace}) and no arm is being compared
+against a linear target. Validation, test and training bundles are disjoint,
+and no arm sees the test bundle before its budget is chosen.}
+\label{tab:em-protocol}
+\begin{tabular}{@{}ll@{}}
+\toprule
+generating prior & Laplace AR(1), $\corr = 0.85$, unit marginal variance \\
+innovation law & $\eta \sim \mathrm{Laplace}(0, b)$, $b = \sqrt{\ivar/2}$, excess kurtosis $+3$ \\
+chain length & $\nsites = 32$ sites \\
+channel & variance preserving, $x = e^{-t}a + \sqrt{\Deltat}\,\varepsilon$ \\
+noise schedule & $12$ levels, geometric, $t \in [0.05,\ 3.0]$, ratio $1.45$ \\
+reference score & grid BP under the true kernel, $\ngrid = 401$, $A = 8$ \\
+fitted kernel & $C = 8$ mixture components, $24$ free parameters \\
+training sizes & $\nseq \in \{32, \dots, 4096\}$ (headline) or $\{32,128,512,2048\}$ \\
+replicates & $16$ seeds, both arms re-fitted per cell \\
+validation / test & $1{,}024$ / $2{,}048$ sequences (structured runs); $256$ / $256$ (headline) \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\section{The estimators being compared}\label{sec:em-estimators}
+
+\subsection{From a denoiser to a score}
+
+Both network arms are trained by denoising score matching and both are read as
+scores, so the choice of output head is a
+parameterisation of the same object. If the network predicts the noise,
+$\widehat{\varepsilon}_\phi$, or the clean signal, $\widehat{a}_\phi$, then
+\begin{equation}
+  \widehat{\score}_\varepsilon(x,t) = -\frac{\widehat{\varepsilon}_\phi(x,t)}{\sqrt{\Deltat}},
+  \qquad
+  \widehat{\score}_{a}(x,t) = \frac{e^{-t}\,\widehat{a}_\phi(x,t) - x}{\Deltat},
+  \label{eq:em-parameterisation}
+\end{equation}
+and the two agree identically under the change of variable
+$\widehat{a} = e^{t}(x - \sqrt{\Deltat}\,\widehat{\varepsilon})$. As
+\emph{function classes} they are therefore the same; as \emph{optimisation
+problems} they are not, because the substitution rescales the residual by
+$e^{t}\sqrt{\Deltat}$ and so reweights the noise levels against one another.
+Both are offered to every network arm, and the choice is made on validation.
+The screen of Section~\ref{sec:em-screen} settles the question empirically and
+without ambiguity: within each architecture the best noise-predicting
+configuration beats every signal-predicting one under the pooled selection
+risk ($0.148$ against $0.224$ for the window head, $0.226$ against $0.427$
+for the dilated stack, $0.187$ against $0.262$ for the bidirectional
+recurrence). Where a parameterisation is quoted below, it is the noise head.
+
+Throughout, $\tau(t) = \big(t,\ e^{-t},\ \sqrt{\Deltat}\big)$ is the
+three-dimensional time embedding, broadcast to every site so that a local
+kernel can see it inside its own receptive field; a time feature supplied only
+at the sequence ends would be invisible to a convolution.
+
+\subsection{The structured estimator}
+
+EM--BP fits the mixture kernel of \eqref{eq:em-mixture-kernel} by the procedure
+of Section~\ref{sec:em-algorithm} and evaluates the score through the
+score--posterior identity. Its free parameters are the $C-1$ free mixture
+weights, $C$ component means, $C$ component variances and the autoregressive
+coefficient, so at $C = 8$
+\begin{equation}
+  \dim\theta \;=\; (C-1) + C + C + 1 \;=\; 3C \;=\; 24,
+  \label{eq:em-dim}
+\end{equation}
+independent of $\nsites$. Three structural facts are supplied and not learned:
+the Markov factorisation, the linear-plus-innovation form of the kernel, and
+homogeneity across sites. Everything else --- the innovation law itself, and
+$\corr$ --- is estimated from the same noised data the networks see.
+
+\subsection{The unstructured denoiser}
+
+The baseline with no structural prior is a fully connected $\tanh$ network
+mapping the whole sequence and the time embedding to the whole output,
+\begin{equation}
+  f_\phi(x,t) \;=\; W_3\,\tanh\!\big(W_2\,\tanh(W_1 [x;\tau(t)] + b_1) + b_2\big) + b_3,
+  \label{eq:em-mlp}
+\end{equation}
+with $W_1 \in \R^{128\times(\nsites+3)}$, $W_2 \in \R^{128\times128}$,
+$W_3 \in \R^{\nsites\times128}$, giving $25{,}248$ free parameters, a thousand
+times \eqref{eq:em-dim}. Nothing in \eqref{eq:em-mlp} knows that the sites are
+ordered: permuting the coordinates of $x$ and the rows of the output is absorbed
+by permuting the columns of $W_1$ and the rows of $W_3$. The network must
+rediscover the chain from data, and the comparison in
+Section~\ref{sec:em-pointwise} measures what that costs.
+
+\subsection{The three structure-aware architectures}\label{sec:em-archs}
+
+Beating \eqref{eq:em-mlp} says little, because a large part of the margin could
+be permutation-blindness rather than the Markov model. Three architectures that
+do encode sequence structure are therefore screened, spanning the receptive
+field from bounded to unbounded.
+
+\paragraph{Weight-shared window head, radius $r$.} One predictor applied at
+every site to a window of its neighbours,
+\begin{equation}
+  \widehat{y}_k \;=\; g_\phi\big(x_{k-r},\dots,x_{k+r};\ \tau(t)\big),
+  \qquad k = 1,\dots,\nsites,
+  \label{eq:em-window}
+\end{equation}
+with $g_\phi$ a two-layer $\tanh$ network of width $W$, the same $\phi$ at every
+$k$, and zero padding outside the sequence. This is exactly a one-dimensional
+convolution of kernel width $2r+1$ followed by pointwise layers, so it supplies
+locality \emph{and} translation invariance and its parameter count,
+$(2r+4)W + W^2 + 3W + 1$ --- input layer $(2r+4)W + W$, hidden layer
+$W^2 + W$, scalar readout $W + 1$, matching the implementation's own count ---
+does not grow with $\nsites$. Its receptive radius is
+$r$ by construction: no amount of data lets it propagate information further.
+
+\paragraph{Dilated convolutional stack.} A residual stack of three-tap
+convolutions at geometrically increasing dilation,
+\begin{equation}
+  h^{(\ell)}_k \;=\; h^{(\ell-1)}_k
+  \;+\; P_\ell \tanh\!\Big(\textstyle\sum_{s \in \{-d_\ell,\,0,\,d_\ell\}} W_{\ell,s}\, h^{(\ell-1)}_{k+s} + b_\ell\Big),
+  \qquad d_\ell \in \{1,2,4,8\},
+  \label{eq:em-dilated}
+\end{equation}
+initialised from $h^{(0)} = \tanh(W_{\mathrm{in}}[x;\tau(t)])$ and read out by a
+pointwise map. Its receptive radius is $\sum_\ell d_\ell = 15$, which spans an
+$\nsites = 32$ chain end to end.
+
+\paragraph{Bidirectional message passing.} Forward and backward recurrences with
+shared local updates and a joint readout,
+\begin{equation}
+  \overrightarrow{h}_k = \tanh\!\big(A z_k + F \overrightarrow{h}_{k-1} + a\big),
+  \quad
+  \overleftarrow{h}_k = \tanh\!\big(B z_k + G \overleftarrow{h}_{k+1} + b\big),
+  \quad
+  \widehat{y}_k = C\big[\overrightarrow{h}_k; \overleftarrow{h}_k; z_k\big] + c,
+  \label{eq:em-bimp}
+\end{equation}
+where $z_k = [x_k; \tau(t)]$. This is the same topology as the two-sweep
+sum--product schedule of Section~\ref{sec:sum-product}: one local rule applied
+at every site, run once in each direction, then combined --- with affine-plus-%
+$\tanh$ updates in place of the exact message updates. Of the three it has the
+best claim to being able to \emph{learn} what belief propagation computes, and
+its recurrent blocks are initialised orthogonally so that a perturbation at one
+end of the chain is not attenuated to nothing before it reaches the other.
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[The ladder of structural assumptions]{The five arms as a
+ladder of supplied structure, and what each is allowed to observe. ``Order''
+means the architecture knows the sites are sequentially ordered; ``sharing''
+means one rule is reused across sites; ``radius'' is the furthest a site's
+prediction can depend on evidence. Only EM--BP is told the generating family,
+and only EM--BP is denied the clean trajectory: every network arm is trained on
+paired $(a,x)$ data as \eqref{eq:sm-dsm} requires, redrawing $t$ and the
+corrupting noise each gradient step, while EM--BP sees one frozen noised
+realisation per trajectory. The parameter ranges are those swept in
+the screen of Section~\ref{sec:em-screen}; the window head at its selected
+setting ($r = 2$, $W = 64$) carries $4{,}801$.}
+\label{tab:em-architectures}
+\begin{tabular}{@{}lcccccr@{}}
+\toprule
+estimator & order & sharing & kernel form & radius & observes & free parameters \\
+\midrule
+EM--BP, \eqref{eq:em-mixture-kernel} & yes & yes & yes & $\nsites$ & $x$ & $24$ \\
+window head, \eqref{eq:em-window} & yes & yes & no & $r$ & $(a,x)$ & $4.8$k--$21.4$k \\
+dilated stack, \eqref{eq:em-dilated} & yes & yes & no & $15$ & $(a,x)$ & $66.4$k--$264$k \\
+message passing, \eqref{eq:em-bimp} & yes & yes & no & $\nsites$ & $(a,x)$ & $9.0$k--$34.3$k \\
+global MLP, \eqref{eq:em-mlp} & no & no & no & $\nsites$ & $(a,x)$ & $25{,}248$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\noindent Table~\ref{tab:em-architectures} sets the five arms side by side as a
+ladder, which is the object the rest of the chapter climbs. All network arms are
+trained with Adam at batch size $64$ and gradient
+clipping at $1$, over a shared learning-rate grid and a shared checkpoint ladder
+from $500$ to $64{,}000$ steps, with both output heads of
+\eqref{eq:em-parameterisation} offered to each. Each site contributes one
+training example to a weight-shared arm, so a minibatch of $B$ sequences
+supplies $B\nsites$ examples: sharing is what makes a small receptive field
+cheap as well as structured.
+
+\section{Pointwise data efficiency}\label{sec:em-pointwise}
+
+Against the unstructured denoiser \eqref{eq:em-mlp}, and under the structural
+assumptions of Table~\ref{tab:em-protocol}, the structured estimator attains
+lower relative denoising error by a factor of $\ratiolo$--$\ratiohi$ across the
+\nsizesused{} training-set sizes (Table~\ref{tab:pointwise},
+Figure~\ref{fig:em-value-of-structure}a). It is more accurate in all but $\nreversed$ of
+the $\ncellsused$ scored (seed, size, level) cells. The factor is not
+monotone in the budget; Appendix~\ref{app:aggregation} reports the same
+cells under four alternative summaries, of which the retired
+mean-of-per-level-ratios is systematically the largest.
+\input{sections/tab-efficiency}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_value_of_structure.pdf}
+\caption[What supplying the chain is worth, against two baselines]{The two
+comparisons, and the difference between them.
+\emph{(a)} Headline protocol: schedule-pooled relative score error
+\eqref{eq:em-pooling} against
+training-set size for EM--BP and a denoiser given no structure at all, $16$
+seeds, with the fitted finite-range slopes. \emph{(b)} All-site protocol: the
+same quantity for EM--BP and the screened window head, which \emph{is} given
+locality and weight sharing; the dotted curve is the two-parameter fit
+\eqref{eq:em-floor} to the window head, whose fitted floor,
+$\figwinfloor$, is indistinguishable from its measured risk at
+$\nseq = 2048$. Read that as diminishing returns over the four tested
+sizes and not as a resolved floor: a floorless power law
+$\nseq^{-\figwinpowerslope}$ fits the same four points with a residual sum
+only $\figwinrssratio$ times larger at equal parameter count, so two
+residual degrees of freedom cannot separate a converged curve from a slowly
+decaying one, and a fitted floor that lands on the last measured point is
+partly a tautology. EM--BP's curve, by contrast, is still falling steeply.
+The two panels
+are not on a common scale --- they use
+different scoring regions and different test bundles --- and no number is
+carried between them. \emph{(c)} The two error ratios. The upper curve is the
+headline $\ratiolo$--$\ratiohi\times$; the lower one is the
+$\structratiolo$--$\structratiohi\times$ that survives once locality and weight
+sharing are supplied, and the gap between them is how much of the headline is
+not attributable specifically to the Markov model. Both grow across the tested
+sizes, which
+is a description of eight and four measured points respectively and not a
+mechanism.}
+\label{fig:em-value-of-structure}
+\end{figure}
+
+The growth of the ratio has a one-line reading that the panel supports directly.
+If each arm's error follows a power law $\mathcal{E} \approx c\,\nseq^{-\varrho}$
+over the tested range, then
+\begin{equation}
+  R(\nseq) \;=\; \frac{c_{\mathrm{base}}}{c_{\mathrm{EM}}}\,
+  \nseq^{\,\varrho_{\mathrm{EM}} - \varrho_{\mathrm{base}}},
+  \label{eq:em-rate-ratio}
+\end{equation}
+so the ratio grows precisely when the structured arm converges faster in data.
+The fitted finite-range slopes of the pooled error curves are
+$\varrho_{\mathrm{EM}} = \pooledslopeem \pm \pooledslopeemse$ and
+$\varrho_{\mathrm{base}} = \pooledslopebase \pm \pooledslopebasese$
+(log--log least squares over the
+\nsizesused{} sizes --- descriptive fits, not asymptotic rates), and
+\eqref{eq:em-rate-ratio} then predicts
+that a $128$-fold increase in data multiplies the ratio by
+$128^{\pooledslopeem - \pooledslopebase} = \pooledgrowthpred$; the measured ratio moves from
+$\ratiofirst$ to $\ratiolast$, a factor of $\ratiogrowth$,
+non-monotonically. Two remarks travel with that. Neither slope is the parametric
+$\varrho = 1/2$, so neither arm is behaving like a correctly specified
+finite-dimensional estimator over this range --- for EM--BP the mixture is
+misspecified against a Laplace innovation and the grid is finite; for the
+network the function class is unrestricted. And \eqref{eq:em-rate-ratio}
+describes eight points; it identifies no mechanism.
+
+Every tunable quantity either arm is allowed to choose is chosen on a validation
+bundle disjoint from both training and test, and the two arms are given the same
+privilege: the network selects its output head \emph{and} its training length,
+EM--BP its iteration count. That choice coincides with the test-set optimum in
+$\netagree\%$ of cells for the network and $\emagree\%$ for EM--BP. 
+
+\section{How much of the margin is the architecture?}\label{sec:em-architecture}
+
+\subsection{The bulk posterior, in closed form}\label{sec:em-locality-prediction}
+
+Everything in this subsection is exact for the variance-matched Gaussian chain
+and is used here as a \emph{design calculation} for the Laplace chain, whose
+second-order structure it shares. How wide a
+window does a score head need? We tried to answer with arithmetic before any
+network is trained.
+
+\paragraph{Step 1: the channel adds only to the diagonal.} The prior is
+$a_k = \corr a_{k-1} + \eta_k$ with $\eta_k \sim \Nd(0,\ivar)$ and
+$\ivar = 1-\corr^2$, so the marginal variance is one and
+$\Sigz = (\corr^{|i-j|})$. Its precision $Q_0 = \Sigz^{-1}$ is tridiagonal ---
+the Markov property written in matrix form ---
+\begin{equation}
+  [Q_0]_{kk} = \frac{1+\corr^2}{\ivar}\ \ \text{(interior)},
+  \qquad
+  [Q_0]_{k,k\pm1} = -\frac{\corr}{\ivar},
+  \qquad
+  [Q_0]_{kj} = 0 \ \ (|k-j| \geq 2).
+  \label{eq:em-prior-precision}
+\end{equation}
+The channel contributes $-\tfrac{1}{2\Deltat}\norm{x - e^{-t}a}^2$ to the
+log-posterior. Collecting the quadratic and linear terms in $a$,
+\begin{equation}
+  -\log p(a \mid x) \;=\; \tfrac12\, a^{\T} J a \;-\; h^{\T} a \;+\; \text{const},
+  \qquad
+  J \;=\; Q_0 + \frac{e^{-2t}}{\Deltat}\,I,
+  \qquad
+  h \;=\; \frac{e^{-t}}{\Deltat}\,x,
+  \label{eq:em-posterior-precision}
+\end{equation}
+so the posterior is Gaussian with mean $m = \E[a\mid x] = J^{-1}h$. The
+structural fact that drives the whole subsection is visible in
+\eqref{eq:em-posterior-precision}: \emph{the channel enters the diagonal
+alone.} It stiffens every site against its own observation and leaves the
+nearest-neighbour couplings exactly as the prior set them. In the bulk --- away
+from the two ends, where \eqref{eq:em-prior-precision} loses one neighbour ---
+$J$ is therefore tridiagonal Toeplitz,
+\begin{equation}
+  J \;=\; \operatorname{tridiag}(\beta,\, J_{\mathrm{d}},\, \beta),
+  \qquad
+  J_{\mathrm{d}} \;=\; \underbrace{\frac{e^{-2t}}{\Deltat}}_{\text{evidence}}
+  \;+\; \underbrace{\frac{1+\corr^2}{\ivar}}_{\text{prior}},
+  \qquad
+  \beta \;=\; -\frac{\corr}{\ivar}.
+  \label{eq:em-bulk-params}
+\end{equation}
+Only $J_{\mathrm{d}}$ depends on $t$, and it is monotone: it diverges like
+$1/(2t)$ as $t \downarrow 0$ and falls to the prior value as $t \to \infty$.
+
+\paragraph{Step 2: inverting a tridiagonal Toeplitz matrix.} A matrix with three
+bands has an inverse that is dense, but on the bulk of a long chain that dense
+inverse is a single geometric sequence.
+
+\begin{proposition}[Bulk covariance of the chain posterior]
+\label{prop:em-bulk}
+In the interior of a long chain the inverse of \eqref{eq:em-bulk-params} is
+\begin{equation}
+  \big(J^{-1}\big)_{k,\,k+d} \;=\; V\,q^{|d|},
+  \qquad
+  q \;=\; \frac{J_{\mathrm{d}} - \sqrt{J_{\mathrm{d}}^2 - 4\beta^2}}{2|\beta|} \in (0,1),
+  \qquad
+  V \;=\; \frac{1}{\sqrt{J_{\mathrm{d}}^2 - 4\beta^2}},
+  \label{eq:em-bulk-cov}
+\end{equation}
+and the square root is real for every $|\corr| < 1$ and every $t > 0$.
+\end{proposition}
+
+\begin{toolbox}{Transfer-matrix inversion of a tridiagonal Toeplitz matrix}
+Write $G = J^{-1}$ and look for a solution of the defining relation
+$\sum_j J_{ij}G_{j,k} = \delta_{ik}$ in geometric form,
+$G_{i,i+d} = V q^{|d|}$, symmetric in $\pm d$. With $i$ interior, the sum has
+only three terms, and setting $k = i+d$ with $d \geq 1$ gives
+\begin{equation*}
+  \beta\, V q^{\,d+1} \;+\; J_{\mathrm{d}}\, V q^{\,d} \;+\; \beta\, V q^{\,d-1} \;=\; 0
+  \quad\Longleftrightarrow\quad
+  \beta q^2 + J_{\mathrm{d}}\, q + \beta \;=\; 0 ,
+\end{equation*}
+a quadratic that is the same for every $d$ --- which is why one geometric
+sequence suffices. Its two roots multiply to $\beta/\beta = 1$, so they are
+$q$ and $1/q$: \emph{exactly one} lies inside the unit disc, and it is the one
+above. (For $\corr > 0$ all entries are positive; for $\corr < 0$ they alternate
+in sign with the same modulus.) The remaining relation, at $d = 0$, fixes the
+prefactor: $J_{\mathrm{d}} V + 2\beta V q = 1$, and since
+$2\beta q = -\big(J_{\mathrm{d}} - \sqrt{J_{\mathrm{d}}^2 - 4\beta^2}\big)$ this
+reads $V\sqrt{J_{\mathrm{d}}^2 - 4\beta^2} = 1$.
+
+Reality of the root needs $J_{\mathrm{d}} > 2|\beta|$, and the margin is
+strictly positive at every operating point,
+\begin{equation*}
+  J_{\mathrm{d}} - 2|\beta|
+  \;=\; \frac{e^{-2t}}{\Deltat} + \frac{1 + \corr^2 - 2|\corr|}{\ivar}
+  \;=\; \frac{e^{-2t}}{\Deltat} + \frac{(1 - |\corr|)^2}{\ivar}
+  \;>\; 0 ,
+\end{equation*}
+both terms being non-negative and the first strictly positive for $t > 0$. So
+$q$ is real, and $q < 1$ strictly. \hfill$\square$
+\end{toolbox}
+
+\noindent Two checks. The formula is verified against a direct numerical
+inverse at $\nsites = 32$, $\corr = 0.85$: the relative disagreement over
+$d = 0,\dots,5$ is $6\times10^{-15}$ at $t = 0.05$ and $2.7\times10^{-4}$ at
+$t = 3$, the growth being the two boundaries leaking into the ``bulk'' once the
+correlation length is an appreciable fraction of the chain --- which is the one
+regime in which \eqref{eq:em-bulk-cov} should be read as approximate here. And
+the limits are the ones physical sense demands,
+\begin{equation}
+  \begin{aligned}
+  t \to 0:&\quad J_{\mathrm{d}} \to \infty,
+  &&q \approx \frac{|\beta|}{J_{\mathrm{d}}} \to 0,
+  &&V \to 0
+  &&\text{(sites pinned by their observations)};\\
+  t \to \infty:&\quad J_{\mathrm{d}} \to \frac{1+\corr^2}{\ivar},
+  &&q \to |\corr|,
+  &&V \to 1
+  &&\text{(posterior}\to\text{prior, unit variance)},
+  \end{aligned}
+  \label{eq:em-q-limits}
+\end{equation}
+the second because $J_{\mathrm{d}}^2 - 4\beta^2 = (1-\corr^2)^2/\sigma_\eta^4 = 1$
+once the evidence term vanishes. As diffusion time runs, the posterior
+correlation length climbs monotonically from zero to the prior's own.
+
+\paragraph{Step 3: the influence of distant evidence is exactly geometric.}
+Because $m = \frac{e^{-t}}{\Deltat}J^{-1}x$ is linear in the observation,
+Proposition~\ref{prop:em-bulk} gives the sensitivity of one site's posterior
+mean to an observation $d$ sites away in closed form,
+\begin{equation}
+  \frac{\partial m_k}{\partial x_{k \pm d}}
+  \;=\; \frac{e^{-t}}{\Deltat}\,\big(J^{-1}\big)_{k,\,k\pm d}
+  \;=\; \frac{e^{-t}}{\Deltat}\, V\, q^{\,d}
+  \;=\; \frac{e^{-t} V}{\Deltat}\, e^{-d/\xi},
+  \qquad
+  \xi \;\coloneqq\; \frac{1}{\log(1/q)} .
+  \label{eq:em-influence}
+\end{equation}
+This is the object a score head has to represent, and it is a pure exponential
+in the separation with a single length $\xi(\corr,t)$. Nothing about it is
+fitted, and within the infinite-chain bulk nothing about it is asymptotic in
+$t$ either; on a finite chain it is the bulk approximation, exact in the
+interior and corrected near the two ends, as Chapter~\ref{ch:gaussian-bp}
+derives it.
+
+\paragraph{Step 4: what a radius-$r$ window must discard.} A head of radius $r$
+cannot use $x_{k\pm d}$ for $d > r$, whatever it learns. In squared weight,
+using \eqref{eq:em-influence} and two geometric sums,
+\begin{equation}
+  \frac{\sum_{|d| > r} q^{2|d|}}{\sum_{d \in \mathbb{Z}} q^{2|d|}}
+  \;=\;
+  \frac{2q^{2(r+1)}/(1-q^2)}{(1+q^2)/(1-q^2)}
+  \;=\;
+  \frac{2\,q^{2(r+1)}}{1+q^2} ,
+  \label{eq:em-discarded}
+\end{equation}
+exactly. Pooling over the schedule with the closed-form weights of
+Table~\ref{tab:em-locality} gives one number per radius, the
+\emph{coefficient-tail fraction}
+\begin{equation}
+  \mathcal{T}(r) \;=\; \sum_{t \in \mathcal{T}} w_t \;\frac{2\,q(\corr,t)^{2(r+1)}}{1 + q(\corr,t)^2} .
+  \label{eq:em-truncation}
+\end{equation}
+What \eqref{eq:em-truncation} is, and is not, has to be exact.
+It is a fraction of squared coefficient mass, and it sets the geometric
+\emph{exponent} of everything local. It is \emph{not} a prediction risk, for
+three reasons: the omitted observations are correlated with the retained
+ones, so their squared coefficients do not add to an error energy; a genuine
+windowed estimator reoptimises its retained coefficients --- it is the
+posterior mean of the window model, not the exact coefficients with the tail
+set to zero; and a squared-mass fraction is not commensurable with a relative
+RMS error even in scale. It is used below only as a decay diagnostic.
+
+The valid risk anchor exists in closed form and costs nothing. The
+Bayes-optimal radius-$r$ estimator of the design model is the windowed
+posterior mean $\E[a_k \mid x_{k-r},\dots,x_{k+r}]$ --- exactly the
+windowed inference whose price Chapter~\ref{ch:gaussian-bp} computes --- and
+its population relative score error, pooled over the schedule with the same
+weights, is
+\begin{equation}
+  \mathcal{W}(r)
+  \;=\;
+  \Bigg(
+  \frac{\sum_{t} \operatorname{tr}\big[(M_r(t)-\Qt)\,\Sigt\,(M_r(t)-\Qt)^{\T}\big]}
+       {\sum_{t} \operatorname{tr}\Qt}
+  \Bigg)^{1/2},
+  \label{eq:em-oracle}
+\end{equation}
+$-M_r(t)x$ being the windowed score estimator. This is the exact
+local-oracle error of the Gaussian design calculation: no learning, no
+sampling, the best any radius-$r$ estimator can do \emph{on the
+covariance-matched Gaussian model}. Numerically, at this $(\corr,\nsites)$
+and schedule,
+\begin{center}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+$r$ & $0$ & $1$ & $2$ & $4$ & $8$ \\
+\midrule
+$\mathcal{W}(r)$ & $0.657$ & $0.202$ & $0.089$ & $0.029$ & $0.007$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+It is a design anchor, not the experiment's own floor: the experiment is
+Laplace, whose local oracle is a different quantity. How different is a
+question of fact rather than of ordering theory --- no result here ranks the
+Bayes risks of two priors that share a covariance --- so it is measured.
+The radius-$r$ Laplace oracle is
+$\E[a_k \mid x_{k-r:k+r}]$ under the chain of \eqref{eq:l-chain-prior},
+which is exactly the $L^2$-optimal radius-$r$ estimator of $\score_k$ because
+$x_k$ lies inside the window; window-restricted grid BP over the chain's true
+state marginals evaluates it, and Table~\ref{tab:em-oracle-laplace} pools it
+exactly as \eqref{eq:em-oracle} pools the Gaussian one.
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[The two local oracles]{The exact Gaussian windowed-oracle
+error \eqref{eq:em-oracle} and the Laplace chain's own, both pooled over the
+schedule at $\corr = 0.85$, $\nsites = 32$. The Laplace column is Monte Carlo
+over $\laporacledraws$ chains with a bootstrap standard error over draws; the
+Gaussian column is closed form. The Laplace oracle is the larger of the two
+wherever the difference is resolved --- at $r = 2$ by
+$\laporacletwosigmas$ bootstrap standard errors --- and the two are
+indistinguishable by $r = 8$.}
+\label{tab:em-oracle-laplace}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+$r$ & $0$ & $1$ & $2$ & $4$ & $8$ \\
+\midrule
+Gaussian $\mathcal{W}(r)$ & $0.657$ & $0.202$ & $0.089$ & $0.029$ & $0.007$ \\
+Laplace $\mathcal{W}_{\mathrm{L}}(r)$
+  & $\laporaclezero$ & $\laporacleone$ & $\laporacletwo$
+  & $\laporaclefour$ & $\laporacleeight$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\noindent
+So $\mathcal{W}(r)$ tells us what the window is worth in the second-order
+geometry the two models share, and the measurement says the experiment's own
+floor sits slightly above it at every radius that matters here.
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[Posterior correlation length across the noise schedule]{The
+influence-decay rate of \eqref{eq:em-bulk-cov}, the correlation length
+$\xi$ it implies through \eqref{eq:em-influence}, and the weight
+\eqref{eq:em-weights} each level carries in the pooled risk, at
+$\corr = 0.85$ (eight of the twelve levels shown). The two right-hand columns
+pull in opposite directions, and that opposition is the whole design argument:
+evidence travels furthest exactly where the pooled score error is least
+sensitive. The four smallest levels carry $53.6\%$ of the weight and have
+$\xi \leq 1.07$; the four largest carry $19.2\%$ and have $\xi \geq 3.55$.}
+\label{tab:em-locality}
+\begin{tabular}{@{}rccc@{}}
+\toprule
+$t$ & $q(\corr,t)$ & $\xi = 1/\log(1/q)$ & weight $w_t$ (\%) \\
+\midrule
+$0.0500$ & $0.203$ & $0.63$ & $16.7$ \\
+$0.0725$ & $0.259$ & $0.74$ & $14.4$ \\
+$0.1053$ & $0.323$ & $0.88$ & $12.2$ \\
+$0.1527$ & $0.392$ & $1.07$ & $10.2$ \\
+$0.3215$ & $0.541$ & $1.63$ & $7.1$ \\
+$0.6769$ & $0.689$ & $2.69$ & $5.4$ \\
+$1.4250$ & $0.806$ & $4.65$ & $4.8$ \\
+$3.0000$ & $0.848$ & $6.06$ & $4.7$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\noindent The prediction now follows without reference to any fit. Because the
+pooled risk is concentrated where $\xi \lesssim 1$, a small radius is enough
+where it matters: at $t = 0.1527$ a radius of $4$ discards $q^5 = 0.9\%$ of the
+influence, the oracle error \eqref{eq:em-oracle} has already fallen to
+$0.09$ at $r = 2$ and $0.03$ at $r = 4$, and the coefficient tail
+\eqref{eq:em-truncation} confirms that what remains beyond such radii is
+contributed almost entirely by the high-noise levels, where the weight is a
+few percent. Enlarging the window much past the largest correlation length
+that carries appreciable weight therefore removes a quantity that is already
+small in the metric being optimised, while adding parameters that must be
+estimated from the same data.
+
+\begin{quote}
+\emph{Prediction.} Under this protocol the best window radius is small ---
+of order the largest correlation length that carries appreciable weight, a
+few sites --- and the risk should \emph{rise} again well beyond it, because
+past that point the receptive field is buying a quantity smaller than the
+estimation error it costs. And the residual error of the selected head should
+sit well above the Gaussian design oracle $\mathcal{W}(r)$ at its radius,
+because at small radii the window itself is no longer what limits a learned
+head.
+\end{quote}
+
+\subsection{The screen}\label{sec:em-screen}
+
+Three candidates were screened on $\screendevseeds$ development seeds, disjoint
+from the $\structseeds$ used for the comparison: the window head
+\eqref{eq:em-window}, the dilated stack \eqref{eq:em-dilated} and the
+bidirectional recurrence \eqref{eq:em-bimp}. Each ran over its own
+hyperparameter grid, a shared learning-rate grid, both output heads and a
+shared checkpoint ladder, $\screenconfigs$ configurations in all, scored on the
+\screenregion{} region. \textbf{The window head won}, at radius
+$\screenwinnerradius$ and width $\screenwinnerwidth$, with the
+\screenrunnerup{} network next ($\screenwinnerrisk$ against
+$\screenrunneruprisk$).
+
+\input{sections/tab-screening}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_screening.pdf}
+\caption[The architecture screen, and the receptive-field question]{
+\emph{(a)} Every configuration of the screen, scored on the \screenregion{}
+region with errors pooled over the $\screendevseeds$ development seeds and
+sizes --- the selector's own accumulation; one marker per
+architecture, the outlined marker being each architecture's best. The horizontal
+axis is what makes the comparison readable: the dilated stack sits an order of
+magnitude to the right and does not reach the window head's risk anywhere in the
+screen, so the outcome is not one arm having been starved of capacity.
+\emph{(b)} Risk against window radius, at both widths, with the exact
+Gaussian windowed-oracle error \eqref{eq:em-oracle} on the same axis --- the
+same units, unlike a coefficient-tail fraction, which is deliberately not
+drawn on a risk axis. The measured curve is minimised at $r = 2$, nearly tied
+with $r = 4$, and turns upward beyond, as
+Section~\ref{sec:em-locality-prediction} predicts, while the oracle keeps
+falling geometrically. The vertical gap between the measured heads and the
+oracle at the same radius is what learning, capacity and the Laplace/Gaussian
+mismatch cost within a fixed information set.}
+\label{fig:em-screening}
+\end{figure}
+
+Table~\ref{tab:screening} reports the screen in full and
+Figure~\ref{fig:em-screening} shows every configuration in it, which is the more
+useful object: the three architectures separate by parameter count far more
+cleanly than by risk, and the two arms built to propagate further occupy the
+expensive half of the axis without buying anything there.
+
+Both halves of the prediction hold. The measured radius sweep at width $64$
+is $\mathbf{0.148}$, $0.149$, $0.185$, $0.214$ at $r = 2, 4, 8, 16$ under the
+pooled selection risk: minimised at $2$, in a near-tie with $4$, and rising
+steadily beyond --- the behaviour of a term that has stopped
+buying anything and started costing estimation error. And the selected head
+sits well clear of the local oracle at its own radius: $0.148$ against the
+experiment's own $\mathcal{W}_{\mathrm{L}}(2) = \laporacletwo$
+(Table~\ref{tab:em-oracle-laplace}), and against the Gaussian design
+anchor's $\mathcal{W}(2) = 0.089$. The first of those two differences is the
+one with a reading: it is what remains to be won \emph{inside} the radius-$2$
+information set --- learning, capacity and optimisation together, not
+separated --- and it says the receptive field is not the binding constraint
+at the selected radius. Because the measured Laplace oracle exceeds the
+Gaussian one here, the larger difference from $\mathcal{W}(2)$ bounds the
+first from above rather than replacing it; that ordering is a measurement at
+this $(\corr, \nsites)$ and schedule, not a theorem. No finer causal split of
+either gap follows from this design.
+
+Two scoping conditions travel with the outcome. It is a model-selection fact:
+under this search space, protocol and development seeds, the simplest candidate
+scored best. It is not evidence that long-range propagation is useless here.
+
+\subsection{The confirmatory comparison}
+
+Against the screened baseline --- the radius-$\screenwinnerradius$,
+width-$\screenwinnerwidth$ window head, $4{,}801$ parameters --- at the
+headline protocol throughout: the same
+twelve noise levels and $\structseeds$ seeds as
+Table~\ref{tab:pointwise}, every site scored rather than the centre alone, the
+baseline's architecture and radius fixed by the screen on separate seeds, and
+each arm's checkpoint chosen on a validation bundle disjoint from test --- the
+surviving margin is $\structratiolo$--$\structratiohi\times$.
+
+\input{sections/tab-structured}
+
+Table~\ref{tab:structured} reports it, and
+Figure~\ref{fig:em-value-of-structure}b and c place it beside the headline;
+the dotted curve in panel (b) is the two-parameter floor fit
+\begin{equation}
+  \mathcal{E}(\nseq)^2 \;=\; \mathcal{E}_{\infty}^2 + \frac{c}{\nseq},
+  \label{eq:em-floor}
+\end{equation}
+a floor plus a $1/\nseq$ estimation term, fitted to the window head's four
+squared risks --- descriptive, as a four-point fit must be.
+EM--BP is more accurate in every one of the $\structcells$ scored cells. That
+count is $\structseeds$ seeds $\times$ $\structsizes$ sizes $\times$
+$\structregions$ scoring regions (\structregionlist{}), of which the table
+displays two; it is a descriptive diagnostic and not a replication count, since
+regions and sizes share fitted models and training data, so the inferential unit
+behind each displayed row is the $\structseeds$ paired seeds.
+Appendix~\ref{app:aggregation} reports the same ratio under $\structaggcount$
+aggregations; none of them, at any size, falls below $\structaggfloor\times$.
+
+A large fraction of the headline margin therefore does not survive supplying
+locality and weight sharing. That comparison does not decompose causally:
+architecture, parameter sharing, capacity and optimisation all change when the
+baseline is swapped, and no design here separates them. What it does establish
+is that the generic-MLP ratio overstates what can be attributed specifically to
+the supplied Markov model, and by roughly a factor of three.
+
+\section{How much mixture capacity the estimator needs}\label{sec:em-capacity}
+
+The estimator's one nonparametric dial is the number of mixture components.
+The capacity sweep refits $C \in \{1, 2, 4, 8, 16\}$ on identical data,
+paired within seed against the single-Gaussian innovation $C = 1$, at
+$\nseq \in \{\capsizes\}$, and scores held-out log-evidence.
+
+\input{sections/tab-capacity}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_capacity.pdf}
+\caption[Mixture capacity against a single Gaussian innovation]{\emph{(a)}
+Held-out log-evidence per edge, paired within seed against $C = 1$: no tested
+capacity improves on a single Gaussian innovation at either size, and at
+$\nseq = \capheadsize$ the $C = 16$ deficit is resolved against zero.
+\emph{(b)} Why (a) is not a clean capacity test: the share of fits stopped at
+the iteration cap, and with a narrowest component under the grid's resolution
+floor, both climb steeply with $C$.}
+\label{fig:em-capacity}
+\end{figure}
+
+Table~\ref{tab:capacity} and Figure~\ref{fig:em-capacity} give the outcome
+and its caveat in one view. Under this protocol no capacity buys anything:
+every paired mean is negative, the $\nseq = \capheadsize$ deficit at the
+largest capacity is $\capheadverdict$ against zero
+($\capheadlogev$, CI $\capheadlogevci$), and only two to four seeds in
+sixteen ever prefer a mixture. But the sweep is not a clean statement about
+capacity in the abstract: above $C = \capcappedfrom$ every cell stops at the
+$\capiterlimit$-iteration cap rather than at tolerance, and the share of fits
+whose narrowest component falls below the grid's resolution floor climbs with
+$C$, so a statistical disadvantage of large mixtures is entangled with an
+optimisation and a discretisation effect. The defensible conclusion is
+protocol-scoped: under this grid, M-step, iteration cap and validation rule,
+capacity beyond a single Gaussian innovation bought nothing --- and the
+convergence economics of Chapter~\ref{ch:em-kernel} say why more capacity is
+also \emph{slower}: every added component deepens the missing-information
+problem the channel already creates.
+
+That finding has a consequence for how the headline of
+Section~\ref{sec:em-pointwise} may be read, and it is worth stating against
+interest. The headline estimator runs at $C = 8$ because the protocol fixed it
+there in advance, not because any selection rule chose it; in this sweep the
+single-Gaussian innovation is at least as good on \emph{both} criteria, the
+held-out evidence and the score risk the thesis actually reports. A single
+Gaussian innovation with a fitted $\corr$ is, by
+Theorem~\ref{thm:l-lmmse}, exactly the covariance-matched linear estimator, so
+what that comparison says is that within the range tested here the margin over
+the network arms is earned by the Markov factorisation and its covariance, and
+not by the mixture's capacity to represent a non-Gaussian innovation shape.
+The two experiments run different bundles and scoring regions, so the risks
+are not comparable across them and no headline number is restated here; the
+transferable point is the attribution, not a substituted figure.
+
+\section{Where the Markov assumption stops paying}\label{sec:em-nonmarkov}
+
+Every result so far assumes the clean chain is exactly first-order Markov. Two
+controlled violations are measured against an exact reference, so that the
+estimator being wrong is not confused with the reference being wrong.
+
+\subsection{Two violations, defined}
+
+\paragraph{A shared global latent, strength $\beta$.} One standard normal
+variable is drawn per sequence and added to every site,
+\begin{equation}
+  a \;=\; \frac{y + \beta g}{\sqrt{1+\beta^2}},
+  \qquad y \sim \text{chain prior},
+  \quad g \sim \Nd(0,1),
+  \label{eq:em-global}
+\end{equation}
+variance preserving for every $\beta$ and Markov only at $\beta = 0$. Its
+covariance is
+$\Sig_\beta = (\Sigz + \beta^2 \mathbf{1}\mathbf{1}^\T)/(1+\beta^2)$ with
+$\Sigz$ the AR(1) covariance, so a Laplace and a Gaussian version differ
+\emph{only beyond second moments} --- the controlled comparison this thesis uses
+throughout. At $\beta = 1$ half the marginal variance of every site is one
+shared constant.
+
+\paragraph{Long-range precision coupling, strength $\gamma$.} Weak couplings are
+added directly to the precision at every separation of two or more,
+\begin{equation}
+  Q_\gamma \;=\; Q_{\mathrm{AR}} + \gamma\,Q_{\mathrm{long}},
+  \qquad
+  [Q_{\mathrm{long}}]_{ij} = -e^{-|i-j|/\ell}\ \ (|i-j| \geq 2),
+  \quad
+  [Q_{\mathrm{long}}]_{ii} = 1.05 \sum_{j\neq i} e^{-|i-j|/\ell},
+  \label{eq:em-longrange}
+\end{equation}
+with $\ell = 8$ and the diagonal compensation making $Q_\gamma$ strictly
+diagonally dominant, hence positive definite; the covariance is rescaled to unit
+diagonal so the prior stays variance preserving. Not Markov for
+$\gamma \neq 0$.
+
+\subsection{Why one is partly absorbable and the other is not}
+
+The two mechanisms are not two amounts of the same thing.
+
+\begin{proposition}[The global latent perturbs the chain in one direction]
+\label{prop:em-rankone}
+Let $Q_{\mathrm{AR}} = \Sigz^{-1}$ be the AR(1) precision and
+$Q_\beta = \Sig_\beta^{-1}$. Then
+\begin{equation}
+  Q_\beta \;=\; (1+\beta^2)\,Q_{\mathrm{AR}} \;-\; c_\beta\, u u^{\T},
+  \qquad
+  u = Q_{\mathrm{AR}}\mathbf{1},
+  \qquad
+  c_\beta = \frac{(1+\beta^2)\,\beta^2}{1 + \beta^2\,\mathbf{1}^{\T}Q_{\mathrm{AR}}\mathbf{1}},
+  \label{eq:em-woodbury}
+\end{equation}
+so the departure from a rescaled chain precision has rank exactly one, in the
+single direction $u$. Moreover the lag-one correlation of \eqref{eq:em-global},
+and hence the correlation of its best first-order chain approximation, is
+available in closed form:
+\begin{equation}
+  \corr_{\mathrm{CL}}(\beta) \;=\; \frac{\corr + \beta^2}{1+\beta^2}.
+  \label{eq:em-chowliu}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Sherman--Morrison applied to
+$\Sig_\beta = (\Sigz + \beta^2\mathbf{1}\mathbf{1}^\T)/(1+\beta^2)$ gives
+\eqref{eq:em-woodbury} directly, the rank-one term being the correction that
+inverting a rank-one update produces. For \eqref{eq:em-chowliu}, the covariance
+of \eqref{eq:em-global} at separation $d \geq 1$ is
+$(\corr^{d} + \beta^2)/(1+\beta^2)$ and the marginal variance is $1$; at
+$d = 1$ this is the stated value. The KL projection of a Gaussian onto a fixed
+tree matches that tree's node and edge marginals
+\citep{chow1968approximating}, so on a path graph the fitted chain reproduces
+the true adjacent correlations. \hfill$\square$
+\end{proof}
+
+\noindent Numerically, \eqref{eq:em-woodbury} is exact to machine precision: the
+correction has one nonzero eigenvalue at every $\beta$ tested, and its
+eigenvector agrees with $u/\norm{u}$ to $|\langle\cdot,\cdot\rangle| = 1.000000$.
+The direction $u$ is, up to boundary terms, the constant vector --- the chain's
+mean level. By contrast the correction in \eqref{eq:em-longrange} is
+$\gamma Q_{\mathrm{long}}$, dense by construction, with numerical rank
+$\nsites = 32$ and $30$ to $31$ eigenvalues above $1\%$ of its largest at the
+strengths tested. \emph{One direction against thirty} is the structural
+difference, and a chain that may reparameterise a single scalar can trade
+against the first in a way it cannot against the second --- partly: matching
+the lag-one correlation absorbs the covariance change along that one
+direction, but a homogeneous first-order chain cannot represent the dense
+rank-one precision correction exactly, so ``absorbable'' means \emph{partly
+absorbed through the refitted local parameter}, not reproduced.
+
+The fitted coefficient does exactly that. Under \eqref{eq:em-global} the fitted
+$\widehat{\corr}$ climbs from $\nmrhoclean$ on the clean chain to
+$\nmrhobetamax$ at $\beta = \nmbetamax$, tracking \eqref{eq:em-chowliu}
+($0.9250$ at $\beta = 1$) to within $\nmcldevbeta$. Under
+\eqref{eq:em-longrange} the same gap is $\nmcldevfactor$ times larger. That is
+one scalar agreeing, not the whole fitted law certified --- but it is the
+mechanism the proposition predicts, appearing in the fit.
+
+\subsection{A covariance scalar orders the tested conditions}
+
+Proposition~\ref{prop:em-rankone} explains the qualitative difference. A single
+number makes it quantitative. The scalar used is the per-site KL divergence
+between the \emph{covariance-matched centred Gaussians} of the contaminated
+law and of its best first-order chain,
+\begin{equation}
+  \delta \;=\; \frac{1}{\nsites}\,
+  \kl{\Nd(0,\Sig)}{\Nd(0,\Sig_{\mathrm{CL}})}
+  \;=\; \frac{1}{2\nsites}\Big[
+  \operatorname{tr}\big(\Sig_{\mathrm{CL}}^{-1}\Sig\big) - \nsites
+  + \log\frac{\det \Sig_{\mathrm{CL}}}{\det \Sig}\Big],
+  \label{eq:em-delta}
+\end{equation}
+closed-form for both mechanisms and involving no fit and no data. Its status
+differs by arm, and the distinction is not cosmetic. For the \emph{Gaussian}
+contaminated laws, \eqref{eq:em-delta} is the exact distributional KL to the
+best Gaussian chain --- the excess code length that the Gaussian Chow--Liu
+projection minimises. For the \emph{Laplace} arms the same expression is only
+a covariance proxy: the true laws are non-Gaussian, their KL involves entropy
+terms that covariance does not determine, and two non-Gaussian laws with
+identical covariances can sit at different true divergences. Where the
+distinction matters we write $\delta_{\mathrm{cov}}$ for the proxy reading;
+it is a second-order misspecification measure, blind to everything beyond
+covariance, and that is exactly the information the chain estimator's Gaussian
+design geometry uses.
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[Misspecification, measured in nats, orders both
+mechanisms]{The advantage against the closed-form covariance distance
+\eqref{eq:em-delta}
+from the contaminated law to its best first-order chain --- exact KL for the
+Gaussian rows, covariance proxy $\delta_{\mathrm{cov}}$ for the Laplace
+column. Read against their own
+strength parameters the two mechanisms look unrelated; read against $\delta$
+they interleave and the sequence is monotone. The entry that carries the
+argument is $\beta = 1.00$ against $\gamma = 0.05$: a prior in which half of
+every site's variance is a shared global constant is \emph{closer} to the chain
+family, by a factor of $1.7$ in nats, than one with the weakest long-range
+coupling tested --- and the measured advantage is ordered the same way. Ratios
+here are means over the twelve noise levels of the per-level error ratio (a
+mean of ratios, unlike the pooled headline; the estimand is stated because the
+two are not interchangeable), against the convolutional and fully connected
+baselines.}
+\label{tab:em-misspecification}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+contamination & $\delta$ (nats/site) & vs CNN & vs MLP & Laplace, vs CNN \\
+\midrule
+none                      & $0$                   & $16.4$ & $29.3$ & $11.1$ \\
+global, $\beta = 0.10$    & $4.6\times10^{-6}$    & $14.8$ & $22.5$ & $10.9$ \\
+global, $\beta = 0.25$    & $1.5\times10^{-4}$    & $6.7$  & $11.3$ & $6.2$  \\
+global, $\beta = 0.50$    & $1.4\times10^{-3}$    & $3.2$  & $4.0$  & $3.0$  \\
+global, $\beta = 1.00$    & $6.5\times10^{-3}$    & $2.2$  & $1.7$  & $2.1$  \\
+long-range, $\gamma = 0.05$ & $1.1\times10^{-2}$  & $1.2$  & $1.7$  & --- \\
+long-range, $\gamma = 0.10$ & $2.2\times10^{-2}$  & $\mathbf{0.97}$ & $1.2$ & --- \\
+long-range, $\gamma = 0.20$ & $4.0\times10^{-2}$  & $\mathbf{0.88}$ & $\mathbf{0.84}$ & --- \\
+long-range, $\gamma = 0.40$ & $6.0\times10^{-2}$  & $\mathbf{0.75}$ & $\mathbf{0.70}$ & --- \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\input{sections/tab-nonmarkov}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_nonmarkov.pdf}
+\caption[Where each Markov violation stops paying, and the one scalar that
+orders them]{\emph{(a)} The closed-form distance \eqref{eq:em-delta} to the
+chain family. The two mechanisms reach the shaded break-even band at strengths
+that differ by more than an order of magnitude, which is the whole of the
+difference between them. \emph{(b)} The measured advantage against strength.
+Under a global latent it decays smoothly and does not reach the line even where
+half the marginal variance is a shared constant; under long-range coupling it
+crosses within the first tested strength. The Laplace and Gaussian curves track
+each other across the whole rank-one sweep, so the result is not confined to the
+Gaussian arm; the long-range panel is Gaussian only, since the contaminated
+Laplace model has no closed-form reference. \emph{(c)} The same nine points
+against $\delta$: the two mechanisms interleave and fall on one monotone curve,
+crossing break-even between the adjacent tested strengths bracketed in \eqref{eq:em-breakeven}. All curves are
+schedule means, so they show the direction rather than the worst case, and all
+fall because the estimator degrades rather than because the baselines improve
+--- Table~\ref{tab:nonmarkov} carries EM--BP's own error alongside.}
+\label{fig:em-nonmarkov}
+\end{figure}
+
+Table~\ref{tab:em-misspecification} and Figure~\ref{fig:em-nonmarkov} report
+$\delta$ beside the measured advantage. Two readings follow, and the second is
+the one this chapter contributes.
+
+Read against strength, the mechanisms behave differently in kind. At
+$\beta = \nmbetamax$ the Gaussian arm is still ahead at every noise level
+against both baselines, worst ratio $\nmbetaminratio$; the Laplace arm is still
+ahead against the convolutional baseline, worst ratio
+$\nmlapbetaminratiocnn$, and reaches break-even against the fully connected one
+at the largest diffusion time, at $\nmlapbetaminratio$. Under long-range
+coupling the advantage against the convolutional baseline is gone by
+$\gamma = \nmcrossover$, having survived $\gamma = \nmlastholding$, and by
+$\gamma = 0.2$ the estimator loses to both baselines and not to one; at
+$\gamma = \nmgammamax$ its own relative score error reaches $\nmemworsterr\%$.
+
+Read against $\delta$, the tested conditions collapse onto one empirical
+curve. The nine contaminated
+cells interleave --- $\beta = 1$ sits between $\gamma = 0$ and
+$\gamma = 0.05$ --- and the advantage is monotone in $\delta$ across both
+mechanisms, over
+four orders of magnitude in $\delta$ and a factor of twenty in the ratio,
+against both baselines and for both innovation laws. The crossing is reported
+as the bracket the design actually resolves, between adjacent tested
+strengths:
+\begin{equation}
+  \delta^{\star} \in \big[1.1, 2.2\big]\times 10^{-2}\ \text{nats/site (vs CNN)},
+  \qquad
+  \big[2.2, 4.0\big]\times 10^{-2}\ \text{nats/site (vs MLP)} ,
+  \label{eq:em-breakeven}
+\end{equation}
+the CNN ratio falling from $1.2$ to $0.97$ across its bracket and the MLP one
+from $1.2$ to $0.84$ across its own. A straight line through those endpoints
+crosses at $2.1$ and $3.0 \times 10^{-2}$ respectively, and those
+interpolations are quoted nowhere as results: each condition here is a single
+run scored across the schedule, with no seed replication, so no interval can
+be attached to a crossing and a point estimate would imply a precision the
+design does not have. Three further scope conditions travel with the bracket.
+The two mechanisms occupy different parts of the $\delta$ axis, so the
+crossing is bracketed by different conditions in each case; the ratios in this
+section are schedule means of per-level ratios rather than the pooled estimand
+of \eqref{eq:em-pooling}, which changes their numerical scale though not their
+ordering; and adjacent strengths differ by roughly a factor of two, which is
+the resolution of the whole statement.
+This collapse is an empirical regularity of the two violation paths
+constructed here, not a sufficiency theorem, and there is a structural reason
+to expect it to have limits: even between Gaussians, equal KL does not imply
+equal score geometry --- the divergence is a spectral aggregate, while the
+score error of a chain approximation is
+$\operatorname{tr}[(Q_{\mathrm{chain}}-Q_{\mathrm{true}})\,\Sig\,
+(Q_{\mathrm{chain}}-Q_{\mathrm{true}})^{\T}]$, which depends on \emph{where}
+the precision error points. Two perturbations of matched $\delta$ whose
+discrepancies live in different spatial modes could in principle separate, and
+nothing here tests that. Equation \eqref{eq:em-breakeven} is interpolation
+within the tested conditions, not a universal tolerance for non-Markov
+structure.
+
+\section{Why the shape coordinate is the expensive one}
+\label{sec:em-shape-information}
+
+Chapter~\ref{ch:em-kernel} found the innovation shape converging far slower than
+the autoregressive coefficient, and attributed it to the fourth cumulant being
+damped by the channel while the second is preserved. That is a claim about the
+noised likelihood, and it can be checked directly against Fisher information,
+independently of any optimiser.
+
+\subsection{What the cumulant law predicts}
+
+Cumulants add under independent sums and a Gaussian contributes only to the
+second, so for $X_t = e^{-t}A + \sqrt{\Deltat}\,\varepsilon$,
+\begin{equation}
+  \kappa_2(X_t) = e^{-2t}\kappa_2(A) + \Deltat = 1,
+  \qquad
+  \kappa_4(X_t) = e^{-4t}\kappa_4(A),
+  \qquad
+  \kappa_{11}(X_{t,i}, X_{t,i+1}) = e^{-2t}\corr,
+  \label{eq:em-cumulants}
+\end{equation}
+ Now consider what identifies each
+coordinate. The autoregressive coefficient is second order: it enters through
+the lag-one cumulant, which the channel attenuates by $e^{-2t}$. A shape
+parameter --- one that moves the fourth cumulant at exactly fixed variance --- is
+fourth order, and the channel attenuates its signature by $e^{-4t}$. Reading
+information as squared sensitivity over sampling variance --- a delta-method
+heuristic, not a likelihood calculation: it treats the cumulant estimator as
+the inference channel and its variance as approximately constant in $t$ ---
+\begin{equation}
+  I_\theta \;\asymp\;
+  \frac{\big(\partial_\theta \kappa(X_t)\big)^2}{\operatorname{Var}\widehat{\kappa}},
+\end{equation}
+and noting that the denominators are $t$-independent \emph{to leading order}
+because
+$\kappa_2(X_t) \equiv 1$ pins the scale of the noised variable at every $t$
+(higher moments of the noised law do drift with $t$, which is part of what the
+heuristic omits),
+\begin{equation}
+  \boxed{\;
+  I_{\corr}(t) \;\asymp\; e^{-4t},
+  \qquad
+  I_{p}(t) \;\asymp\; e^{-8t},
+  \qquad
+  \frac{I_{p}(t)}{I_{\corr}(t)} \;\asymp\; e^{-4t}.
+  \;}
+  \label{eq:em-info-prediction}
+\end{equation}
+The third statement is the robust one: it is a \emph{contrast}, so whatever
+common factors the leading-order reading omits cancel from it.
+
+\subsection{The measurement}
+
+The prediction is tested on a family in which shape moves at exactly fixed
+variance. The innovation law is a generalised Gaussian,
+$f_p(\eta) \propto \exp(-|\eta/s|^{p})$, with $s$ fixed by
+$\operatorname{Var}(\eta) = \ivar = 1-\corr^2$ at every $p$, so $p$ is a genuine
+shape coordinate and not a reparameterised scale; $p = 1$ is the Laplace chain
+of Chapter~\ref{ch:laplace}, $p = 2$ Gaussian. For
+$\theta = (\corr, \ivar, p)$, Fisher's identity \eqref{eq:em-fisher} supplies
+the exact per-sequence score of the marginal log-likelihood from one
+forward--backward pass, and the information matrix is estimated in
+outer-product form $J = D^{-1}\sum_d g_d g_d^{\T}$ over $D = 512$ sequences of
+$\nsites = 32$ sites at $\ngrid = 401$, $A = 8$. The quantity reported is the
+\emph{efficient} information $I_{p\cdot(\corr,\ivar)} = 1/(J^{-1})_{pp}$, what
+remains about $p$ once the nuisance coordinates must be estimated too --- equal
+to the diagonal entry only when the coordinates are orthogonal and strictly
+smaller otherwise.
+
+Two things follow from that construction and travel with every number below.
+An outer-product matrix is the Fisher information only at the true parameter
+of a correctly specified model, and it is here a $D$-sample estimate of it, so
+these are estimates with sampling error and not an exact information
+calculation. And the reported quantity is an \emph{inverse}, so its meaning
+degrades with the conditioning of $J$ --- which the run records per cell.
+That conditioning is benign exactly where the information is large and fails
+exactly where it vanishes: $\kappa(J) = \infcondbest$ at
+$t = \infcondbestt$ on the Laplace chain, a median of $\infcondmedian$ across
+the sweep, and $\infcondworst$ in the worst cell
+($t = \infcondworstt$, $p = \infcondworstp$), where the efficient information
+is itself down at $\infcondworstinfo$. The decay these curves measure is
+therefore resolved at the end where the coordinate is identified, and the far
+tail is a statement that the information has gone, not a measurement of how
+much remains.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_information.pdf}
+\caption[Fisher information against the cumulant prediction]{
+\emph{(a)} Efficient information for each coordinate against diffusion time, at
+Laplace innovations, with the predicted rates \eqref{eq:em-info-prediction} as
+dotted guides. On a linear time axis an exponential is a straight line, so the
+comparison is read from the slopes. Both measured decays are shallower than
+predicted by a common offset, which the leading-order reading does not capture.
+\emph{(b)} The contrast, which is the prediction that survives the offset: the
+ratio $I_p/I_{\corr}$ for all five shape exponents, normalised at
+$t = 0.05$, against $e^{-4t}$. The five curves bracket the prediction, with a
+mean fitted log-slope of $-3.72$ against $-4$.}
+\label{fig:em-information}
+\end{figure}
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[Fisher information lost to the channel, by coordinate]{How
+much efficient Fisher information about each coordinate the channel destroys
+between the smallest and largest diffusion time tested ($t = 0.05$ against
+$t = 1.6$), and the contrast \eqref{eq:em-info-prediction} predicts. Entries are
+ratios of outer-product estimates at $D = 512$ sequences, so only the order is
+meaningful and two significant digits are printed for that reason. The last
+column is the quantity the prediction addresses: its geometric mean over the
+five shapes is $465$ against a predicted $e^{4\times1.55} = 493$.}
+\label{tab:em-information}
+\begin{tabular}{@{}rcrrrr@{}}
+\toprule
+true $p$ & excess kurtosis & loss, $\corr$ & loss, $\ivar$ & loss, $p$ & contrast $\ \text{loss}_p/\text{loss}_{\corr}$ \\
+\midrule
+$1.0$ & $+3.00$ & $78\times$ & $235\times$ & $8.7\times10^{3}$ & $112$ \\
+$1.2$ & $+1.74$ & $87\times$ & $392\times$ & $2.0\times10^{4}$ & $236$ \\
+$1.5$ & $+0.76$ & $83\times$ & $459\times$ & $6.4\times10^{4}$ & $776$ \\
+$2.0$ & $\phantom{+}0.00$ & $75\times$ & $501\times$ & $6.5\times10^{4}$ & $867$ \\
+$3.0$ & $-0.58$ & $56\times$ & $522\times$ & $6.8\times10^{4}$ & $1222$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{geometric mean of the contrast}} & $465$ \\
+\multicolumn{5}{@{}l}{\emph{predicted by \eqref{eq:em-info-prediction}}} & $493$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+Figure~\ref{fig:em-information} plots the decay against the predicted rates and
+Table~\ref{tab:em-information} reads the endpoints. 
+
+\section{What the chapter establishes}\label{sec:em-summary}
+
+\begin{center}
+\begin{minipage}{\linewidth}\small\centering
+\captionof{table}[The four questions, at the strength the evidence
+supports]{Each question, the finding, and the conditions the finding is
+conditional on. Nothing in the right-hand column is a hedge added after the
+fact; each is a stated feature of the design that a different design would have
+to remove.}
+\label{tab:em-verdicts}
+\begin{tabular}{@{}p{0.235\linewidth}p{0.35\linewidth}p{0.33\linewidth}@{}}
+\toprule
+question & finding & conditional on \\
+\midrule
+Value of the chain, against no structure
+& $\ratiolo$--$\ratiohi\times$ lower pooled error over \nsizesused{} sizes; more accurate in all but $\nreversed$ of $\ncellsused$ cells
+& the schedule-pooled paired estimand of \eqref{eq:em-pooling}; both arms budget-selected on validation \\[0.4em]
+Value of the \emph{model}, against locality
+& $\structratiolo$--$\structratiohi\times$; EM--BP ahead in every scored cell; the baseline's error curve shows diminishing returns over four sizes (a fitted floor and a floorless power law are not separable there) while EM--BP's is still falling
+& one screened architecture; four sizes; budget grids bind for both arms; no causal split of the gap \\[0.4em]
+Mixture capacity
+& no tested capacity beats a single Gaussian innovation; $C{=}16$ resolved \emph{worse} than $C{=}8$ at $\nseq = \capheadsize$
+& this grid, M-step, iteration cap and validation rule; not a statement about capacity in the abstract \\[0.4em]
+Tolerance to non-Markov structure
+& advantage is monotone in one closed-form covariance scalar across the tested conditions; break-even bracketed between adjacent tested strengths, $\delta^{\star} \in [1.1,2.2]\times10^{-2}$ (CNN) and $[2.2,4.0]\times10^{-2}$ (MLP) nats/site
+& nine cells, two mechanisms; exact KL only for the Gaussian arms; a measured regularity, not a derived law \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\noindent Table~\ref{tab:em-verdicts} states the four findings at the strength
+their evidence supports. Three consequences carry into
+Chapter~\ref{ch:conclusions}. Supplying the
+generating family is worth a large factor at every data budget tested, but
+most of the headline factor does not survive a baseline that is merely given
+locality and weight sharing --- which bounds how much of it can be attributed
+specifically to the Markov model, without decomposing causally what the swap
+of baselines changes. Across the tested violations, the measured advantage
+ordered monotonically with a covariance scalar computable before any fitting
+--- an empirical regularity of the two paths probed, useful as a screening
+variable and not established as a decision rule. And the coordinate on which
+every non-Gaussian claim in this
+thesis depends is simultaneously the slowest to converge and the poorest in
+information per observation, which is why the budget disclosures in this chapter
+are part of its results rather than an appendix to them.

@@ -1,0 +1,118 @@
+% ============================================================
+% Companion Compendium — the extended research record of the MSc thesis
+% "Learning Scores for Markovian Dynamics in Generative Diffusion"
+% (DSBA, Bocconi University, A.Y. 2025-2026).
+%
+% This is the ~230-page extended version of the thesis, unchanged in
+% content from the build preserved at the git tag
+% `extended-thesis-pre-compression`: every derivation written out, the
+% toolbox derivations, the rotating-ring precursor study and the two original
+% appendices. The submitted thesis (../main.tex) is its concise form. The
+% only changes made to turn it into the compendium are this front matter
+% (a title page and a note in place of the university's four mandatory
+% pages) and the retargeting of the references to the earlier, now archived,
+% technical compendium (see preamble.tex).
+%
+% Build:  tectonic main.tex   (pdfLaTeX-compatible; runs bibtex automatically)
+% ============================================================
+\documentclass[12pt,a4paper,openany]{report}
+\input{preamble}
+\input{title}
+\hypersetup{pdftitle={\thesistitle}}
+\input{sections/efficiency-numbers}
+\input{sections/structured-numbers}
+\input{sections/screening-numbers}
+\input{sections/capacity-numbers}
+\input{sections/convergence-numbers}
+\input{sections/structured-aggregation-numbers}
+\input{sections/nonmarkov-numbers}
+\input{sections/grid-diagnostics-numbers}
+\input{sections/thesis-fig-numbers}
+\input{sections/laplace-oracle-numbers}
+\input{sections/info-conditioning-numbers}
+\input{sections/build-manifest}
+
+\begin{document}
+
+% ------------------------------------------------------------
+% Title page and note (in place of the submission's mandatory pages)
+% ------------------------------------------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+\vspace*{2.5cm}
+{\LARGE\bfseries Learning Scores for Markovian Dynamics\\[0.3em]
+in Generative Diffusion\par}
+\vspace{1.4cm}
+{\Large Companion Compendium\par}
+\vspace{0.4em}
+{\large The extended research record\par}
+\vspace{2.2cm}
+{\normalsize MSc Research Thesis\\
+Data Science and Business Analytics, Bocconi University\\
+A.Y. 2025--2026\par}
+\vfill
+\begin{minipage}{0.88\linewidth}\small
+\noindent\textbf{About this volume.} This is the complete, extended version
+of the thesis of the same title; the submitted thesis is its concise form.
+It carries every derivation written out, the step-by-step toolbox
+derivations, the rotating-ring precursor study, and the full reproducibility
+and aggregation appendices, and it is the reference for any result the
+concise thesis states without proof. Its content is that of the extended
+build preserved at the repository tag \texttt{extended-thesis-pre-compression};
+chapter, section and equation numbers therefore differ from those of the
+submitted thesis, and every quantitative result is produced by the same
+frozen-output pipeline. Where this volume mentions ``the archived technical
+compendium'' it refers to the earlier, superseded technical compendium
+(September 2026), kept in the \texttt{archive/} folder of the distribution.
+\end{minipage}
+\vspace{1cm}
+\end{titlepage}
+
+% ------------------------------------------------------------
+% Content
+% ------------------------------------------------------------
+\setcounter{page}{2}
+\tableofcontents
+\clearpage
+\ifodd\value{page}\else\null\thispagestyle{empty}\clearpage\fi
+
+\input{chapters/disclosure}
+
+% Part 0 — context
+\input{chapters/ch01-introduction}
+\input{chapters/ch02-statmech-diffusion}
+\input{chapters/ch03-model}
+% Part I — exact scores under known dynamics. The ring comes first because it
+% is where the work started: it is the model that showed a dynamical parameter
+% can be invisible to every one-frame marginal, which is the argument for
+% studying the joint score at all.
+\input{chapters/ch04-ring}
+\input{chapters/ch05-gaussian-matrix}
+\input{chapters/ch06-gaussian-bp}
+\input{chapters/ch07-laplace}
+% Part II — learning dynamics that are not known
+\input{chapters/ch08-em-parameters}
+\input{chapters/ch09-em-kernel}
+\input{chapters/ch10-comparison}
+\input{chapters/ch11-conclusions}
+
+% ------------------------------------------------------------
+% Bibliography — author-date (writing guide, Attachment 2).
+% ------------------------------------------------------------
+\clearpage
+\phantomsection\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{apalike}
+\bibliography{references}
+\clearpage
+
+\input{chapters/acknowledgements}
+
+\appendix
+\input{chapters/appA-reproducibility}
+% How the headline ratios were averaged: the working behind the headline
+% claim, kept in the document so a reader checking that number need not
+% leave it.
+\input{chapters/appB-aggregation}
+
+\end{document}

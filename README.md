@@ -7,11 +7,19 @@ diffusion models over Markov-chain data.
 
 **Supervisor:** Marc Mézard · **Advisor:** Jérôme Garnier-Brun
 
-The compiled document is [`main.pdf`](main.pdf), the concise submission
-(about 100 pages). The extended research record (about 230 pages, every
-derivation written out, plus the rotating-ring precursor study) is preserved
-at the git tag `extended-thesis-pre-compression` and as
-[`archive/extended-thesis-230pp.pdf`](archive/extended-thesis-230pp.pdf).
+Two documents live here:
+
+- [`main.pdf`](main.pdf) — the **thesis**, the concise submission (97 pages),
+  built from the sources at the repository root.
+- [`compendium/main.pdf`](compendium/main.pdf) — the **companion
+  compendium**, the extended research record (about 230 pages): the same
+  results with every derivation written out, the toolbox derivations, the
+  rotating-ring precursor study and the full appendices. It is the reference
+  for anything the thesis states without proof. Its content is the extended
+  build preserved at the git tag `extended-thesis-pre-compression`.
+
+The earlier technical compendium that the extended build referred to is
+superseded and kept in [`archive/`](archive/README.md).
 
 ## What the thesis shows
 
@@ -36,24 +44,36 @@ an asymmetry the text states because it runs against the result.
 
 ## Building
 
-Builds with [Tectonic](https://tectonic-typesetting.github.io/), which runs
-BibTeX automatically:
+Both documents build with [Tectonic](https://tectonic-typesetting.github.io/),
+which runs BibTeX automatically:
 
 ```bash
-tectonic main.tex
+tectonic main.tex                 # the thesis
+tectonic compendium/main.tex      # the compendium
 ```
 
-`./check.sh` builds and then reports every defect class — unresolved
-references, undefined citations, duplicate labels, `??` in the rendered PDF,
-missing glyphs, overfull boxes, and a comparison of the PDF metadata title
-against `title.tex` — exiting non-zero if any is non-empty. It refuses to
-inspect a stale PDF after a failed build.
+The thesis body is set in Arial, the family the university guide recommends,
+through `fontspec`, so it needs a Unicode engine: Tectonic locally, or
+**XeLaTeX** on Overleaf. Where Arial is not installed the preamble falls
+back to TeX Gyre Heros, a metric-compatible clone shipped with every TeX
+distribution, and the page count does not move; to use Arial itself on
+Overleaf, put `Arial.ttf`, `Arial Bold.ttf`, `Arial Italic.ttf` and
+`Arial Bold Italic.ttf` in a `fonts/` folder of the project and the preamble
+picks them up. The compendium is pdfLaTeX-compatible.
+
+`./check.sh` (and `compendium/check.sh`) builds and then reports every
+defect class — unresolved references, undefined citations, duplicate labels,
+`??` in the rendered PDF, missing glyphs, overfull boxes, and a comparison of
+the PDF metadata title against `title.tex` — exiting non-zero if any is
+non-empty. It refuses to inspect a stale PDF after a failed build.
+`COMPRESSION_REPORT.md` records how the extended build was condensed into
+the submission and the page-by-page compliance audit.
 
 ## Layout
 
 | Path | Content |
 | --- | --- |
-| `main.tex` | document skeleton: front matter, chapter order, back matter |
+| `main.tex` | thesis skeleton: front matter, chapter order, back matter |
 | `title.tex`, `abstract.tex` | the registered title and the abstract, for the submission system |
 | `preamble.tex`, `notation.tex` | packages, typography, theorem environments, macros |
 | `chapters/` | nine chapters, one appendix, the AI disclosure and acknowledgements |
@@ -61,6 +81,8 @@ inspect a stale PDF after a failed build.
 | `figures/` | generated figure PDFs, plus one literature reproduction (PNG) |
 | `tools/` | figure generators, the house style, the Laplace-oracle and build-manifest generators |
 | `references.bib` | bibliography, shared with the companion paper |
+| `compendium/` | the companion compendium: a self-contained LaTeX project with its own chapters, figures and generated sections |
+| `archive/` | the superseded technical compendium (PDF and sources) |
 | `research/` | the research package: BP and EM implementations, experiments, the frozen outputs, the generators, and the test suite ([details](research/CODE_README.md)) |
 
 Every number in `sections/` and every computed figure in `figures/` is produced
@@ -85,12 +107,14 @@ figure generators and the build tooling in this repository.
 
 One thing the licence does not cover, because it is not mine to license:
 
-- **One figure reproduced from published work** — `fig_mezard_bp_messages`
-  (Mézard and Montanari, 2009, Figure 14.3). It is attributed in its caption
-  and remains the property of its original authors and publisher; it is
-  included here under the terms that permit its use in this thesis, and reuse
-  elsewhere needs permission from the rights holders. (The extended version at
-  the tag above carries six further reproductions, attributed the same way.)
+- **Figures reproduced from published work** — `fig_mezard_bp_messages`
+  (Mézard and Montanari, 2009, Figure 14.3) in the thesis, and in the
+  compendium additionally `fig_song_dog`, `fig_song_sde`,
+  `fig_bachtis_cascade`, `fig_bonnaire_memorize`, `fig_biroli_regimes` and
+  `fig_unet_architecture`. Each is attributed in its caption and remains the
+  property of its original authors and publishers; they are included here
+  under the terms that permit their use in this thesis, and reuse elsewhere
+  needs permission from the respective rights holders.
 
 The frozen experiment outputs in `research/outputs/frozen/` are my own
 measurements and are covered by the same grant; `research/REDACTIONS.md`
