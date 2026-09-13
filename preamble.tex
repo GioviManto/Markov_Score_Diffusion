@@ -1,27 +1,18 @@
 % ============================================================
 % Preamble — Bocconi MSc thesis format (Guide to the University §10.3)
-%   A4, left/right margins 2.5 cm, 26–30 lines per page, 12 pt body in
-%   Arial, numbered pages, no title page/abstract in body, no personal info.
+%   A4, left/right margins 2.5 cm, 26–30 lines per page, 12 pt body,
+%   numbered pages, no title page/abstract in body, no personal info.
 % ============================================================
 
-% ---------- fonts ----------
-% Body text in Arial, the family the university guide recommends (12 pt is
-% the hard requirement; the family is a recommendation). The build needs a
-% Unicode engine (tectonic locally; on Overleaf set the compiler to XeLaTeX).
-% Three tiers: font files in fonts/ (Arial.ttf, Arial Bold.ttf, Arial
-% Italic.ttf, Arial Bold Italic.ttf, for an Overleaf project), then the
-% system's Arial, then TeX Gyre Heros, a metric-compatible Helvetica clone
-% shipped with every TeX distribution, so the page count does not move.
-% Mathematics stays in the Computer Modern math fonts, the usual pairing for
-% a sans-serif thesis body.
-\usepackage{fontspec}
-\IfFileExists{fonts/Arial.ttf}{%
-  \setmainfont{Arial}[Path=fonts/, Extension=.ttf,
-    BoldFont=Arial Bold, ItalicFont=Arial Italic,
-    BoldItalicFont=Arial Bold Italic]}{%
-  \IfFontExistsTF{Arial}{\setmainfont{Arial}}{%
-    \setmainfont{texgyreheros}[Extension=.otf, UprightFont=*-regular,
-      BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]}}
+% ---------- encoding & fonts ----------
+% Latin Modern at 12 pt, the same setting as the companion compendium, so
+% both documents compile with pdfLaTeX (Overleaf's default compiler) as well
+% as with tectonic. The university guide recommends Arial/Tahoma/Verdana but
+% makes only the size, margins and line density requirements; a fontspec
+% build in Arial was tried and abandoned because it needs a Unicode engine.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage{microtype}
 
 % ---------- geometry: 2.5 cm side margins, ~29 text lines/page ----------

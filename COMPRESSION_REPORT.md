@@ -1,10 +1,10 @@
 # Compression report: extended record → concise submission
 
-Date: 13 September 2026. Branch `claude/thesis-compression-concise-76c12d`.
-The extended thesis is preserved unchanged at the git tag and branch
-`extended-thesis-pre-compression` (commit `9ab1b87`) and as
-`archive/extended-thesis-230pp.pdf`. Recover its sources with
-`git checkout extended-thesis-pre-compression`.
+Date: 13 September 2026. The extended thesis is preserved unchanged at the
+git tag `extended-thesis-pre-compression` (commit `9ab1b87`), and lives on
+as the companion compendium in `compendium/` (the same document with a title
+page in place of the university's front pages). Recover the original
+sources with `git checkout extended-thesis-pre-compression`.
 
 ## Before
 
@@ -40,18 +40,18 @@ The extended thesis is preserved unchanged at the git tag and branch
 | 1 Introduction | 8–9 | 2 | ≤ 2 |
 | 2 Statistical mechanics, EBMs, diffusion, related work | 10–17 | 8 | 5–10 |
 | 3 The Gaussian chain by linear algebra | 18–27 | 10 | 15–18 for Ch. 3+4 |
-| 4 The Gaussian chain by belief propagation | 28–37 | 10 | (20 achieved) |
-| 5 Beyond Gaussianity | 38–47 | 10 | 8–10 |
-| 6 Learning the parameters: EM | 48–56 | 9 | 7–8 |
-| 7 Learning the kernel, and what convergence costs | 57–63 | 7 | 5–6 |
-| 8 What structure buys | 64–83 | 20 | 15–18 |
-| 9 Discussion and conclusions | 84–85 | 2 | ≤ 2 |
-| Bibliography | 86–92 | 7 | natural |
-| Acknowledgements | 93 | 1 | – |
-| Appendix A Reproducibility (incl. aggregation) | 94–97 | 4 | ≤ 2 |
-| **Total** | | **97** (1.03 MB) | 90–100 |
+| 4 The Gaussian chain by belief propagation | 28–36 | 9 | (19 achieved) |
+| 5 Beyond Gaussianity | 37–46 | 10 | 8–10 |
+| 6 Learning the parameters: EM | 47–55 | 9 | 7–8 |
+| 7 Learning the kernel, and what convergence costs | 56–62 | 7 | 5–6 |
+| 8 What structure buys | 63–82 | 20 | 15–18 |
+| 9 Discussion and conclusions | 83–84 | 2 | ≤ 2 |
+| Bibliography | 85–91 | 7 | natural |
+| Acknowledgements | 92 | 1 | – |
+| Appendix A Reproducibility (incl. aggregation) | 93–96 | 4 | ≤ 2 |
+| **Total** | | **96** (1.0 MB) | 90–100 |
 
-Chapters 3+4, Chapter 8 and the appendix each run about two pages over the
+Chapters 3+4, Chapter 8 and the appendix each run one to two pages over the
 brief's individual targets; the total is inside the 90–100 window and under
 100. The overrun in Chapters 3, 4 and 8 is float area, not prose: every
 project-generated figure and table was kept (20 figures, 19 tables), and
@@ -109,9 +109,11 @@ cited; 1.5 line spacing kept for consistency with the body).
   code map, provenance routes, protocol facts (all numbers through the
   generated macros), environment, and the aggregation robustness statement
   with the generated structured-aggregation table.
-- **Typography:** body font switched to Arial (fontspec under tectonic's
-  XeTeX; falls back to TeX Gyre Heros if Arial is absent), as the Bocconi
-  guide recommends. Chapter-head white space reduced (50/40 pt → 20/30 pt)
+- **Typography:** body font kept as Latin Modern at 12 pt, the same
+  setting as the compendium, so both documents compile with pdfLaTeX (an
+  Arial build through fontspec was tried and dropped because it needs a
+  Unicode engine, which Overleaf's default compiler is not; the guide only
+  recommends Arial). Chapter-head white space reduced (50/40 pt → 20/30 pt)
   and section-head skips reduced by about a third; contents list set at
   single spacing. Font size, margins and body line spacing are unchanged.
 
@@ -162,17 +164,17 @@ cited; 1.5 line spacing kept for consistency with the body).
 | Right-hand start of the body | yes: Contents on p. 5, disclosure on p. 7, Chapter 1 on p. 8 after an odd-page check |
 | A4 | 595.28 × 841.89 pt |
 | Left/right margins 2.5 cm | `hmargin=2.5cm` in `preamble.tex` |
-| 12 pt body | `\documentclass[12pt]`, Arial (recommended family) |
-| 26–30 lines per prose page | `\setstretch{1.5}`, text height 630 pt ≈ 29 lines; measured 27–31 text lines on prose-heavy pages (9, 12, 16, 20, 33, 68, 85) |
+| 12 pt body | `\documentclass[12pt]`, Latin Modern (the guide recommends Arial/Tahoma/Verdana without requiring them) |
+| 26–30 lines per prose page | `\setstretch{1.5}`, text height 630 pt ≈ 29 lines; measured 26–31 text lines on prose-heavy pages |
 | Page numbers | running head (right) on text pages, footer on chapter openings |
-| Single PDF < 10 MB | 1.03 MB |
+| Single PDF < 10 MB | 1.0 MB |
 | AI use disclosed and referenced | half-page disclosure; Claude, ChatGPT, Gemini cited in the bibliography |
 
 ## Build verification
 
 - Command: `./check.sh` (runs `tectonic -X compile main.tex --keep-intermediates --keep-logs --reruns 4`, then inspects log and PDF).
-- Result: `clean: 97 pp, 20 figures, 19 tables, 69 citations`.
-- Undefined references: 0. Undefined citations: 0. Multiply-defined labels: 0. `??` in the PDF: 0. Missing glyphs: 0. Stray source tokens: 0. Overfull boxes over 10 pt: 0 (six under 10 pt, worst 9.8 pt). Abstract-vs-macro check: 0 mismatches. PDF title matches `title.tex`.
+- Result: `clean: 96 pp, 20 figures, 19 tables, 69 citations`.
+- Undefined references: 0. Undefined citations: 0. Multiply-defined labels: 0. `??` in the PDF: 0. Missing glyphs: 0. Stray source tokens: 0. Overfull boxes over 10 pt: 0. Abstract-vs-macro check: 0 mismatches. PDF title matches `title.tex`.
 - Build manifest regenerated (`tools/make_build_manifest.py`): 19 generated inputs, 18 figure files.
 - Research tests relevant to the manuscript: `python3.12 -m pytest research/tests/{test_gaussian_bp_equivalence,test_gaussian_precision_score,test_recursion_agreement,test_message_normalization,test_em_bp,test_fisher_bruteforce,test_grid_convergence,test_nonmarkov,test_depth_law,test_bp_mixture}.py -m "not slow"` → 100 passed in 89 s.
 - Visual inspection: pages 1–5, 8 (introduction), 24 (spectral form), 32 (Gaussian closure), 70 (structure comparison), 85 (conclusions) and 94 (appendix) rendered and checked.

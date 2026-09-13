@@ -2,9 +2,10 @@
 
 \section{Motivation and gap}
 
-Generative diffusion models dominate the synthesis of high-dimensional data
-\citep{sohl2015deep, ho2020denoising, song2021scorebased}: a forward process
-noises the data, a learned reverse process rebuilds it, and the one object
+Generative diffusion models \citep{sohl2015deep, ho2020denoising,
+song2021scorebased} dominate the synthesis of high-dimensional data: a
+forward process noises the data, a learned reverse process rebuilds it, and
+the one object
 the reverse process needs is the \emph{score}
 $\score(x,t) = \nabla_x \log p_t(x)$ of the noised law
 \citep{anderson1982reverse}. In practice the score is a network trained by

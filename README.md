@@ -9,7 +9,7 @@ diffusion models over Markov-chain data.
 
 Two documents live here:
 
-- [`main.pdf`](main.pdf) — the **thesis**, the concise submission (97 pages),
+- [`main.pdf`](main.pdf) — the **thesis**, the concise submission (96 pages),
   built from the sources at the repository root.
 - [`compendium/main.pdf`](compendium/main.pdf) — the **companion
   compendium**, the extended research record (about 230 pages): the same
@@ -52,14 +52,10 @@ tectonic main.tex                 # the thesis
 tectonic compendium/main.tex      # the compendium
 ```
 
-The thesis body is set in Arial, the family the university guide recommends,
-through `fontspec`, so it needs a Unicode engine: Tectonic locally, or
-**XeLaTeX** on Overleaf. Where Arial is not installed the preamble falls
-back to TeX Gyre Heros, a metric-compatible clone shipped with every TeX
-distribution, and the page count does not move; to use Arial itself on
-Overleaf, put `Arial.ttf`, `Arial Bold.ttf`, `Arial Italic.ttf` and
-`Arial Bold Italic.ttf` in a `fonts/` folder of the project and the preamble
-picks them up. The compendium is pdfLaTeX-compatible.
+Both documents are set in Latin Modern at 12 pt and are pdfLaTeX-compatible,
+so on Overleaf the default compiler works for each; the thesis keeps the
+university's hard format requirements (A4, 2.5 cm side margins, 12 pt,
+about 29 lines per page, numbered pages, four mandatory front pages).
 
 `./check.sh` (and `compendium/check.sh`) builds and then reports every
 defect class — unresolved references, undefined citations, duplicate labels,
