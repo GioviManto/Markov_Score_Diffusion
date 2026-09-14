@@ -102,7 +102,7 @@ at every $t$ while the fourth is damped,
 \eqref{eq:l-state-kurtosis}. The autoregressive coefficient is a second-order
 quantity, identified by the lag-one covariance, which the channel attenuates
 in a known, invertible way; the innovation shape is a fourth-order quantity,
-and the channel removes an $e^{-4t}$ fraction of exactly the structure that
+and the channel leaves only an $e^{-4t}$ fraction of exactly the structure that
 identifies it. The information the channel takes away is concentrated on the
 shape coordinate, which by \eqref{eq:em-missing-info} is the coordinate whose
 eigenvalue of $J$ is pushed closest to one. \emph{Prediction:}
@@ -139,11 +139,11 @@ measured median.}
 coordinate & fitting window & $\lambda$ & rel.\ tolerance $\tau$
   & asymptotic $k(\tau,\lambda)$ & measured median \\
 \midrule
-$\alpha$          & $20$--$150$ & $0.9686$ & $1.2\times10^{-3}$ & $211$  & $\convrhomed$ \\
+$\alpha$          & $20$--$150$ & $0.9686$ & $1.0\times10^{-3}$ & $216$  & $\convrhomed$ \\
 $\ivar$           & $20$--$150$ & $0.9671$ & ---                & ---    & $\convivarmed$ \\
-$\kappa_4$        & $60$--$400$ & $0.9960$ & $6.7\times10^{-3}$ & $1256$ & $\convshapemed$ \\
+$\kappa_4$        & $60$--$400$ & $0.9960$ & $2.0\times10^{-2}$ & $976$  & $\convshapemed$ \\
 \midrule
-ratio $\kappa_4 / \alpha$ & & $\log$-ratio $8.0$ & & $5.9$ & $\convratio$ \\
+ratio $\kappa_4 / \alpha$ & & $\log$-ratio $8.0$ & & $4.5$ & $\convratio$ \\
 \bottomrule
 \end{tabular}
 \end{minipage}
@@ -159,9 +159,10 @@ shape-dominated eigenmode whose missing information sits far closer to one
 than the correlation's; consistent with, not a measurement of, since turning
 slopes into eigenvalues would require the Jacobian of the implemented map,
 which is not computed. Where the linear theory is not quantitative is the
-constant: \eqref{eq:em-settle} predicts a settling ratio of $5.9$, the paired
-measurement gives $\convratio$, and the asymptotic counts over-predict both
-individual settling times by a factor of two to three, because both curves
+constant: \eqref{eq:em-settle} predicts a settling ratio of $4.5$, the paired
+measurement gives $\convratio$, and the asymptotic counts over-predict the
+correlation's settling time by about three and the shape's by about four,
+because both curves
 fall faster in their first hundred updates than their fitted slopes, so both
 tolerances are crossed in the transient rather than in the asymptotic regime.
 The eigenvalues bound the tail, not the crossing of a threshold.
@@ -191,8 +192,9 @@ value being $\convshapemax$ (Figure~\ref{fig:em-two-rates}(b)); the ratio
 formed within each fit has median $\convratio$, against $\convratioofmedians$
 for the quotient of medians, and the paired figure is the one reported.
 ``Settled'' means trace stability, the first update after which a coordinate
-stays within $10^{-3}$ of its end-of-run value for $\alpha$ or
-$2\times10^{-2}$ for the excess kurtosis, not distance to an optimiser, and
+stays within a relative $10^{-3}$ of its end-of-run value for $\alpha$ or a
+relative $2\times10^{-2}$ for the excess kurtosis, not distance to an
+optimiser, and
 the medians come from the $\convcap$-update shard, the only run length at
 which no configuration settles near its own cap. Against them, the fixed
 budget of $\convbudget$ iterations that several experiments in
@@ -214,8 +216,8 @@ places it.
 \label{sec:em-information}
 
 The endpoints in Table~\ref{tab:em-convergence} are close: the two arms finish
-within $0.002$ of each other on the correlation and within a fifth of a unit
-on excess kurtosis, both near the generating values. Under a correctly
+within $0.002$ of each other on the correlation and within about a fifth of a
+unit on excess kurtosis, both near the generating values. Under a correctly
 specified, identifiable model the clean and noised likelihoods share their
 population maximiser and shared endpoints are what shrinking
 $I_{\mathrm{obs}}$ predicts; the fitted family here is a finite mixture that

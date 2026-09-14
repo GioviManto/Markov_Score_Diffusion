@@ -23,7 +23,8 @@ sequences by EM with nothing differentiated through the recursion, the
 innovation shape settling at a median of $\convshapemed$ updates against
 $\convrhomed$ for the correlation (RQ5). At an equal number of clean
 trajectories the recovered structure is worth $\ratiolo$--$\ratiohi\times$
-lower schedule-pooled relative score error than an unstructured network and
+lower schedule-pooled relative score error than an unstructured network and,
+on a separate protocol over $\structsizes$ sizes,
 $\structratiolo$--$\structratiohi\times$ against one given locality and
 weight sharing, under a stated aggregation and with the arms asymmetric in
 supplied information by design (RQ6).
@@ -37,15 +38,16 @@ a model class rather than of an implementation; and transition learning by
 exact chain inference inside EM, compared at equal data, with its boundaries
 mapped: no gain from added mixture capacity under the implemented grid and
 cap, partial absorption of a rank-one Markov violation against failure under
-long-range coupling near strength one tenth, and a two-rate convergence law.
+long-range coupling --- near strength one tenth against the convolutional
+baseline, one fifth against both --- and a two-rate convergence law.
 
 The exact results concern one-dimensional states, linear AR(1) dynamics and
 a known channel, with the locality laws proved for the Gaussian bulk only;
 the non-Gaussian results are numerical, grid BP being a reference only
 within its validated regime; and the learning results are statistical, with
 the headline factors moving by tens of percent under defensible alternative
-aggregations (Appendix~\ref{app:repro}), every capacity cell above
-$C = \capcappedfrom$ stopping at an iteration cap, the fitted convergence
+aggregations (Appendix~\ref{app:repro}), every capacity cell from
+$C = \capcappedfrom$ upward stopping at an iteration cap, the fitted convergence
 slopes being contraction factors rather than Jacobian eigenvalues, and the
 misspecification scalar being an exact KL only in the Gaussian arms. Whether
 generative fidelity tracks pointwise accuracy within one estimator, and

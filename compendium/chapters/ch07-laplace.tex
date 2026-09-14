@@ -112,7 +112,7 @@ frame is swept with the others held at zero, computed by grid BP
 (Section~\ref{sec:l-grid}) against the covariance-matched Gaussian chain ---
 which is exactly the estimator the Gaussian closure returns
 (Theorem~\ref{thm:l-lmmse}). At $t = 0.05$ the Laplace score saturates near
-$\pm 5.1$ while the Gaussian one grows without bound; at $t = 1$, on the same
+$\pm 5.2$ while the Gaussian one grows without bound; at $t = 1$, on the same
 vertical scale, the two coincide.}
 \label{fig:l-nonlinear}
 \end{figure}
@@ -339,8 +339,8 @@ implemented in code as \codefile{src/noising.py}'s
 \texttt{likelihood\_resolution\_ok} and recorded per cell by the grid
 validation of \codefile{exp\_01}, which writes it as a column rather than
 refusing to run: the working configuration clears it with room to spare
-($3h = 0.12$ against $\sqrt{2t} = 0.32$ at the smallest reported $t$), so it
-documents the margin rather than gating on it. It is
+($3h = 0.12$ against $\sqrt{2t} = 0.20$ at the smallest reported $t$,
+$t = 0.02$), so it documents the margin rather than gating on it. It is
 \eqref{eq:l-resolution}, not
 the innovation law, that sets the smallest diffusion time this chapter reports.
 
@@ -363,10 +363,10 @@ kernel the integrand has a kink along $a' = \alpha a$ and no spectral
 statement is invoked; the non-Gaussian reference is certified by
 self-convergence instead.) The working configuration for every
 non-Gaussian experiment is $\ngrid = 401$, $A = 8$ --- gate satisfied for all
-$t \geq 0.05$ with room to spare --- with a reference solution
-at $\ngrid = 801$; the self-convergence error between the two remains $10^4$ to
-$10^7$ times smaller than every effect measured below
-(Figure~\ref{fig:bp-closure}, left).
+$t \geq 0.02$ with room to spare --- with a reference solution
+at $\ngrid = 801$; the self-convergence error between the two remains at
+least three orders of magnitude smaller than every effect measured below,
+and four to five over most of the range (Figure~\ref{fig:bp-closure}, left).
 
 Self-convergence answers whether the mesh is fine enough and cannot answer
 whether the domain is wide enough, since both resolutions share the same
@@ -619,7 +619,7 @@ $t$
 $0.02$  & $0.036$  & $(0.029,\,0.052)$   & $1.00$ & $3.9$   & $0.032$ & $0.38$ \\
 $0.032$ & $0.040$  & $(0.034,\,0.057)$   & $1.14$ & $3.4$   & $0.047$ & $0.30$ \\
 $0.05$  & $0.050$  & $(0.036,\,0.079)$   & $1.42$ & $3.9$   & $0.066$ & $0.27$ \\
-$0.072$ & $0.053$  & $(0.038,\,0.082)$   & $\mathbf{1.50}$ & $3.1$ & $0.089$ & $0.20$ \\
+$0.072$ & $0.053$  & $(0.038,\,0.081)$   & $\mathbf{1.50}$ & $3.1$ & $0.089$ & $0.20$ \\
 $0.105$ & $0.050$  & $(0.037,\,0.100)$   & $1.41$ & $2.1$   & $0.114$ & $0.14$ \\
 $0.153$ & $0.043$  & $(0.034,\,0.085)$   & $1.20$ & $1.2$   & $0.151$ & $0.10$ \\
 $0.222$ & $0.038$  & $(0.033,\,0.058)$   & $1.06$ & $0.74$  & $0.193$ & $0.065$ \\
@@ -689,7 +689,7 @@ The same experiment under three metrics ($\alpha=0.85$, $\nsites=32$, $60$
 trials per $t$, reference $\ngrid=801$).
 \emph{Left:} the posterior-mean error \eqref{eq:l-epspm}, median and
 $10$--$90\%$ band. It is not monotone: it peaks at $t\simeq0.07$ and is no
-smaller at $t=0.02$ than at $t=0.15$.
+smaller at $t=0.15$ than at $t=0.02$.
 \emph{Centre:} the same runs seen through the relative score error, which
 falls by $3.6\times$ over exactly the interval on which
 $\varepsilon_{\mathrm{PM}}$ is flat. The gap between the curves is the
@@ -711,8 +711,9 @@ data. The closure error exceeds the numerical reference budget by at least
 three orders of magnitude everywhere and by four to five over most of the
 range, so the measurement is limited by the closure, not the quadrature.
 \emph{Right:} relative score error against $1-\cos$ of the angle between the
-projected and reference score vectors. Directional error is one to two orders
-of magnitude smaller than magnitude error at every diffusion time.}
+projected and reference score vectors. Directional error is smaller than
+magnitude error at every diffusion time, by a factor of about five at
+$t=0.02$ and by three to five orders of magnitude once $t\gtrsim1$.}
 \label{fig:bp-closure}
 \end{figure}
 

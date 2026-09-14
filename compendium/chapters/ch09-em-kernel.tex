@@ -145,7 +145,7 @@ fourth is damped,
 The autoregressive coefficient is a second-order quantity: it is identified by
 the lag-one covariance, which the channel attenuates in a known, invertible way
 and does not destroy. The innovation \emph{shape} is a fourth-order quantity,
-and \eqref{eq:em-cumulant-damping} says the channel removes an
+and \eqref{eq:em-cumulant-damping} says the channel leaves only an
 $e^{-4t}$ fraction of exactly the structure that identifies it. The information
 the channel takes away is therefore concentrated on the shape coordinate, and
 by \eqref{eq:em-missing-info} that is the coordinate whose eigenvalue of $J$ is
@@ -191,11 +191,11 @@ for the reason given in the text.}
 coordinate & fitting window & $\lambda$ & rel.\ tolerance $\tau$
   & asymptotic $k(\tau,\lambda)$ & measured median \\
 \midrule
-$\alpha$          & $20$--$150$ & $0.9686$ & $1.2\times10^{-3}$ & $211$  & $\convrhomed$ \\
+$\alpha$          & $20$--$150$ & $0.9686$ & $1.0\times10^{-3}$ & $216$  & $\convrhomed$ \\
 $\ivar$           & $20$--$150$ & $0.9671$ & ---                & ---    & $\convivarmed$ \\
-$\kappa_4$        & $60$--$400$ & $0.9960$ & $6.7\times10^{-3}$ & $1256$ & $\convshapemed$ \\
+$\kappa_4$        & $60$--$400$ & $0.9960$ & $2.0\times10^{-2}$ & $976$  & $\convshapemed$ \\
 \midrule
-ratio $\kappa_4 / \alpha$ & & $\log$-ratio $8.0$ & & $5.9$ & $\convratio$ \\
+ratio $\kappa_4 / \alpha$ & & $\log$-ratio $8.0$ & & $4.5$ & $\convratio$ \\
 \bottomrule
 \end{tabular}
 \end{minipage}
@@ -216,9 +216,10 @@ $\lambda = 0.9671$, which is the same statement seen from the other side: it is
 a second-order quantity and the channel preserves it.
 
 Where the linear theory is not quantitative is the constant.
-Equation~\eqref{eq:em-settle} predicts a settling ratio of $5.9$ and the paired
-measurement gives $\convratio$; the asymptotic counts over-predict both
-individual settling times by a factor of two to three. The reason is visible in
+Equation~\eqref{eq:em-settle} predicts a settling ratio of $4.5$ and the paired
+measurement gives $\convratio$; the asymptotic counts over-predict the
+correlation's settling time by a factor of about three and the shape's by about
+four. The reason is visible in
 Figure~\ref{fig:em-two-rates}(a): both curves fall considerably faster in their
 first hundred updates than their fitted slopes, so both tolerances are crossed
 during the transient rather than in the asymptotic regime that
@@ -260,9 +261,10 @@ quotient of the two medians is $\convratioofmedians$. The paired figure is the
 one reported, because both coordinates are measured on the same fit.
 
 Two qualifications on what that statistic means. ``Settled'' is trace
-stability --- the first update after which a coordinate stays within
-$10^{-3}$ of its end-of-run value for $\alpha$, or $2\times10^{-2}$ for the
-excess kurtosis --- and not distance to an optimiser; a coordinate can sit
+stability --- the first update after which a coordinate stays within a
+relative $10^{-3}$ of its end-of-run value for $\alpha$, or a relative
+$2\times10^{-2}$ for the excess kurtosis --- and not distance to an
+optimiser; a coordinate can sit
 still while the density it belongs to moves along a shallow direction. And the
 run has to be long enough for the statistic to mean anything: the sweep was run
 at two lengths, and these medians come from the $\convcap$-update shard, the
@@ -293,9 +295,9 @@ channel compounds the missing information --- the mechanism of
 \label{sec:em-information}
 
 The endpoints in Table~\ref{tab:em-convergence} are close: the two arms finish
-within $0.002$ of each other on the correlation and within a fifth of a unit on
-excess kurtosis, both near the generating values. Whether the channel is even
-\emph{allowed} to leave the population optimum in place depends on
+within $0.002$ of each other on the correlation and within about a fifth of a
+unit on excess kurtosis, both near the generating values. Whether the channel
+is even \emph{allowed} to leave the population optimum in place depends on
 specification. Under a correctly specified, identifiable model the clean and
 the noised likelihoods share their population maximiser, and shared endpoints
 are what shrinking $I_{\mathrm{obs}}$ predicts. The fitted family here is a

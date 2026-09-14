@@ -808,7 +808,8 @@ locality and weight sharing. That comparison does not decompose causally:
 architecture, parameter sharing, capacity and optimisation all change when the
 baseline is swapped, and no design here separates them. What it does establish
 is that the generic-MLP ratio overstates what can be attributed specifically to
-the supplied Markov model, and by roughly a factor of three.
+the supplied Markov model, and by a factor that runs from about three at the
+smallest training set to about $1.4$ at the largest.
 
 \section{How much mixture capacity the estimator needs}\label{sec:em-capacity}
 
@@ -824,7 +825,8 @@ $\nseq \in \{\capsizes\}$, and scores held-out log-evidence.
 \caption[Mixture capacity against a single Gaussian innovation]{\emph{(a)}
 Held-out log-evidence per edge, paired within seed against $C = 1$: no tested
 capacity improves on a single Gaussian innovation at either size, and at
-$\nseq = \capheadsize$ the $C = 16$ deficit is resolved against zero.
+$\nseq = \capheadsize$ the $C = 16$ deficit against $C = 8$ is resolved
+against zero.
 \emph{(b)} Why (a) is not a clean capacity test: the share of fits stopped at
 the iteration cap, and with a narrowest component under the grid's resolution
 floor, both climb steeply with $C$.}
@@ -833,11 +835,11 @@ floor, both climb steeply with $C$.}
 
 Table~\ref{tab:capacity} and Figure~\ref{fig:em-capacity} give the outcome
 and its caveat in one view. Under this protocol no capacity buys anything:
-every paired mean is negative, the $\nseq = \capheadsize$ deficit at the
-largest capacity is $\capheadverdict$ against zero
+every paired mean is negative, the $\nseq = \capheadsize$ deficit of the
+largest capacity against $C = 8$ is $\capheadverdict$ against zero
 ($\capheadlogev$, CI $\capheadlogevci$), and only two to four seeds in
 sixteen ever prefer a mixture. But the sweep is not a clean statement about
-capacity in the abstract: above $C = \capcappedfrom$ every cell stops at the
+capacity in the abstract: from $C = \capcappedfrom$ upward every cell stops at the
 $\capiterlimit$-iteration cap rather than at tolerance, and the share of fits
 whose narrowest component falls below the grid's resolution floor climbs with
 $C$, so a statistical disadvantage of large mixtures is entangled with an
@@ -894,7 +896,7 @@ added directly to the precision at every separation of two or more,
   \qquad
   [Q_{\mathrm{long}}]_{ij} = -e^{-|i-j|/\ell}\ \ (|i-j| \geq 2),
   \quad
-  [Q_{\mathrm{long}}]_{ii} = 1.05 \sum_{j\neq i} e^{-|i-j|/\ell},
+  [Q_{\mathrm{long}}]_{ii} = 1.05 \sum_{|i-j| \geq 2} e^{-|i-j|/\ell},
   \label{eq:em-longrange}
 \end{equation}
 with $\ell = 8$ and the diagonal compensation making $Q_\gamma$ strictly
@@ -947,7 +949,7 @@ eigenvector agrees with $u/\norm{u}$ to $|\langle\cdot,\cdot\rangle| = 1.000000$
 The direction $u$ is, up to boundary terms, the constant vector --- the chain's
 mean level. By contrast the correction in \eqref{eq:em-longrange} is
 $\gamma Q_{\mathrm{long}}$, dense by construction, with numerical rank
-$\nsites = 32$ and $30$ to $31$ eigenvalues above $1\%$ of its largest at the
+$\nsites = 32$ and all $32$ eigenvalues above $1\%$ of its largest at the
 strengths tested. \emph{One direction against thirty} is the structural
 difference, and a chain that may reparameterise a single scalar can trade
 against the first in a way it cannot against the second --- partly: matching
@@ -1083,7 +1085,7 @@ strengths:
 \end{equation}
 the CNN ratio falling from $1.2$ to $0.97$ across its bracket and the MLP one
 from $1.2$ to $0.84$ across its own. A straight line through those endpoints
-crosses at $2.1$ and $3.0 \times 10^{-2}$ respectively, and those
+crosses at $2.1$ and $3.2 \times 10^{-2}$ respectively, and those
 interpolations are quoted nowhere as results: each condition here is a single
 run scored across the schedule, with no seed replication, so no interval can
 be attached to a crossing and a point estimate would imply a precision the
@@ -1214,7 +1216,7 @@ much efficient Fisher information about each coordinate the channel destroys
 between the smallest and largest diffusion time tested ($t = 0.05$ against
 $t = 1.6$), and the contrast \eqref{eq:em-info-prediction} predicts. Entries are
 ratios of outer-product estimates at $D = 512$ sequences, so only the order is
-meaningful and two significant digits are printed for that reason. The last
+meaningful. The last
 column is the quantity the prediction addresses: its geometric mean over the
 five shapes is $465$ against a predicted $e^{4\times1.55} = 493$.}
 \label{tab:em-information}

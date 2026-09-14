@@ -75,7 +75,7 @@ as $x_k$ is swept with the other frames at zero, by grid BP
 (Section~\ref{sec:l-grid}) against the covariance-matched Gaussian chain,
 which is exactly what the Gaussian closure returns
 (Theorem~\ref{thm:l-lmmse}). At $t = 0.05$ the Laplace score saturates near
-$\pm 5.1$ while the Gaussian one grows without bound; at $t = 1$ the two
+$\pm 5.2$ while the Gaussian one grows without bound; at $t = 1$ the two
 coincide on the same scale.}
 \label{fig:l-nonlinear}
 \end{figure}
@@ -181,12 +181,12 @@ double-precision floor down to $t \approx 0.03$, is $10^{-10}$ at $t = 0.02$
 and reaches the percent scale by $t = 0.005$. The gate
 \eqref{eq:l-resolution} is conservative relative to that onset, and the
 working $\ngrid = 401$ clears it with room to spare ($3h = 0.12$ against
-$\sqrt{2t} = 0.32$ at the smallest reported $t = 0.05$). For the Laplace
+$\sqrt{2t} = 0.20$ at the smallest reported $t = 0.02$). For the Laplace
 kernel the integrand has a kink and no spectral statement is invoked; the
 reference is certified by self-convergence, the error between $\ngrid = 401$
-and $801$ staying $10^4$ to $10^7$ times smaller than every effect measured
-below (Figure~\ref{fig:bp-closure}, left). Self-convergence cannot test the
-domain width, which the half-width sweep of \codefile{exp\_18}
+and $801$ staying three to five orders of magnitude smaller than every effect
+measured below (Figure~\ref{fig:bp-closure}, left). Self-convergence cannot
+test the domain width, which the half-width sweep of \codefile{exp\_18}
 ($\gdtrunccells$ cells over $A \in \{4,6,8,10\}$) settles: the posterior mass
 reaching the outermost cells is $\gdtruncfour$ at $A = 4$, $\gdtruncsix$ at
 $A = 6$, $\gdtrunceight$ at the working $A = 8$ and $\gdtruncten$ at
@@ -327,7 +327,7 @@ $t$
 $0.02$  & $0.036$  & $(0.029,\,0.052)$   & $1.00$ & $3.9$   & $0.032$ & $0.38$ \\
 $0.032$ & $0.040$  & $(0.034,\,0.057)$   & $1.14$ & $3.4$   & $0.047$ & $0.30$ \\
 $0.05$  & $0.050$  & $(0.036,\,0.079)$   & $1.42$ & $3.9$   & $0.066$ & $0.27$ \\
-$0.072$ & $0.053$  & $(0.038,\,0.082)$   & $\mathbf{1.50}$ & $3.1$ & $0.089$ & $0.20$ \\
+$0.072$ & $0.053$  & $(0.038,\,0.081)$   & $\mathbf{1.50}$ & $3.1$ & $0.089$ & $0.20$ \\
 $0.105$ & $0.050$  & $(0.037,\,0.100)$   & $1.41$ & $2.1$   & $0.114$ & $0.14$ \\
 $0.153$ & $0.043$  & $(0.034,\,0.085)$   & $1.20$ & $1.2$   & $0.151$ & $0.10$ \\
 $0.222$ & $0.038$  & $(0.033,\,0.058)$   & $1.06$ & $0.74$  & $0.193$ & $0.065$ \\
@@ -391,8 +391,9 @@ the grid-BP self-convergence error ($\ngrid=401$ versus $801$) on identical
 data; the closure error exceeds the numerical budget by three to five orders
 of magnitude, so the measurement is limited by the closure, not the
 quadrature. \emph{Right:} relative score error against $1-\cos$ of the angle
-between projected and reference score vectors; directional error is one to
-two orders of magnitude smaller than magnitude error at every $t$.}
+between projected and reference score vectors; directional error is smaller
+than magnitude error at every $t$, by a factor of about five at $t=0.02$ and
+by three to five orders of magnitude once $t\gtrsim1$.}
 \label{fig:bp-closure}
 \end{figure}
 

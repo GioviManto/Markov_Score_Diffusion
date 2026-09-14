@@ -13,9 +13,9 @@ one further diagonal per order in $t$ with every off-band entry provably
 non-zero at every $t > 0$, maximally coupled at intermediate times in the
 Frobenius measure used to track it,
 returning to the identity at rate $e^{-2t}$. A single bulk quantity
-$q(\alpha,t) \in (0,|\alpha|]$ sets the posterior correlation length. This is a
+$q(\alpha,t) \in (0,|\alpha|)$ sets the posterior correlation length. This is a
 consequence of the model's linearity and not of the chain structure alone
-(Chapter~\ref{ch:gaussian}).
+(Chapters~\ref{ch:gaussian} and~\ref{ch:em-results}).
 
 \paragraph{RQ2: belief propagation and the Kalman smoother.} They are the same
 computation. The channel corrupts each coordinate independently, so every
@@ -54,7 +54,8 @@ recursion's
 boundary conditions in a way the influence argument does not cover, so the
 second is a numerical law over the tested range. At equal locality budget,
 truncating the inference beats truncating the score matrix at small $t$
-($12.3\%$ against $21.0\%$ at $t = 0.05$) (Chapter~\ref{ch:gaussian-bp}).
+($12.3\%$ against $21.0\%$ at $t = 0.05$)
+(Chapters~\ref{ch:gaussian-bp} and~\ref{ch:em-results}).
 
 \paragraph{RQ5: recovering an unknown transition.} Fisher's identity turns one
 forward--backward pass, at each current parameter value, into the exact
@@ -77,7 +78,9 @@ number of clean trajectories, $\ratiolo$--$\ratiohi\times$ lower
 schedule-pooled relative
 score error than networks
 trained by denoising score matching, across \nsizesused{} sizes; against a
-baseline given locality and weight sharing, $\structratiolo$--$\structratiohi\times$.
+baseline given locality and weight sharing,
+$\structratiolo$--$\structratiohi\times$ over the \structsizes{} sizes of the
+all-site protocol.
 The factor is quoted under the aggregation the text defines --- squared error
 and reference energy pooled over the schedule per seed, ratio paired within
 seed --- and Appendix~\ref{app:aggregation} shows the alternatives, of which
@@ -123,7 +126,8 @@ boundaries of the advantage are mapped rather than asserted: mixture capacity
 beyond a single Gaussian innovation buys nothing for this estimator under the
 grid and cap implemented here, and a chain-structured estimator partly absorbs a rank-one violation of the
 Markov assumption through its refitted local parameter while failing on a
-long-range one at a coupling strength of roughly one tenth. The convergence
+long-range one, against the convolutional baseline at a coupling strength of
+roughly one tenth and against both at one fifth. The convergence
 measurement that separates rate from estimator is a methodological result in its
 own right, and it is what withdrew an earlier reading of the generative
 comparison.
@@ -136,7 +140,7 @@ comparison.
   nonlinear state only in Chapter~\ref{ch:ring}. The locality laws are proved
   for the Gaussian bulk; their non-Gaussian counterparts are only structurally
   delimited, and no low-rank structure is asserted for the Laplace
-  $\nsites = 2$ posterior Hessian beyond the narrow regime where it holds.
+  $\nsites = 2$ posterior Hessian.
 
   \item \textbf{The numerical reference.} The non-Gaussian results are
   numerical. Grid BP is a reference only within its validated resolution regime
@@ -150,7 +154,7 @@ comparison.
   aggregation --- the schedule-pooled paired ratio --- and move by tens of
   percent under defensible alternatives (Appendix~\ref{app:aggregation}), so
   no exact multiple should be carried out of context. Every capacity cell
-  above $C = \capcappedfrom$ stops at
+  from $C = \capcappedfrom$ upward stops at
   an iteration cap rather than at tolerance, so a statistical disadvantage of
   larger mixtures is not separated from an optimisation or a discretisation one.
   The convergence chapter's fitted slopes are coordinate-wise contraction

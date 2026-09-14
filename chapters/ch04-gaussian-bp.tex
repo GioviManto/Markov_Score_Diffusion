@@ -277,10 +277,11 @@ $t \in \{0.05, 0.3, 1, 3\}$): maximum disagreement $1.3 \times 10^{-15}$ on
 posterior means and $1.2 \times 10^{-14}$ on scores, double-precision
 rounding accumulated along the recursion, reproduced by an independent
 implementation written from the recursion alone (Appendix~\ref{app:repro}).
-One qualitative detail from an $\nsites = 3$ instance: at
-$x = (1.2, -0.4, 0.8)$ the score component $S_1$ is positive although
-$x_1 < 0$, because the neighbours pull the posterior mean of the middle frame
-positive, which no per-frame score can produce.
+One quantitative detail from an $\nsites = 3$ instance: at
+$x = (1.2, -0.4, 0.8)$ with $\alpha = 0.9$, $t = 0.05$ the score component
+$S_1$ is $+5.71$, fourteen times the $-x_1 = +0.40$ a per-frame marginal
+score would give: the neighbours, not the frame itself, set the size of the
+correction.
 
 \section{The price of locality}
 \label{sec:bp-locality}\label{sec:g-bulk}\label{sec:g-locality}\label{sec:bp-truncation}
@@ -350,10 +351,10 @@ no neighbours, $r = 0$        & $0.815$ & $0.567$ & $0.194$ & $0.0045$ \\
 one hop, $r = 1$              & $0.123$ & $0.235$ & $0.130$ & $0.0035$ \\
 two hops, $r = 2$             & $0.020$ & $0.107$ & $0.089$ & $0.0028$ \\
 \addlinespace
-banded answer, $b = 1$        & $0.210$ & $0.302$ & $0.135$ & $0.0035$ \\
+banded answer, $b = 1$        & $0.210$ & $0.301$ & $0.135$ & $0.0035$ \\
 banded answer, $b = 2$        & $0.032$ & $0.134$ & $0.092$ & $0.0028$ \\
 \midrule
-removed by the first hop      & $85\%$  & $59\%$  & $33\%$  & $21\%$ \\
+removed by the first hop      & $85\%$  & $58\%$  & $33\%$  & $21\%$ \\
 penalty, $b{=}1$ over $r{=}1$ & $1.71\times$ & $1.28\times$ & $1.03\times$ & $1.00\times$ \\
 \bottomrule
 \end{tabular}
@@ -361,7 +362,7 @@ penalty, $b{=}1$ over $r{=}1$ & $1.71\times$ & $1.28\times$ & $1.03\times$ & $1.
 \end{center}
 
 The first row is the cost of treating the frames as independent: at
-$t = 0.05$ the isolated-frame score is wrong by $82\%$ in relative RMS, so
+$t = 0.05$ the isolated-frame score is wrong by $81.5\%$ in relative RMS, so
 almost all of the score at small diffusion times \emph{is} inter-frame
 structure, and the error does not vanish as $t \to 0$ because the $r = 0$
 estimator converges to $-x$ while the exact score converges to $-\Qz x$. A

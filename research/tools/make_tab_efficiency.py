@@ -524,7 +524,7 @@ column is the paired per-seed ratio of the two pooled errors, averaged over seed
 with a percentile bootstrap over those ratios beside it (seeds resampled, not
 cells) --- close to, but
 not identical with, the quotient of the two columns beside it;
-Appendix~\\ref{{app:aggregation}} reports the same cells under five alternative aggregations.
+Appendix~\\ref{{app:aggregation}} reports the same cells under four alternative aggregations.
 Protocol, cell exclusions and the budget calibration are in \\provenanceappendix.}}
 \\label{{tab:pointwise}}
 \\centering

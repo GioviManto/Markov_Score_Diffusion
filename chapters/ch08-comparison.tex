@@ -456,8 +456,8 @@ fraction of the headline margin therefore does not survive supplying locality
 and weight sharing. The comparison does not decompose causally, since
 architecture, sharing, capacity and optimisation all change when the baseline
 is swapped; what it establishes is that the generic-MLP ratio overstates what
-can be attributed specifically to the Markov model, by roughly a factor of
-three.
+can be attributed specifically to the Markov model, by a factor that runs from
+about three at the smallest training set to about $1.4$ at the largest.
 
 \input{sections/tab-structured}
 
@@ -469,11 +469,11 @@ within seed against the single-Gaussian innovation $C = 1$, at
 $\nseq \in \{\capsizes\}$, and scores held-out log-evidence
 (Table~\ref{tab:capacity}, Figure~\ref{fig:em-capacity}). Under this protocol
 no capacity buys anything: every paired mean is negative, the
-$\nseq = \capheadsize$ deficit at the largest capacity is
+$\nseq = \capheadsize$ deficit of the largest capacity against $C = 8$ is
 $\capheadverdict$ against zero ($\capheadlogev$, CI $\capheadlogevci$), and
 only two to four seeds in sixteen ever prefer a mixture. The sweep is not a
-clean statement about capacity in the abstract: above $C = \capcappedfrom$
-every cell stops at the $\capiterlimit$-iteration cap rather than at
+clean statement about capacity in the abstract: from $C = \capcappedfrom$
+upward every cell stops at the $\capiterlimit$-iteration cap rather than at
 tolerance, and the share of fits whose narrowest component falls below the
 grid's resolution floor climbs with $C$, so a statistical disadvantage of
 large mixtures is entangled with an optimisation and a discretisation effect.
@@ -522,7 +522,7 @@ directly to the precision at every separation of two or more,
   \qquad
   [Q_{\mathrm{long}}]_{ij} = -e^{-|i-j|/\ell}\ \ (|i-j| \ge 2),
   \quad
-  [Q_{\mathrm{long}}]_{ii} = 1.05 \sum_{j\neq i} e^{-|i-j|/\ell},
+  [Q_{\mathrm{long}}]_{ii} = 1.05 \sum_{|i-j| \ge 2} e^{-|i-j|/\ell},
   \label{eq:em-longrange}
 \end{equation}
 with $\ell = 8$, diagonally dominant by construction and rescaled to unit

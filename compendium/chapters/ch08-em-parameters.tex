@@ -56,10 +56,11 @@ Section~\ref{sec:em-numerical} against a component collapsing onto a single
 grid point, and $|\alpha| < 1$ being what gives the recursion a stationary law
 at all. It buys existence and no more: with $(\pi_c, \nu_c, s_c)$ free the
 fitted chain's stationary variance is
-$\sum_c \pi_c(\nu_c^2 + s_c^2)/(1-\alpha^2)$, which equals one only under a
-variance-matching constraint this family deliberately does not impose, and its
-stationary mean is zero only if $\sum_c \pi_c \nu_c = 0$, which it likewise
-does not impose --- the asymmetry recorded below. The conditional maximiser for
+$\big[\sum_c \pi_c(\nu_c^2 + s_c^2) - (\sum_c \pi_c \nu_c)^2\big]/(1-\alpha^2)$,
+which equals one only under a variance-matching constraint this family
+deliberately does not impose, and its stationary mean is zero only if
+$\sum_c \pi_c \nu_c = 0$, which it likewise does not impose --- the asymmetry
+recorded below. The conditional maximiser for
 $\alpha$ derived below is a closed form that does not enforce its own
 constraint, so the boundary is a real possibility rather than an excluded one;
 in every fit reported in this thesis the estimate stays far inside the
@@ -1182,7 +1183,7 @@ The cap of sixteen inner sweeps is chosen from the numerical behaviour rather
 than from a theoretical convention. At $C=8$, $\nseq=256$ and a fixed outer
 budget of $40$ iterations, increasing the inner budget from four to sixteen
 sweeps moves the fitted innovation excess kurtosis from $1.68$ to $2.14$, a
-$28\%$ change relative to the former value and still below the true Laplace
+$27\%$ change relative to the former value and still below the true Laplace
 value $3.0$, whereas $\widehat\alpha$ changes only in the fourth decimal
 place. The innovation shape therefore converges substantially more slowly than
 the correlation parameter. By roughly $60$ outer iterations the outer and
@@ -1374,7 +1375,7 @@ $4$ & $2048$ & $0.8465$ & $0.2818$ & $1.82$ & $0.4\%$  & $1.5\%$ & $39\%$ \\
 \addlinespace
 $8$ & $128$  & $0.8294$ & $0.2824$ & $3.18$ & $2.4\%$  & $1.8\%$ & $6\%$ \\
 $8$ & $512$  & $0.8503$ & $0.2694$ & $2.26$ & $0.04\%$ & $2.9\%$ & $25\%$ \\
-$8$ & $2048$ & $0.8507$ & $0.2793$ & $2.72$ & $0.08\%$ & $0.7\%$ & $9\%$ \\
+$8$ & $2048$ & $0.8507$ & $0.2793$ & $2.72$ & $0.08\%$ & $0.6\%$ & $9\%$ \\
 \bottomrule
 \end{tabular}
 \end{minipage}

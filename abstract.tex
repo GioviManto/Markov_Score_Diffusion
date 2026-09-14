@@ -44,11 +44,12 @@ estimator, are additionally given those clean trajectories and redraw the
 corruption at every gradient step --- it attains 6.6--10.9$\times$ lower
 schedule-pooled relative score error than a denoising score-matching
 network given no structural information, and 2.3--6.1$\times$ against a
-baseline given locality and weight sharing; the boundaries of the advantage
+baseline given locality and weight sharing, on a four-size protocol; the boundaries of the advantage
 are mapped rather than asserted --- added mixture capacity buys nothing
 under the implemented grid and budget, a rank-one violation of the Markov
 assumption is partly absorbed while a long-range one defeats the estimator
-at coupling strengths near one tenth, and every factor is stated under an
+at coupling one tenth against the convolutional baseline, one fifth
+against both, and every factor is stated under an
 explicitly defined aggregation whose alternatives are recomputed in an
 appendix.
 
