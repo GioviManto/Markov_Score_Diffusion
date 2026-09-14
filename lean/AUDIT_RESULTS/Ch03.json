@@ -1,0 +1,384 @@
+{
+  "module": "ThesisAudit.Ch03",
+  "build_ok": true,
+  "covers": "/Users/gloriabagnato/Code/Thesis/Diffusion/Markov_Score_Diffusion/thesis/chapters/ch03-model.tex (scope: all; lines 1-708)",
+  "completed": true,
+  "summary": "41 display-math items enumerated in order of appearance (26 labelled equations, 15 unlabelled displays, two of which are align blocks split into sub-items). No discrepancies found: every stated identity in ch03 checks out. 26 proved, 15 defined, 0 instance_checked, 0 skipped. (2026-09-14: the last two instance_checked items, eq:ar1-toeplitz and eq:dev-fisher-zero, were generalised and are now proved from the model rather than from assumed second-moment recursions or an alpha-free density.)",
+  "items": [
+    {
+      "id": "eq:strict-stationary",
+      "status": "defined",
+      "lean_name": "ch03_StrictlyStationary, ch03_strict_stationary_shift",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "21-26",
+      "summary": "Strict stationarity: all finite-dimensional laws invariant under a time shift.",
+      "note": "Definition, not a claim. Encoded as equality of push-forward measures of the finite-dimensional coordinate maps, for every n, every index tuple and every shift h. Sanity lemma proved: a strictly stationary process re-indexed by a constant shift is again strictly stationary."
+    },
+    {
+      "id": "noname-1",
+      "status": "defined",
+      "lean_name": "ch03_WeaklyStationary (first conjunct)",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "29-31",
+      "summary": "Constant mean E[X_k] = mu, first half of weak stationarity.",
+      "note": "Definition. Folded into the ch03_WeaklyStationary predicate as the clause forall k, integral of X k = m."
+    },
+    {
+      "id": "eq:weak-stationary",
+      "status": "defined",
+      "lean_name": "ch03_WeaklyStationary, ch03_weak_stationary_even",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "33-36",
+      "summary": "Cov(X_j, X_k) = gamma(j-k), second half of weak stationarity.",
+      "note": "Definition. Sanity lemma PROVED: weak stationarity forces gamma(-d) = gamma(d), which is exactly the fact the chapter invokes at line 56 to fill in the Toeplitz matrix of eq:toeplitz."
+    },
+    {
+      "id": "eq:toeplitz",
+      "status": "proved",
+      "lean_name": "ch03_toeplitz, ch03_toeplitz_const_diag, ch03_toeplitz_symm, ch03_toeplitz_display",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "44-55",
+      "summary": "Sigma_ij = gamma(i-j) is Toeplitz: constant along every diagonal, and symmetric when gamma is even.",
+      "note": "Three theorems: (i) entries with equal i-j agree, for arbitrary L; (ii) the matrix is symmetric given gamma(-d)=gamma(d); (iii) the explicit 4x4 block displayed in the chapter is reproduced entry by entry. Displayed entries are correct."
+    },
+    {
+      "id": "eq:markov-property",
+      "status": "defined",
+      "lean_name": "ch03_MarkovProperty",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "61-65",
+      "summary": "P(X_{k+1} in A | X_k, ..., X_0) = P(X_{k+1} in A | X_k).",
+      "note": "Definition. Encoded in density form: the conditional density c n x of x_{n+1} given the whole past x_0..x_n equals K (x n) (x (n+1)). Its content is discharged by eq:chain-factorisation below."
+    },
+    {
+      "id": "eq:chain-factorisation",
+      "status": "proved",
+      "lean_name": "ch03_joint, ch03_chain_factorisation",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "73-77",
+      "summary": "p(x_0,...,x_{L-1}) = p_0(x_0) * prod_{k=0}^{L-2} K(x_{k+1}|x_k).",
+      "note": "PROVED by induction from the chain rule (ch03_joint) plus the Markov property: ch03_joint p0 c x m = p0 (x 0) * prod over Finset.range m of K (x k) (x (k+1)). With m = L-1 this is exactly the displayed product over k = 0..L-2, so the index range in the display is correct."
+    },
+    {
+      "id": "eq:ar1",
+      "status": "defined",
+      "lean_name": "ch03_ar1, ch03_ar1_noiseless",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "91-97",
+      "summary": "a_{k+1} = alpha a_k + eta_k, eta_k iid N(0, q).",
+      "note": "Definition (the recursion). Sanity lemma proved: with the innovations switched off the solution is a_k = alpha^k a_0, the geometric contraction."
+    },
+    {
+      "id": "eq:ar1-toeplitz",
+      "status": "proved",
+      "lean_name": "ch03_AR1, ch03_ar1_cov_step_proc, ch03_ar1_var_step_proc, ch03_ar1_toeplitz_proc, ch03_ar1_toeplitz_matrix_proc, ch03_ar1_lin, ch03_ar1_drive, ch03_ar1_state_eq_lin, ch03_ar1_indep_of_iIndepFun, ch03_ar1_toeplitz_of_iIndepFun, ch03_ar1_state_law, ch03_AR1_of_drive, ch03_AR1_exists, ch03_ar1_toeplitz, ch03_ar1_cov, ch03_ar1_is_toeplitz, ch03_ar1_toeplitz_display",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "101-112",
+      "summary": "Cov(a_j,a_k) = alpha^{|j-k|} for the stationary AR(1) chain, giving the displayed Toeplitz Sigma.",
+      "note": "PROVED IN GENERAL (2026-09-14 pass), at arbitrary index pairs and arbitrary length L. The structure `ch03_AR1 alpha a eta mu` states the model of eq:ar1 as hypotheses on a real family of random variables on an arbitrary probability space: square-integrability, the PATHWISE recursion a_{k+1} omega = alpha * a_k omega + eta_k omega, independence of each innovation from the states it has not yet influenced, Var(a_0) = 1 and Var(eta_k) = q = 1 - alpha^2 (the choice of line 99). From these alone: ch03_ar1_cov_step_proc derives Cov(a_j, a_{k+1}) = alpha Cov(a_j, a_k) by bilinearity of mathlib's `covariance` plus IndepFun.covariance_eq_zero, and ch03_ar1_var_step_proc derives Var(a_{k+1}) = alpha^2 Var(a_k) + (1 - alpha^2). Feeding those into the pre-existing uniqueness theorem ch03_ar1_toeplitz gives ch03_ar1_toeplitz_proc: cov[a j, a k; mu] = alpha^{|j-k|} for all j, k; ch03_ar1_toeplitz_matrix_proc gives the displayed matrix Sigma = ch03_toeplitz L (alpha^{|d|}) at every L. The independence clause is itself derived, not assumed: ch03_ar1_state_eq_lin solves eq:ar1 as a_m = ch03_ar1_lin alpha m (a_0, eta_0, ..., eta_{m-1}), a fixed affine function of the first m+1 coordinates of the driving vector, and ch03_ar1_indep_of_iIndepFun then gets IndepFun (a j) (eta k) for j <= k out of iIndepFun of the driving vector via iIndepFun.indepFun_finset + IndepFun.comp. ch03_ar1_toeplitz_of_iIndepFun is the end-to-end statement from the primitive hypotheses only (recursion + joint independence of (a_0, eta_0, eta_1, ...) + the two variances). NON-VACUITY: ch03_AR1_exists shows that for every alpha with alpha^2 <= 1 -- exactly the range in which q = 1 - alpha^2 is a variance -- a process satisfying every clause exists (built from ProbabilityTheory.exists_iid), its states are genuinely N(0,1) (ch03_ar1_state_law, the prose claim of lines 99-100, proved by induction with gaussianReal_add_gaussianReal_of_indepFun), and its covariance is alpha^{|j-k|}. HONEST RESIDUE: ch03_AR1 encodes the model at the level of second moments only, so the covariance theorem never uses Gaussianity (Gaussianity is used only in ch03_ar1_state_law / ch03_AR1_exists); 'eta_k iid and independent of a_0' is encoded as joint independence of the driving vector (a_0, eta_0, eta_1, ...), which is what iid-plus-independent-initialisation means. [HISTORY] recorded 'proved' initially; downgraded to instance_checked on 2026-09-13 because the then-current ch03_ar1_toeplitz assumed the two second-moment recursions rather than deriving them from eq:ar1, and the displayed matrix was only checked at L = 5. Both gaps are now closed.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:ou-sde",
+      "status": "defined",
+      "lean_name": "ch03_ou_sde_drift, ch03_ou_sde_initial",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "138-142",
+      "summary": "dX_t = -X_t dt + sqrt(2) dW_t, X_0 = a.",
+      "note": "An SDE; stochastic calculus is out of reach here. Its deterministic part is checked: a e^{-t} solves x' = -x with x(0) = a (HasDerivAt statement), i.e. the contraction factor e^{-t} of eq:ou-channel is the right one for this drift. Note the variance-preserving normalisation is consistent: drift -1 and diffusion sqrt(2) give stationary variance 2/(2*1) = 1, matching N(0,1) as the invariant law claimed at line 149."
+    },
+    {
+      "id": "noname-2",
+      "status": "proved",
+      "lean_name": "ch03_noname_2_product_rule, ch03_noname_2_cancellation, ch03_noname_2_drift_cancels",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "158-163",
+      "summary": "d(e^t X_t) = e^t X_t dt + e^t dX_t = sqrt(2) e^t dW_t: the drift cancels exactly.",
+      "note": "PROVED in three pieces: the ordinary product rule d/dt (e^t X_t) = e^t X_t + e^t X'_t as a HasDerivAt statement (justifying the chapter's remark that no Ito correction appears, since e^t carries no stochastic part); the displayed algebraic cancellation e^t X dt + e^t(-X dt + sqrt2 dW) = sqrt2 e^t dW; and the corollary that in the noiseless case e^t X_t has derivative 0."
+    },
+    {
+      "id": "noname-3",
+      "status": "proved",
+      "lean_name": "ch03_noname_3",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "167-171",
+      "summary": "e^t X_t - a = I_t  ==>  X_t = a e^{-t} + e^{-t} I_t.",
+      "note": "PROVED (division by the nonvanishing e^t)."
+    },
+    {
+      "id": "noname-4",
+      "status": "proved",
+      "lean_name": "ch03_noname_4_integral, ch03_noname_4",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "180-189",
+      "summary": "Var(I_t) = 2e^{-2t} int_0^t e^{2s} ds = 2e^{-2t}(e^{2t}-1)/2 = 1-e^{-2t} = Delta_t.",
+      "note": "PROVED. The integral is computed by the fundamental theorem of calculus (antiderivative e^{2s}/2) giving (e^{2t}-1)/2, and the final chain 2e^{-2t}(e^{2t}-1)/2 = 1-e^{-2t} is closed by linear_combination on e^{-2t}e^{2t}=1. Both displayed equalities are correct."
+    },
+    {
+      "id": "noname-5",
+      "status": "proved",
+      "lean_name": "ch03_ou_channel_law",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "193-196",
+      "summary": "X_t | X_0 = a ~ N(a e^{-t}, Delta_t), Delta_t = 1 - e^{-2t}.",
+      "note": "PROVED at the level of laws using Mathlib's gaussianReal: if eps has law N(0,1) then a e^{-t} + sqrt(Delta_t) eps has law N(a e^{-t}, Delta_t). Uses gaussianReal_map_const_mul and gaussianReal_map_const_add plus (sqrt Delta)^2 = Delta."
+    },
+    {
+      "id": "eq:ou-channel",
+      "status": "proved",
+      "lean_name": "ch03_ou_channel_law, ch03_ou_channel_at_zero, ch03_ou_channel_mono, ch03_ou_channel_delta_mem",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "202-206",
+      "summary": "x = a e^{-t} + sqrt(Delta_t) eps, eps ~ N(0,1): signal contracted by e^{-t}, noise of variance Delta_t added.",
+      "note": "PROVED: the law statement (same theorem as noname-5), plus the properties the surrounding prose asserts - at t = 0 the channel is the identity (Delta_0 = 0, e^{-0} = 1, so x = a), Delta_t is nondecreasing in t, and 0 <= Delta_t < 1 for t >= 0."
+    },
+    {
+      "id": "eq:dev-propagator",
+      "status": "proved",
+      "lean_name": "ch03_IsPropagator, ch03_IsPropagator_id, ch03_margScoreFamily, ch03_margScoreFamily_apply, ch03_dev_propagator_marginal_none, ch03_jointScoreFamily, ch03_jointScoreFamily_apply, ch03_dev_propagator_gaussian_none, ch03_dev_propagator_joint_none, ch03_dev_L2_precision_isUnit",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "225-228",
+      "summary": "S_{:,u}(x) ~= P_t(S_{:,u-1}(x)): the conjectured score propagator. The display is a HYPOTHESIS the chapter states and then rejects, not an identity it asserts; what is proved here is the chapter's verdict on it, that no such P_t exists.",
+      "note": "PROVED (was: skipped). Read carefully: 'proved' means the REFUTATION is proved, not that the displayed relation holds. The display is first given definite content - ch03_IsPropagator s P says s_u(x) = P (s_{u-1}(x)) exactly, for every pair of consecutive frames and every trajectory, with frame blocks scalar as they are for this chapter's scalar chains. P_t is allowed to be a completely ARBITRARY function R -> R: no linearity, continuity or measurability is assumed, so the non-existence results are the strongest form of the negative statement and are not artefacts of a restricted search space. ch03_IsPropagator_id shows the predicate is satisfiable (a family whose block does not depend on the frame index is propagated by the identity), so the non-existence theorems are not vacuous. (i) ch03_dev_propagator_marginal_none: for every length L >= 2 and every P, the per-frame MARGINAL score family - the object the six toy models of sec 3.3 computed, which by noname-13 is x |-> -x_u at every frame for every alpha and every t - admits no propagator. This is exactly the chapter's own verdict at lines 254-258 ('no propagator could have been found in it: there was nothing left for P_t to propagate'): the block at frame u-1 sees only x_{u-1}, so two trajectories agreeing at frame u-1 and differing at frame u force P_t to take two values at one argument. (ii) ch03_dev_propagator_joint_none: the JOINT score of a nondegenerate centred Gaussian trajectory, s_t(x) = -Sigma_t^{-1} x, admits no pointwise propagator either, for any n >= 2 and any invertible symmetric precision matrix; witnesses x = 0 and x = S^{-1} e_k agree in coordinate j of Sx and differ in coordinate k. ch03_dev_L2_precision_isUnit checks the invertibility hypothesis is met by the chapter's own two-frame Sigma_t^{-1}, so (ii) is not vacuous. SCOPE LIMIT, stated explicitly: (ii) goes beyond what the chapter claims, and it refutes only the pointwise, frame-local operator that eq:dev-propagator literally writes - one that reconstructs the block at frame u from the value of the block at frame u-1 alone. It says nothing about operators acting on the whole score vector, on several past blocks, or on the score as a function.\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'proved', but note what is proved: this display is the chapter's REJECTED conjecture S_{:,u}(x) ~~ P_t(S_{:,u-1}(x)), and the Lean proves its negation in an exact form -- ch03_IsPropagator is defined with exact equality, and is shown unsatisfiable for the marginal and joint score families. So the chapter's negative verdict is verified; the display is not a verified identity, and refuting exact propagation does not refute the approximate ('~~') conjecture the chapter actually wrote. Readers counting 'proved' items should exclude this one from the count of verified identities."
+    },
+    {
+      "id": "eq:dev-marginal-score",
+      "status": "defined",
+      "lean_name": "ch03_dev_marginal_score",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "245-248",
+      "summary": "s(x_u,u,t) = grad_{x_u} log p_t(x_u | u), the per-frame marginal score.",
+      "note": "Definition, encoded as the derivative of the log of the one-frame density."
+    },
+    {
+      "id": "eq:dev-joint-block",
+      "status": "proved",
+      "lean_name": "ch03_dev_joint_block",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "262-265",
+      "summary": "S_k(x,t) = (e^{-t} E[a_k | x_0..x_{L-1}] - x_k)/Delta_t (Tweedie for the joint score).",
+      "note": "PROVED in the Gaussian setting in full generality in n. Hypotheses: Sigma_t = e^{-2t} Sigma_0 + Delta_t I, Delta_t != 0, y = Sigma_t^{-1} x (encoded as Sigma_t y = x), and the Gaussian posterior mean E[a|x] = e^{-t} Sigma_0 Sigma_t^{-1} x. Conclusion: (e^{-t}(e^{-t}(Sigma_0 y)_k) - x_k)/Delta_t = -y_k, i.e. the right-hand side of the display collapses to -(Sigma_t^{-1}x)_k, which is the joint score of eq:dev-general-gaussian. The two formulas are therefore consistent."
+    },
+    {
+      "id": "eq:dev-joint-score",
+      "status": "defined",
+      "lean_name": "ch03_dev_joint_score",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "274-279",
+      "summary": "s_t(x) = grad_x log p_t(x_0,...,x_{L-1}), the joint score.",
+      "note": "Definition, encoded componentwise as the partial derivative in coordinate k via Function.update. It is this definition that noname-12a/b and eq:dev-general-gaussian are proved against."
+    },
+    {
+      "id": "noname-6",
+      "status": "defined",
+      "lean_name": "ch03_dev_marg_score_block",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "281-285",
+      "summary": "s^marg_{t,k}(x_k) = d/dx_k log p_{t,k}(x_k).",
+      "note": "Definition. Its type, R -> R, is the formal content of the boxed claim eq:dev-joint-vs-marginal that a marginal score 'cannot' depend on the other frames."
+    },
+    {
+      "id": "eq:dev-joint-vs-marginal",
+      "status": "proved",
+      "lean_name": "ch03_dev_joint_vs_marginal",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "287-294",
+      "summary": "Boxed: the joint score component k may depend on the other frames, the marginal score cannot.",
+      "note": "PROVED in the only direction with content. The 'cannot' half is a typing fact (ch03_dev_marg_score_block is a function of x_k alone). The 'may' half is an existence statement, proved: for r != 0 and 1-r^2 != 0 the map x_1 |-> -(x_0 - r x_1)/(1-r^2) is non-constant (witnesses x_0 = 0, x_1 = 0 vs x_1' = 1, values 0 vs r/(1-r^2) != 0)."
+    },
+    {
+      "id": "noname-7",
+      "status": "defined",
+      "lean_name": "ch03_noname_7, ch03_noname_7_det",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "298-312",
+      "summary": "(a_0,a_1) ~ N(0, Sigma_0) with Sigma_0 = [[1,alpha],[alpha,1]].",
+      "note": "Definition of the two-frame prior. Proved consistent with the general AR(1) covariance: ch03_Sigma0 alpha 2 = !![1,alpha;alpha,1], and det Sigma_0 = 1 - alpha^2 (so Sigma_0 is positive definite exactly when |alpha| < 1)."
+    },
+    {
+      "id": "noname-8",
+      "status": "defined",
+      "lean_name": "ch03_noname_8",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "314-320",
+      "summary": "x_i = e^{-t} a_i + sqrt(Delta_t) z_i, Delta_t = 1-e^{-2t}, z_i iid N(0,1).",
+      "note": "Definition: the eq:ou-channel corruption applied coordinatewise with independent noise."
+    },
+    {
+      "id": "noname-9-a",
+      "status": "proved",
+      "lean_name": "ch03_noname_9a",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "322-325",
+      "summary": "Var(x_i) = e^{-2t} Var(a_i) + Delta_t = e^{-2t} + 1 - e^{-2t} = 1.",
+      "note": "PROVED (with Var(a_i) = 1 from the stationary AR(1) normalisation). Both displayed equalities are correct."
+    },
+    {
+      "id": "noname-9-b",
+      "status": "defined",
+      "lean_name": "ch03_noname_9b",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "326-329",
+      "summary": "Cov(x_0,x_1) = e^{-2t} Cov(a_0,a_1) = alpha e^{-2t}.",
+      "note": "PROVED (with Cov(a_0,a_1) = alpha from eq:ar1-toeplitz).\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch03_noname_9b is 'exp(-2t) * alpha = ch03_r alpha t' where ch03_r is the audit's own abbreviation alpha * exp(-2t) -- mul_comm on a definition. Neither covariance, nor independence, nor noname-8 appears in it, so the display's actual content (that adding independent noise to each coordinate rescales the cross-covariance by e^{-2t}) is not tested.",
+      "status_original": "proved"
+    },
+    {
+      "id": "noname-10",
+      "status": "defined",
+      "lean_name": "ch03_r, ch03_noname_10_bound",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "331-333",
+      "summary": "r_t := alpha e^{-2t}.",
+      "note": "Definition. Sanity lemma proved: |alpha| < 1 and t >= 0 imply |r_t| < 1, so 1 - r_t^2 != 0 and the inverse/density formulas that follow are well posed."
+    },
+    {
+      "id": "eq:dev-L2-cov",
+      "status": "proved",
+      "lean_name": "ch03_dev_L2_cov",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "335-349",
+      "summary": "(x_0,x_1) ~ N(0, Sigma_t) with Sigma_t = [[1, r_t],[r_t, 1]].",
+      "note": "PROVED: ch03_Sigmat alpha t 2 = e^{-2t} Sigma_0 + Delta_t I equals !![1, r_t; r_t, 1] entry by entry, which is exactly noname-9-a on the diagonal and noname-9-b off it."
+    },
+    {
+      "id": "eq:dev-L2-marginal",
+      "status": "proved",
+      "lean_name": "ch03_dev_L2_marginal, ch03_marginal_variance_one",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "352-359",
+      "summary": "x_0, x_1 ~ N(0,1) and s^marg_{t,0} = -x_0, s^marg_{t,1} = -x_1, with no alpha anywhere.",
+      "note": "PROVED: the score of the standard Gaussian density (2 pi)^{-1/2} e^{-x^2/2} is -x (differentiating its log), and the diagonal of Sigma_t is 1 for every alpha and t, so both marginals really are N(0,1)."
+    },
+    {
+      "id": "noname-11",
+      "status": "proved",
+      "lean_name": "ch03_noname_11",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "363-371",
+      "summary": "Sigma_t^{-1} = (1-r_t^2)^{-1} [[1,-r_t],[-r_t,1]].",
+      "note": "PROVED by verifying the right inverse (Matrix.inv_eq_right_inv) under the hypothesis 1 - r_t^2 != 0."
+    },
+    {
+      "id": "eq:dev-L2-density",
+      "status": "proved",
+      "lean_name": "ch03_dev_L2_det, ch03_dev_L2_quadform, ch03_dev_L2_density",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "373-382",
+      "summary": "p_t(x_0,x_1) = (2 pi sqrt(1-r^2))^{-1} exp[-(x_0^2 - 2 r x_0 x_1 + x_1^2)/(2(1-r^2))].",
+      "note": "PROVED in three steps against the general centred bivariate normal (2 pi)^{-1}(det Sigma)^{-1/2} exp(-1/2 x^T Sigma^{-1} x): det Sigma_t = 1 - r^2; x^T Sigma_t^{-1} x = (x_0^2 - 2 r x_0 x_1 + x_1^2)/(1-r^2); and the assembly of the two into exactly the displayed expression. Both the prefactor and the exponent are correct.\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'proved', with the scope narrowed: ch03_dev_L2_det and ch03_dev_L2_quadform are genuine and do mention Sigma_t^{-1}, but the assembly lemma ch03_dev_L2_density contains no Sigma, no determinant and no inverse -- both sides are the same expression rearranged with det Sigma_t and x^T Sigma_t^{-1} x already substituted by hand, closed by 'rw [hkey] <;> ring'. Nothing composes the three, so 'against the general centred bivariate normal' is a prose claim, not a Lean one."
+    },
+    {
+      "id": "noname-12-a",
+      "status": "proved",
+      "lean_name": "ch03_dev_L2_logdensity, ch03_noname_12a",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "384-387",
+      "summary": "s_{t,0}(x_0,x_1) = -(x_0 - r_t x_1)/(1 - r_t^2).",
+      "note": "PROVED by literally differentiating the log of the eq:dev-L2-density density in the x_0 slot (Function.update x 0 y) and computing the derivative."
+    },
+    {
+      "id": "noname-12-b",
+      "status": "proved",
+      "lean_name": "ch03_noname_12b",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "388-391",
+      "summary": "s_{t,1}(x_0,x_1) = -(x_1 - r_t x_0)/(1 - r_t^2).",
+      "note": "PROVED the same way in the x_1 slot."
+    },
+    {
+      "id": "eq:dev-L2-score",
+      "status": "proved",
+      "lean_name": "ch03_dev_L2_score",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "393-403",
+      "summary": "Boxed: s_t(x_0,x_1) = -(1-r^2)^{-1} (x_0 - r x_1, x_1 - r x_0).",
+      "note": "PROVED: the displayed vector equals -Sigma_t^{-1} x, so the boxed vector form is consistent with both the componentwise formulas noname-12a/b and the general formula eq:dev-general-gaussian."
+    },
+    {
+      "id": "eq:dev-general-gaussian",
+      "status": "proved",
+      "lean_name": "ch03_quadform_hasDerivAt, ch03_gauss_logdensity, ch03_dev_general_gaussian_score, ch03_Sigma0, ch03_Sigmat",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "410-420",
+      "summary": "Boxed: Sigma_t = e^{-2t} Sigma_0 + Delta_t I, (Sigma_0)_{ij} = alpha^{|i-j|}, s_t(x) = -Sigma_t^{-1} x.",
+      "note": "PROVED in general n. The first two clauses are definitions (ch03_Sigmat, ch03_Sigma0), checked against eq:ar1-toeplitz. The third is a theorem: for any symmetric precision matrix S, the k-th partial derivative of the centred Gaussian log-density C - (1/2) x^T S x is -(S x)_k. The computational core (ch03_quadform_hasDerivAt) is the derivative of a symmetric quadratic form in one coordinate, proved for arbitrary n, giving 2 (S x)_k."
+    },
+    {
+      "id": "eq:dev-general-cov",
+      "status": "proved",
+      "lean_name": "ch03_dev_general_cov",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "422-430",
+      "summary": "(Sigma_t)_{ij} = 1 for i = j, e^{-2t} alpha^{|i-j|} for i != j.",
+      "note": "PROVED from Sigma_t = e^{-2t} Sigma_0 + Delta_t I: the diagonal is e^{-2t} * alpha^0 + (1 - e^{-2t}) = 1, the off-diagonal is e^{-2t} alpha^{|i-j|}. The chapter's conclusion that the diagonal - hence every one-frame marginal - is independent of alpha is therefore correct."
+    },
+    {
+      "id": "noname-13",
+      "status": "defined",
+      "lean_name": "ch03_marginal_density, ch03_marginal_variance_one, ch03_marginal_indep_of_alpha, ch03_noname_13",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "437-441",
+      "summary": "p_{t,k}(x_k; alpha) = (2 pi)^{-1/2} e^{-x_k^2/2}: the one-frame density contains no alpha.",
+      "note": "PROVED: (Sigma_t)_{kk} = 1 for every alpha, t, k and every length L, so the one-frame marginal is the standard Gaussian and the density is a constant function of alpha.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch03_noname_13 is '(fun _ : R => ch03_marginal_density x) alpha = (fun _ : R => ch03_marginal_density x) beta := rfl' -- ch03_marginal_density is the audit's own definition (1/sqrt(2 pi)) exp(-x^2/2) and takes no alpha argument, so the statement is c = c. It says a constant function is constant, not that the MODEL's one-frame marginal is alpha-free. The only real content is ch03_marginal_variance_one : Sigma_t alpha t L k k = 1; the step 'unit diagonal of Sigma_t implies the k-th marginal density equals ch03_marginal_density' is asserted in prose, never in Lean. The same unformalised glue step carries the 'x_0, x_1 ~ N(0,1)' half of eq:dev-L2-marginal.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:dev-fisher-zero",
+      "status": "proved",
+      "lean_name": "ch03_Sigma0_diag, ch03_ou_frame_law, ch03_onemarginal_pdf, ch03_onemarginal_pdf_eq, ch03_onemarginal_pdf_const, ch03_onemarginal_pdf_rnDeriv, ch03_onemarginal_law_indep_of_alpha, ch03_dev_fisher_zero_deriv, ch03_dev_fisher_zero, ch03_dev_fisher_zero_law",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "443-454",
+      "summary": "d/d alpha log p_{t,k} = 0, hence I_k(alpha) = E[(d/d alpha log p_{t,k})^2] = 0.",
+      "note": "PROVED IN GENERAL (2026-09-14 pass). The one-frame density is no longer a lambda that ignores its alpha argument: ch03_onemarginal_pdf alpha t L k x is defined as mathlib's gaussianPDFReal 0 ((Sigma_t)_{kk}).toNNReal x, i.e. the centred Gaussian density whose variance is read off the model's own Sigma_t = e^{-2t} Sigma_0 + Delta_t I with (Sigma_0)_{ij} = alpha^{|i-j|}. alpha therefore occurs in the differentiated function. ch03_onemarginal_pdf_eq then PROVES it equals (2 pi)^{-1/2} e^{-x^2/2} for every alpha, t, L and frame k, because (Sigma_0)_{kk} = alpha^0 = 1 (ch03_Sigma0_diag) and e^{-2t} + Delta_t = 1. ch03_dev_fisher_zero_deriv differentiates that genuine function of alpha and gets 0; ch03_dev_fisher_zero gives the boxed I_k(alpha) = 0 for an arbitrary observation X on an arbitrary measure space, and ch03_dev_fisher_zero_law specialises it to the frame's own law. The thesis's PREMISE -- that the corrupted one-frame law carries no alpha -- is also proved, at the level of laws rather than assumed: ch03_ou_frame_law shows that if frame k of the clean chain has the stationary marginal N(0, (Sigma_0)_{kk}) and the OU channel adds sqrt(Delta_t) times an independent standard normal, then X_k = e^{-t} a_k + sqrt(Delta_t) Z has law N(0,1) for every alpha and every t >= 0 (via gaussianReal_map_const_mul and gaussianReal_add_gaussianReal_of_indepFun); ch03_onemarginal_pdf_rnDeriv confirms ch03_onemarginal_pdf is that law's density (rnDeriv against Lebesgue), and ch03_onemarginal_law_indep_of_alpha states the law-level alpha-independence. HONEST RESIDUE: ch03_ou_frame_law takes the Gaussianity of the clean frame as model input (its variance value (Sigma_0)_{kk} is the content of eq:ar1-toeplitz, proved separately); mathlib has no general Fisher-information definition, so I_k(alpha) is written out as the integral of the squared alpha-score, which is the display's own definition. Once the score vanishes the integral is trivially zero -- that is the thesis's own argument, and the non-trivial half (the score vanishes) is what is now proved. [HISTORY] recorded 'proved' initially; downgraded to instance_checked on 2026-09-13 because both lemmas differentiated a lambda that ignored its alpha argument by construction, so the boxed claim's whole content was built in. That gap is now closed.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:dev-cf",
+      "status": "proved",
+      "lean_name": "ch03_dev_cf, ch03_dev_cf_gaussian",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "461-469",
+      "summary": "X_t = e^{-t} A + sqrt(Delta_t) Z  ==>  phi_{X_t}(u) = phi_A(e^{-t} u) exp(-Delta_t u^2/2).",
+      "note": "PROVED measure-theoretically with Mathlib's charFun: independence of the two summands turns the characteristic function of the sum into the product; charFun_map_mul_comp rescales the argument of phi_A to e^{-t} u; and charFun_gaussianReal gives exp(-Delta_t u^2/2) for the sqrt(Delta_t)-scaled standard Gaussian. Also PROVED: the specialisation at line 470 - if A ~ N(0,1) the two Gaussian factors combine to e^{-u^2/2} exactly."
+    },
+    {
+      "id": "noname-14",
+      "status": "proved",
+      "lean_name": "ch03_noname_14, ch03_noname_14_laplace, ch03_laplace_density, ch03_laplace_density_integral_one, ch03_laplace_variance, ch03_laplace_charFun, ch03_laplace_unit_charFun, ch03_laplace_unit_variance",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "474-482",
+      "summary": "For unit-variance Laplace data, phi_{X_t}(u) = exp[-Delta_t u^2/2] / (1 + e^{-2t} u^2/2).",
+      "note": "PROVED, and the Laplace characteristic function is now COMPUTED rather than assumed (this closes the gap the previous note recorded). ch03_noname_14 substitutes phi_A(v) = (1 + v^2/2)^{-1} into eq:dev-cf at v = e^{-t} u and gets (1 + e^{-2t} u^2/2)^{-1}, so the display is correct. The input phi_A is no longer a hypothesis: ch03_laplace_density b y = (2b)^{-1} e^{-|y|/b} is the scale-b Laplace density; ch03_laplace_density_integral_one proves it integrates to 1, so it is a genuine probability density; ch03_laplace_variance proves its variance is 2b^2, by reflection at 0 and the Gamma integral (Gamma(3) = 2), which together with ch03_laplace_unit_variance is what forces b = 1/sqrt(2) for unit variance - previously only the arithmetic 2b^2 = 1 was checked; and ch03_laplace_charFun proves int_R e^{iuy} (2b)^{-1} e^{-|y|/b} dy = (1 + b^2 u^2)^{-1} from the definition, by splitting R at 0 and evaluating the two one-sided complex exponential integrals (integral_exp_mul_complex_Iic / _Ioi). ch03_laplace_unit_charFun specialises to b = 1/sqrt(2), giving exactly (1 + u^2/2)^{-1}, the value the chapter states at line 472; ch03_noname_14_laplace is noname-14 with that value substituted, i.e. with the hypothesis hphi discharged. Presentational caveat: the characteristic function is stated as the Lebesgue integral of e^{iuy} against the density, not as Mathlib's charFun of a constructed measure."
+    },
+    {
+      "id": "noname-15",
+      "status": "proved",
+      "lean_name": "ch03_dev_joint_block",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "510-516",
+      "summary": "s_{t,k}(x) = (e^{-t} E[a_k | x_0..x_{L-1}] - x_k)/Delta_t (restatement of eq:dev-joint-block).",
+      "note": "Verbatim restatement of eq:dev-joint-block; covered by the same theorem. Consistent."
+    },
+    {
+      "id": "eq:hammersley-clifford",
+      "status": "proved",
+      "lean_name": "ch03_hammersley_clifford",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "533-537",
+      "summary": "p(x) = Z^{-1} prod_C psi_C(x_C) = Z^{-1} exp[-sum_C E_C(x_C)].",
+      "note": "PROVED: with psi_C = exp(-E_C) the product of exponentials is the exponential of the sum of the negated energies. (The Hammersley-Clifford equivalence with conditional independence is a cited theorem, not a display-math identity; only the displayed equality of the two factorised forms is checked here.)"
+    },
+    {
+      "id": "eq:bp-rules",
+      "status": "defined",
+      "lean_name": "ch03_bp_var_to_fac, ch03_bp_fac_to_var, ch03_bp_belief, ch03_bp_leaf_message, ch03_bp_exact_two, ch03_bp_exact_three",
+      "tex_file": "chapters/ch03-model.tex",
+      "tex_lines": "605-614",
+      "summary": "Sum-product updates: nu_{i->a} proportional to prod over b in di\\a of nuhat_{b->i}; nuhat_{a->i} proportional to the factor integrated against the other incoming variable messages.",
+      "note": "Definitions (the factor-to-variable rule is instantiated at the degree-2 pairwise factors that are the only kind occurring in this thesis's chain graphs; the marginalising integral becomes a finite sum). Three sanity lemmas PROVED, which are also concrete instances of thm:tree-exact: a leaf variable node sends the constant message 1 (empty product of the exclude-the-recipient rule); on a two-variable chain the single factor-to-variable message is the exact unnormalised marginal sum over x_1 of psi(x_0,x_1); and on a three-variable chain the belief at the middle node - the product of the forward and backward messages - equals the exact marginal sum over x_0, x_2 of psi_1 psi_2."
+    }
+  ],
+  "note": "build_ok verified: ./safe_build.sh ThesisAudit.Ch03 exits 0, and ThesisAudit/Ch03.lean contains no sorry, no axiom and no native_decide. Strengthening pass: the one item that was 'skipped', eq:dev-propagator, is now proved - the display was given definite content and the chapter's verdict on it (no propagator exists) was proved in general L with an arbitrary P_t; see that item's note for the explicit scope limit. In addition, the Laplace characteristic function and variance that noname-14 previously took as hypotheses are now computed from the density. No item was weakened and no hypothesis was added to make anything provable.",
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

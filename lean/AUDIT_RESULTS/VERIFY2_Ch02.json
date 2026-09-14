@@ -1,0 +1,164 @@
+{
+  "module": "ThesisAudit.Ch02",
+  "checked": 21,
+  "verdicts": [
+    {
+      "id": "display-inventory",
+      "lean_name": "",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Independently re-enumerated the chapter. 57 \\begin{display} environments = 39 equation + 13 equation* + 4 align (56 top-level) + 1 nested aligned inside the \\[...\\] at tex 134-143, exactly as unlabelled_display_coverage claims. 42 distinct \\label{eq:...} and 42 eq: items: a perfect bijection (no label without an item, no item without a label, no duplicate lean_name, and every cited lean_name exists as a declaration in Ch02.lean). The 14 top-level unlabelled displays sit at 257-261, 265-271, 286-292, 303-307, 544-551, 557-571, 575-583, 610-616, 634-640, 645-649, 654-658, 661-665, 672-682, 714-721 - exactly the tex_lines recorded for noname-1..noname-14, in order of appearance. The 9 \\[...\\] displays are at exactly the lines the note lists (49, 56, 128, 134, 146, 325, 798, 892, 1018). No display is itemised twice; the two overlaps that exist (noname-3 restating eq:sm-ou, noname-14 being the display the stale 'noname-1' pointer used to name) are declared in their own notes."
+    },
+    {
+      "id": "eq:sm-dsm",
+      "lean_name": "ch02_sm_dsm_optimum_is_score",
+      "ok": false,
+      "kind": "inflated",
+      "detail": "The upgrade is real and I could not break it: ch02_sm_dsm_optimum_is_score is not vacuous, not circular, and does connect the module's own objects. hchan shows every atom's noise eps_i = (x - e^{-t}a_i)/sqrt(Delta_t) carries a_i to the SAME x, so ch02_sm_dsm unfolds to (s x t + (x - e^{-t}a_i)/Delta_t)^2; hzbar computes the posterior mean of that offset as -(sstar x t) via ch02_noiseform_linearity; ch02_sm_dsm_min gives minimality over s x t, which ranges over all of R as s ranges over all functions; and part (i) is HasDerivAt (fun y => log (ch02_marg lam a (ch02_Delta t) (exp (-t)) y)) (sstar x t) x from ch02_tweedie, so the minimiser IS the score of the module's own marginal. Arbitrary N, atoms, weights, t > 0, x, and competitor s. WHAT IS WRONG IS THE NOTE, NOT THE PROOF. The note lists the 'RESIDUAL ENCODING RESTRICTIONS, stated so they can be checked' and then says 'Everything else -- number of atoms, their locations, their weights, the time t, the observation x and the competing function s -- is arbitrary.' The formalisation is ONE-DIMENSIONAL and that is not in the list. TEX 1083-1087: \"\\E_{t}\\, \\E_{a \\sim p_{\\mathrm{data}}}\\, \\E_{\\varepsilon} \\left\\lVert s_\\phi\\big(e^{-t} a + \\sqrt{\\Deltat}\\,\\varepsilon,\\; t\\big) + \\frac{\\varepsilon}{\\sqrt{\\Deltat}} \\right\\rVert^{2}\" - a norm on the data space. LEAN 865-866: \"noncomputable def ch02_sm_dsm (s : R -> R -> R) (t a eps : R) : R := (s (Real.exp (-t) * a + Real.sqrt (ch02_Delta t) * eps) t + eps / Real.sqrt (ch02_Delta t)) ^ 2\" - a scalar square. Second gap in the same sentence: the theorem is at a single fixed t with no aggregation over t at all, which is weaker than the note's 'the expectations over t and over a are not integrals'. Fix the note; 'proved' is defensible on this module's own convention once d = 1 is disclosed.",
+      "suggested_status": "proved"
+    },
+    {
+      "id": "noname-10",
+      "lean_name": "ch02_noname_10_ibp_drift",
+      "ok": false,
+      "kind": "inflated",
+      "detail": "Recorded 'proved' for a display the thesis states in R^d. TEX 641 (the sentence that governs 645-649): \"Integrate over $\\R^d$.\" TEX 646-648: \"\\int f\\cdot\\nabla\\varphi\\; p_t\\,\\dd x \\;=\\; -\\int \\varphi\\,\\nabla_x\\!\\cdot\\!\\big[f(x,t)p_t(x)\\big]\\,\\dd x .\" LEAN 1882-1887: \"theorem ch02_noname_10_ibp_drift {phi phi' fp fp' : R -> R} ... : integral x, phi' x * fp x = -integral x, phi x * fp' x\" - the whole statement lives on R, as a one-line instance of ch02_ibp_real (Mathlib's integral_mul_deriv_eq_deriv_mul_of_integrable). The R^d statement needs Fubini plus the sum over d coordinates, which is nowhere in the module. The note's last clause does say 'One dimension, where the divergence is a single derivative', so this is a labelling problem, not a false record - but the status and the grad/div summary are what a reader scans. The module has precedent (eq:sm-probflow-continuity is 'proved' with note 'Proved in one dimension'); if that convention is deliberate, state it once at module level rather than letting 'proved' stand against a d-dimensional display.",
+      "suggested_status": "instance_checked"
+    },
+    {
+      "id": "noname-11",
+      "lean_name": "ch02_noname_11_ibp_lap1",
+      "ok": false,
+      "kind": "inflated",
+      "detail": "Same defect as noname-10. TEX 655-657: \"\\int \\Delta\\varphi\\; p_t\\,\\dd x \\;=\\; -\\int \\nabla\\varphi\\cdot\\nabla p_t\\,\\dd x .\" (Step 5 of tb:sm-fokkerplanck, inside the \"Integrate over $\\R^d$\" derivation). LEAN 1890-1895: \"theorem ch02_noname_11_ibp_lap1 {phi' phi'' p p' : R -> R} ... : integral x, phi'' x * p x = -integral x, phi' x * p' x\". In R^d the Laplacian is a sum of d second derivatives and the identity needs Fubini in each coordinate; only the scalar case is formalised. Disclosed in the note ('One dimension; general in p and phi'), but recorded 'proved'.",
+      "suggested_status": "instance_checked"
+    },
+    {
+      "id": "noname-12",
+      "lean_name": "ch02_noname_12_ibp_lap2",
+      "ok": false,
+      "kind": "inflated",
+      "detail": "Same defect. TEX 662-664: \"-\\int \\nabla\\varphi\\cdot\\nabla p_t\\,\\dd x \\;=\\; \\int \\varphi\\,\\Delta_x p_t\\,\\dd x .\" LEAN 1898-1903: \"theorem ch02_noname_12_ibp_lap2 {phi phi' p' p'' : R -> R} ... : -integral x, phi' x * p' x = integral x, phi x * p'' x\". Note says 'One dimension'. The chaining the text draws from noname-11 and noname-12 (formal self-adjointness of the Laplacian on R^d) is therefore established only on the line.",
+      "suggested_status": "instance_checked"
+    },
+    {
+      "id": "noname-13",
+      "lean_name": "ch02_noname_13",
+      "ok": false,
+      "kind": "inflated",
+      "detail": "Recorded 'proved'; the display is over R^d and the Lean is over R - and here the restriction is convenience, not obstruction. TEX 673-681: \"\\int \\varphi(x)\\left[\\partial_t p_t(x) + \\nabla_x\\!\\cdot\\!\\big[f(x,t)p_t(x)\\big] - \\frac12 g(t)^2\\Delta_x p_t(x)\\right]\\dd x \\;=\\; 0\" for every test function. LEAN 1914-1916: \"theorem ch02_noname_13 (h : R -> R) (hc : Continuous h) (hzero : forall phi : R -> R, ContDiff R infinity phi -> HasCompactSupport phi -> integral x, phi x * h x = 0) : h = 0\". The Mathlib lemma it calls is already general - .lake/packages/mathlib/Mathlib/Analysis/Distribution/AEEqOfIntegralContDiff.lean:186, \"theorem ae_eq_zero_of_integral_contDiff_smul_eq_zero (hf : LocallyIntegrable f mu) (h : forall (g : E -> R), ContDiff R infinity g -> HasCompactSupport g -> integral x, g x . f x dmu = 0) : for a.e. x dmu, f x = 0\", with E an arbitrary finite-dimensional real normed space - so the R^d statement was available at almost no cost and was not taken. The mathematics is correct and the test-function class is the text's own; only the generality claim implied by 'proved' is overstated.",
+      "suggested_status": "instance_checked"
+    },
+    {
+      "id": "noname-8",
+      "lean_name": "ch02_noname_8_dt_under_integral",
+      "ok": false,
+      "kind": "inflated",
+      "detail": "Lowest-severity member of the same family; reported only because the note's generality claim is incomplete. TEX 611-615: \"\\frac{\\dd}{\\dd t}\\,\\E[\\varphi(X_t)] \\;=\\; \\frac{\\dd}{\\dd t}\\int \\varphi(x)\\,p_t(x)\\,\\dd x \\;=\\; \\int \\varphi(x)\\,\\partial_t p_t(x)\\,\\dd x .\" - the integral is over R^d. LEAN 1784-1796 fixes the domain to R throughout (\"for a.e. x d(volume : Measure R)\" in hbound and hdiff). Mathlib's hasDerivAt_integral_of_dominated_loc_of_deriv_le is stated for an arbitrary measure space, so nothing but the ambient choice forced R. The note says 'General in phi and in the family p' without saying the domain is the line. Otherwise a faithful instance of dominated differentiation under the integral, with exactly the text's hypotheses spelled out.",
+      "suggested_status": "proved"
+    },
+    {
+      "id": "eq:sm-fokkerplanck",
+      "lean_name": "ch02_fokkerplanck_linear_gaussian",
+      "ok": false,
+      "kind": "unfaithful",
+      "detail": "The status is right; two note sentences claim an equivalence that is proved in one direction only. NOTE (eq:sm-fokkerplanck): 'a Gaussian with mean m and variance v solves it exactly when m' = -theta m and v' = -2 theta v + g^2'. NOTE (eq:sm-ou): 'the displayed Delta_t = 1 - e^{-2t}, e^{-t} a are identified as THE solutions of the moment ODEs the equation forces'. LEAN 2032-2038: \"theorem ch02_fokkerplanck_linear_gaussian (m v theta g : R -> R) (x : R) {t : R} (hv : 0 < v t) (hm : HasDerivAt m (-(theta t) * m t) t) (hvd : HasDerivAt v (-(2 * theta t * v t) + g t ^ 2) t) : HasDerivAt (fun s => ch02_lgDensity m v x s) (-deriv (fun y => (-(theta t) * y) * ch02_lgDensity m v y t) x + g t ^ 2 / 2 * deriv (deriv (fun y => ch02_lgDensity m v y t)) x) t\" - the moment ODEs are HYPOTHESES. The converse (the Fokker-Planck identity at every x forcing m' = -theta m and v' = -2 theta v + g^2) is never stated, and neither is uniqueness for those ODEs, so 'exactly when', 'THE solutions' and 'the equation forces' overstate the Lean; 'solves it whenever' is what was proved. The generalisation itself is genuine and substantial (arbitrary theta, g, m, v, every x), and ch02_fokkerplanck_ou_of_general does recover the old OU instance at theta = 1, g = sqrt 2.",
+      "suggested_status": "instance_checked"
+    },
+    {
+      "id": "noname-1",
+      "lean_name": "ch02_noname_1_current",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Trivial but honestly so, and faithful to what the display says. TEX 258-260 is the equality chain \"J_t(x) \\;=\\; f(x)\\,p_t(x) - \\beta^{-1}\\nabla p_t(x) \\;=\\; -\\,\\nabla E(x)\\,p_t(x) \\;-\\; \\beta^{-1}\\nabla p_t(x).\"; LEAN 1667-1670 proves exactly that chain under (hf : f x = -gradE x) by \"rw [hf, smul_neg]\", in an arbitrary real normed space. The note states plainly 'The display asserts one substitution ... that is all it says', so nothing is oversold. Worth keeping in view: the prose claim that Fokker-Planck 'specialises ... as a conservation law \\partial_t p_t = -\\nabla_x\\cdot J_t carrying the probability current' is not this lemma; it is carried by ch02_sm_langevin_fokkerplanck_nd under eq:sm-langevin."
+    },
+    {
+      "id": "noname-2",
+      "lean_name": "ch02_noname_2_current_vanishes",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Faithful. The chain-rule input is proved in full generality (LEAN 1680-1691: fderiv of exp(-(beta E z)) at y equals -(beta . fderiv E y v) exp(-(beta E y)), for any differentiable E on any real normed space), and ch02_noname_2_current_vanishes is the cancellation the display performs, with beta != 0 the only hypothesis - which the text needs as well. Overlap with the already-recorded ch02_sm_langevin_flux_nd is disclosed. The Z^{-1} of p_infty = Z^{-1}e^{-beta E} is absorbed into the free variable G, legitimate since the identity holds for every G."
+    },
+    {
+      "id": "noname-4",
+      "lean_name": "ch02_noname_4_partition",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Genuinely general in d, not an instance. LEAN 1724-1725: \"theorem ch02_noname_4_partition (d : N) : integral x : Fin d -> R, Real.exp (-(sum k, (x k) ^ 2) / 2) = Real.sqrt (2 * Real.pi) ^ d\", via integral_fintype_prod_volume_eq_pow and integral_gaussian on the product Lebesgue measure; _rpow identifies sqrt(2 pi)^d with (2 pi)^(d/2) and _freeEnergy gives -(d/2) log 2 pi, matching TEX 304-306 including beta = 1. One wording nit: the note's 'Here ||x||^2 is sum_k (x_k)^2, which is the Euclidean norm squared on that space' is not literally true - on Fin d -> R Mathlib's norm is the sup norm. The Lean statement never uses ||.||, it writes the sum, so there is no mathematical error, only a misleading gloss."
+    },
+    {
+      "id": "noname-9",
+      "lean_name": "ch02_noname_9_div_product",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Faithful and at arbitrary d, matching TEX 635-639 \"\\nabla_x\\!\\cdot\\!\\big[\\varphi\\, f\\, p_t\\big] \\;=\\; \\nabla\\varphi\\cdot\\big(f p_t\\big) \\;+\\; \\varphi\\,\\nabla_x\\!\\cdot\\!\\big[f p_t\\big].\" LEAN 1836-1844, with ch02_div / ch02_partial built on the Frechet derivative against Pi.single k 1; differentiability of phi and of each component of V are hypotheses, exactly as the text assumes. The supporting Leibniz and linearity lemmas (LEAN 1814-1833) are real, not definitional dodges."
+    },
+    {
+      "id": "noname-14",
+      "lean_name": "ch02_noname_14",
+      "ok": true,
+      "kind": "ok",
+      "detail": "The claimed strengthening from 1-D to R^d is real: LEAN 1859-1865 proves ch02_laplacian p x = ch02_div (fun y k => p y * ch02_partial (log p) k y) x at arbitrary d, from ch02_noname_14_score_field (p . d_k log p = d_k p, LEAN 1847-1856, via HasFDerivAt.log). Positivity and differentiability of p are hypotheses, as the text assumes; TEX 714-721 matches. Naming hazard, disclosed in the note but worth repeating: ch02_noname_1 (LEAN 432) is NOT the lemma for item noname-1 - it is the legacy one-dimensional version of THIS display, kept under its old name. Anyone grepping by name is misled unless they read the note."
+    },
+    {
+      "id": "eq:sm-weakform",
+      "lean_name": "ch02_sm_weakform_implies_fokkerplanck",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Honestly labelled - the note itself says 'It is not, strictly, an instance check: it is a conditional proof, and instance_checked is the nearest honest label in this audit's vocabulary' - and the conditional proof is sound and non-vacuous. LEAN 1934-1972 takes the weak identity and the two integration-by-parts identities, each quantified over all smooth compactly supported phi, and concludes \"forall x, q x = -dfp x + g2 / 2 * d2p x\". The hypotheses are satisfiable (trivially by the zero family, substantively by any genuine solution), so this is not vacuity. dfp and d2p are free functions, but hibp1/hibp2 pin them as the distributional derivatives, and noname-10 to noname-12 supply exactly those hypotheses under their own integrability conditions - no circularity. One dimension, which the note states."
+    },
+    {
+      "id": "noname-3",
+      "lean_name": "ch02_noname_3_factorises",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Honestly labelled instance_checked, and the overlap with eq:sm-ou is declared in the first sentence of its own note. The added content - prod_k ch02_gauss v (x k) (m k) = exp(-(sum_k (x_k - m_k)^2)/(2v)) / sqrt(2 pi v)^d at arbitrary d (LEAN 1708-1716) - is a density factorisation, weaker than the independence of the coordinate PROCESSES the prose asserts, and the note does not claim otherwise."
+    },
+    {
+      "id": "noname-5",
+      "lean_name": "",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Skip verified as a genuine obstruction, not convenience. I checked the vendored Mathlib directly: grep -ril for stochasticIntegral / itoIntegral / IsItoProcess over .lake/packages/mathlib/Mathlib returns nothing; nothing matches quadraticVariation or Semimartingale; Mathlib/Probability/BrownianMotion holds only Basic.lean and GaussianProjectiveFamily.lean; lean-toolchain is leanprover/lean4:v4.33.0, as the note states. TEX 545-550 is Ito's lemma with d<X^i,X^j>_t, which has no statement in this library. Recording nothing weaker in its place is the conservative choice.",
+      "suggested_status": "skipped"
+    },
+    {
+      "id": "noname-6",
+      "lean_name": "ch02_noname_6_isotropic_collapse",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Same obstruction, verified as above. The one algebraic fragment that needs no stochastic integral IS recorded and is correct at arbitrary d (LEAN 1765-1775: (1/2) sum_i sum_j H i j * (g2 * delta_ij) = g2/2 * sum_i H i i), and the item is still marked skipped rather than upgraded on the strength of it - correct, since the finite-variation/martingale split of TEX 557-571 is the missing part.",
+      "suggested_status": "skipped"
+    },
+    {
+      "id": "noname-7",
+      "lean_name": "",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Same obstruction. TEX 575-583 is the integrated Ito expansion, and the text's next move (\"so it is a martingale started at zero, and its expectation is zero\", TEX 588) is precisely the lemma this Mathlib lacks. Genuinely out of reach.",
+      "suggested_status": "skipped"
+    },
+    {
+      "id": "eq:sm-generator",
+      "lean_name": "",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Newly itemised (it was absent from the list entirely) and correctly recorded. The display is exactly where claimed: TEX 589-601 is \"\\begin{equation} \\frac{\\dd}{\\dd t}\\,\\E[\\varphi(X_t)] \\;=\\; \\E\\!\\left[f(X_t,t)\\cdot\\nabla\\varphi(X_t) + \\frac12 g(t)^2\\Delta\\varphi(X_t)\\right] \\;=\\; \\E\\big[(\\mathcal L_t\\varphi)(X_t)\\big], \\label{eq:sm-generator}\". The skip is justified in the strong sense: 'the law of the solution of dX = f dt + g dW' is not a definable object here, so the display cannot be stated, not merely not proved. A surrogate (the same identity for the explicit linear-Gaussian family, which would follow from ch02_fokkerplanck_linear_gaussian plus the integrations by parts) was available and deliberately not recorded as the display - the right call, and stated.",
+      "suggested_status": "skipped"
+    },
+    {
+      "id": "eq:sm-forward",
+      "lean_name": "ch02_sm_forward_terminal",
+      "ok": true,
+      "kind": "ok",
+      "detail": "Unchanged at instance_checked, with the obstruction stated precisely and independently confirmed by me against the vendored Mathlib. No inflation: the note is explicit that what is checked is the surrounding prose claim (the time-t marginal converging to the standard Gaussian for an arbitrary finitely supported prior), not the SDE."
+    },
+    {
+      "id": "eq:sm-reverse",
+      "lean_name": "ch02_sm_reverse",
+      "ok": true,
+      "kind": "ok",
+      "detail": "The claimed generalisation to R^d is real: LEAN 2098-2124 (ch02_sm_reverse_nd) proves, at arbitrary d, for an arbitrary vector field f and any positive differentiable p, that the Fokker-Planck right-hand side of the reverse drift -(f - g^2 grad log p) evaluated at the same density equals minus the forward right-hand side - so the factor g^2 (against the probability flow's g^2/2) is pinned in every dimension. Status stays instance_checked for the right reason: the display is a pathwise SDE and Anderson's theorem cannot be stated without a stochastic integral."
+    }
+  ]
+}

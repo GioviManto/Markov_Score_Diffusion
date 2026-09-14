@@ -1,0 +1,325 @@
+{
+  "module": "ThesisAudit.Ch10",
+  "build_ok": true,
+  "completed": "2026-09-14T00:00:00Z",
+  "covers": [
+    "thesis/chapters/ch10-comparison.tex (whole file, lines 1-1287)"
+  ],
+  "items": [
+    {
+      "id": "eq:em-relerr",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "35-43",
+      "status": "defined",
+      "lean_name": "ch10_relErr",
+      "summary": "Relative L2 score error E[shat;t] = (sum_j ||shat - s*||^2 / sum_j ||s*||^2)^{1/2} over a frozen test set.",
+      "note": "Definition. Encoded as a Lean def over J test sequences of n sites. Two sanity lemmas proved: ch10_relErr_nonneg, and ch10_relErr_scale_invariant, which verifies the text's claim 'It is scale free: multiplying the data by a constant leaves it unchanged' (for any c != 0, both sums scale by c^2 and the ratio is unchanged). Formula correct as stated."
+    },
+    {
+      "id": "eq:em-pooling",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "48-56",
+      "status": "proved",
+      "lean_name": "ch10_em_pooling",
+      "summary": "Pooling the two sums equals the reference-energy-weighted mean of per-level squared relative errors: (sum_t N_t)/(sum_t D_t) = sum_t w_t (N_t/D_t) with w_t = D_t / sum_s D_s.",
+      "note": "Proved for an arbitrary nonempty finite index set with D_t > 0: the displayed identity is exactly the statement that 'pooling the two sums' is the weighted average with energy weights, which is what the text asserts and what makes the displayed w_t = E||s*(X_t,t)||^2 / sum_s E||s*(X_s,s)||^2 the correct (and non-uniform) weight. Also proved ch10_em_pooling_weights_sum: the weights sum to 1. Correct as stated."
+    },
+    {
+      "id": "eq:em-weights",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "62-67",
+      "status": "proved",
+      "lean_name": "ch10_em_weights",
+      "summary": "For the Gaussian chain with s* = -Sigma_t^{-1} x, E||s*(X_t,t)||^2 = tr Sigma_t^{-1}; and Sigma_t^{-1} -> I as t -> infinity.",
+      "note": "Two parts, both proved. (a) ch10_em_weights: for symmetric invertible Sigma, trace(Sigma^{-1} Sigma (Sigma^{-1})^T) = trace Sigma^{-1}; combined with ch10_energy_trace (E||AX||^2 = tr(A Sigma A^T) as a pure sum/trace identity) this is exactly the displayed E||s*||^2 = tr Sigma_t^{-1}. The statistical step E[X X^T] = Sigma_t is not re-proved. (b) ch10_em_weights_Sig_tendsto_one: with Sigma_t = e^{-2t}Sigma_0 + Delta_t I and Delta_t = 1-e^{-2t}, Sigma_t -> I entrywise as t -> infinity, so Sigma_t^{-1} -> I and tr -> n = 32, matching the quoted t -> infinity limit. Correct as stated.\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'proved', second conjunct narrowed. E||s*(X_t,t)||^2 = tr Sigma_t^{-1} is genuinely proved. For 'Sigma_t^{-1} -> I as t -> infinity', the Lean statement ch10_em_weights_Sig_tendsto_one is about Sigma_t, not its inverse; passing from Sigma_t -> I to Sigma_t^{-1} -> I needs continuity of matrix inversion at I (and non-singularity along the way), which is not established anywhere in the file."
+    },
+    {
+      "id": "eq:em-weights-smallt",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "70-77",
+      "status": "proved",
+      "lean_name": "ch10_em_weights_smallt_ar",
+      "summary": "tr Sigma_t^{-1} = tr Q_0 + 2t[tr Q_0 - tr Q_0^2] + O(t^2) as t -> 0, with no 1/t singularity; quoted values tr Q_0 = 193.4 and linear coefficient -3140 at rho = 0.85, n = 32.",
+      "note": "Proved in four pieces, and now at arbitrary chain length. (1) ch10_em_weights_smallt_resolvent: for invertible A and any B, (A + eps B)(A^{-1} - eps A^{-1} B A^{-1}) = I - eps^2 (B A^{-1})^2 exactly, so the first-order truncation of the inverse is right with a genuinely quadratic remainder. (2) ch10_Sig_interp + ch10_em_weights_smallt_middle: Sigma_t = Sigma_0 + Delta_t (I - Sigma_0) and A^{-1}(I-A)A^{-1} = Q_0^2 - Q_0, so the first-order term is -eps(Q_0^2 - Q_0). (3) ch10_em_weights_smallt_trace: its trace is tr Q_0 + eps(tr Q_0 - tr Q_0^2), the displayed shape. (4) ch10_Delta_approx_two_t: 2t - 4t^2 <= Delta_t <= 2t for t >= 0, so eps = Delta_t = 2t + O(t^2) and the displayed 2t coefficient is right. The 'no 1/t singularity' claim follows since tr Q_0 is finite for |rho| < 1.\n\n[GENERALISED 2026-09-14] The 2026-09-13 downgrade is resolved: the two closed forms are no longer stand-alone defs checked only at n <= 4. ch10_arQ_trace proves Matrix.trace (ch10_arQ n r) = ch10_trQ0 n r and ch10_arQ_trace_sq proves Matrix.trace (ch10_arQ n r * ch10_arQ n r) = ch10_trQ0sq n r for EVERY n >= 2 and every r with 1 - r^2 != 0; ch10_em_trQ0_eq and ch10_em_trQ0sq_eq transport both along the general-n inverse ch10_arSig_inv to tr Sigma_0^{-1} and tr (Sigma_0^{-1})^2. Route: the diagonal of Q_0 is the interior value (1+r^2)/(1-r^2) plus a -r^2/(1-r^2) correction supported on the two chain ends, summed with a new two-point support lemma ch10_sum_pick2; (Q_0^2)_{ii} is the row sum of squares ch10_arQ_rowsq (one off-diagonal neighbour at an end, two in the interior), using the file's existing ch10_sum_pick / ch10_sum_none. ch10_em_weights_smallt_ar assembles the whole expansion on the AR(1) chain at arbitrary n: tr(Q_0 - eps(Q_0^2 - Q_0)) = ch10_trQ0 n r + eps (ch10_trQ0 n r - ch10_trQ0sq n r). The quoted numbers are now instances of theorems about the matrix itself, not about typed-in formulas: ch10_trQ0_matrix32 (tr Sigma_0^{-1} = 21470/111 = 193.4234 at n = 32, rho = 0.85) and ch10_smallt_coefficient_matrix32 (2(tr Q_0 - tr Q_0^2) = -38691320/12321 = -3140.27), with the rounding checks ch10_trQ0_rounds and ch10_smallt_coefficient_rounds. Both quoted values correct. An independent exact-rational computation of Sigma_0^{-1} at n = 2, 3, 6, 32 agrees with both closed forms. Residual, recorded for honesty: the remainder is exhibited as the exact eps^2 matrix term of the resolvent identity rather than as a Landau bound on tr Sigma_t^{-1} itself, which would additionally need an operator-norm argument for the invertibility of I - eps^2 (B Q_0)^2 at small eps.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-ratio",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "124-128",
+      "status": "defined",
+      "lean_name": "ch10_R",
+      "summary": "R = E_base / E_EM, with 'R > 1 means the structured estimator is more accurate'.",
+      "note": "Definition plus the stated reading, proved: ch10_R_gt_one_iff shows 1 < R iff E_EM < E_base for E_EM > 0. Correct."
+    },
+    {
+      "id": "eq:em-parameterisation",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "192-197",
+      "status": "proved",
+      "lean_name": "ch10_em_parameterisation",
+      "summary": "The noise head shat_eps = -eps_hat/sqrt(Delta_t) and the signal head shat_a = (e^{-t} a_hat - x)/Delta_t agree under a_hat = e^t (x - sqrt(Delta_t) eps_hat); the substitution rescales the residual by e^t sqrt(Delta_t).",
+      "note": "Both claims proved (per site; both heads act coordinatewise). ch10_em_parameterisation: substituting a_hat gives exactly -eps_hat/sqrt(Delta_t), for Delta_t > 0. ch10_em_parameterisation_residual: the map eps -> a_hat is affine with slope -e^t sqrt(Delta_t), so residuals are rescaled by e^t sqrt(Delta_t) exactly as claimed (hence 'same function class, different optimisation problem'). Correct as stated."
+    },
+    {
+      "id": "eq:em-dim",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "223-226",
+      "status": "proved",
+      "lean_name": "ch10_em_dim",
+      "summary": "dim theta = (C-1) + C + C + 1 = 3C, and 24 at C = 8.",
+      "note": "Proved over the naturals for C >= 1 (truncated subtraction handled), plus ch10_em_dim_at_eight for the quoted 24. Correct."
+    },
+    {
+      "id": "eq:em-mlp",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "236-239",
+      "status": "defined",
+      "lean_name": "ch10_mlp",
+      "summary": "The unstructured denoiser f_phi(x,t) = W3 tanh(W2 tanh(W1[x;tau(t)] + b1) + b2) + b3.",
+      "note": "Definition, encoded as a Lean def. Two attached claims proved. (a) ch10_mlp_params_value: with W1 in R^{128x(n+3)}, W2 in R^{128x128}, W3 in R^{nx128} and all three bias vectors, the parameter count at n = 32 is 128*35 + 128 + 128*128 + 128 + 32*128 + 32 = 25248, matching the quoted 25,248 (and it is ~1000x the 24 of eq:em-dim). (b) ch10_mlp_permutation_blind: permuting the input coordinates by pi and the sites by sigma is absorbed exactly by permuting the columns of W1 and the rows of W3 (and b3), so the architecture is permutation-blind as the text claims; proved for arbitrary permutations, the thesis's case being pi fixing the three time-embedding coordinates."
+    },
+    {
+      "id": "eq:em-window",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "257-261",
+      "status": "defined",
+      "lean_name": "ch10_windowHead",
+      "summary": "The weight-shared window head y_k = g_phi(x_{k-r},...,x_{k+r}; tau(t)), with parameter count (2r+4)W + W^2 + 3W + 1.",
+      "note": "Definition (sequence given on Z with zero padding, one shared g). Two attached claims proved. (a) ch10_window_receptive: if two sequences agree on [k-r, k+r] the head's output at k is identical, whatever g is - the text's 'its receptive radius is r by construction'. (b) ch10_window_params_formula: the stated decomposition (input (2r+4)W + W, hidden W^2 + W, readout W + 1) does sum to (2r+4)W + W^2 + 3W + 1, and ch10_window_params_selected gives 4801 at r = 2, W = 64, matching the 4,801 quoted in tab:em-architectures and Section 'The confirmatory comparison'. All correct."
+    },
+    {
+      "id": "eq:em-dilated",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "273-278",
+      "status": "defined",
+      "lean_name": "ch10_dilatedLayer",
+      "summary": "The residual dilated stack h^(l)_k = h^(l-1)_k + P_l tanh(sum_{s in {-d,0,d}} W_{l,s} h^(l-1)_{k+s} + b_l), d_l in {1,2,4,8}, receptive radius sum_l d_l = 15.",
+      "note": "Definition of one layer, encoded as a Lean def; ch10_dilated_radius checks 1+2+4+8 = 15. One wording caveat, recorded in ch10_dilated_field_width rather than raised as a discrepancy: a radius-15 field is 2*15+1 = 31 sites wide, one short of n = 32, and sites 1 and 32 are 31 apart, so 'which spans an n = 32 chain end to end' holds only for sites near the middle of the chain (a site at one end cannot see the other end). The radius arithmetic itself is right."
+    },
+    {
+      "id": "eq:em-bimp",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "285-292",
+      "status": "defined",
+      "lean_name": "ch10_bimp_fwd",
+      "summary": "Bidirectional message passing: forward and backward recurrences with shared local updates and a joint readout.",
+      "note": "Definition; encoded as ch10_bimp_fwd, ch10_bimp_bwd (recurrences started from a zero boundary state) and ch10_bimp_readout (the joint affine readout on [h_fwd; h_bwd; z]). Sanity lemma ch10_bimp_fwd_causal proved: the forward state at site k depends only on z_0..z_k, so the head is one-directional per sweep and it is the joint readout that makes it bidirectional - the 'run once in each direction, then combined' topology claimed in the text.\n\n[FIDELITY NOTE 2026-09-13] Status stays 'defined'; a nonexistent Lean name is withdrawn from the record. The earlier note said the display is encoded as ch10_bimp_fwd, ch10_bimp_bwd and ch10_bimp_readout. There is no ch10_bimp_bwd in ThesisAudit/Ch10.lean: grep for 'bimp' returns only ch10_bimp_fwd, ch10_bimp_readout and ch10_bimp_fwd_causal. The BACKWARD recurrence h_bwd_k = tanh(B z_k + G h_bwd_{k+1} + b) -- the half of the display that carries the 'bidirectional' claim, and the only half whose recursion runs against the Nat recursor -- is not encoded at all, and ch10_bimp_fwd_causal covers only the forward sweep."
+    },
+    {
+      "id": "eq:em-rate-ratio",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "388-392",
+      "status": "proved",
+      "lean_name": "ch10_em_rate_ratio",
+      "summary": "If each arm's error follows E ~ c N^{-rho} then R(N) = (c_base/c_EM) N^{rho_EM - rho_base}.",
+      "note": "Proved for real exponents (rpow) with N > 0 and c_EM != 0. Companion ch10_em_rate_ratio_growth proves (K N)^{rho_EM - rho_base} = K^{rho_EM-rho_base} N^{rho_EM-rho_base}, i.e. the text's 'a 128-fold increase in data multiplies the ratio by 128^{rho_EM - rho_base}'. Correct as stated; the text's own caveat that this identifies no mechanism is not a mathematical claim."
+    },
+    {
+      "id": "eq:em-prior-precision",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "431-438",
+      "status": "proved",
+      "lean_name": "ch10_em_prior_precision",
+      "summary": "The AR(1) precision Q_0 = Sigma_0^{-1} is tridiagonal: interior diagonal (1+rho^2)/sigma_eta^2, off-diagonal -rho/sigma_eta^2, zero at |k-j| >= 2, with sigma_eta^2 = 1-rho^2.",
+      "note": "Proved in general, for every chain length n >= 2 and every r with 1-r^2 != 0 (the thesis' standing assumption |rho| < 1 is stronger). ch10_arQ_mul_arSig proves Q0 * Sigma0 = I entrywise at arbitrary size -- row i of the product is reduced to its at most three nonzero terms (ch10_arQ_row, via the support lemmas ch10_sum_pick / ch10_sum_none), and the three chain positions (first site, interior, last site) crossed with j < i, j = i, j > i give seven leaves, each a geometric-power identity closed by field_simp/ring. ch10_arSig_inv then upgrades this to Sigma0^{-1} = Q0 via Matrix.inv_eq_left_inv (so Sigma0 is genuinely invertible; the claim is not vacuous through a junk inverse). ch10_em_prior_precision states exactly the display: interior diagonal (1+r^2)/(1-r^2) for 0 < k < n-1, off-diagonal -r/(1-r^2) at |k-j| = 1, and 0 at |k-j| >= 2. n >= 2 is required and is forced by the display itself, which refers to the neighbours k+-1; at n = 1, Sigma0 = (1) and Q0 = (1), not 1/(1-r^2). The two boundary diagonal entries are 1/(1-r^2), not the interior value -- the display is explicitly labelled '(interior)' so this is consistent, and it is now proved in general in ch10_em_prior_precision_boundary (it is the value ch10_trQ0 / ch10_trQ0sq and the eq:em-weights-smallt numerics use). The earlier n = 2, 3, 4 instance checks (ch10_arQ2_inv, ch10_arQ3_inv, ch10_arQ4_inv) are kept and are subsumed by this."
+    },
+    {
+      "id": "eq:em-posterior-precision",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "441-448",
+      "status": "proved",
+      "lean_name": "ch10_em_posterior_precision",
+      "summary": "-log p(a|x) = (1/2) a^T J a - h^T a + const with J = Q_0 + (e^{-2t}/Delta_t) I and h = (e^{-t}/Delta_t) x; posterior mean m = J^{-1}h.",
+      "note": "Proved as a vector identity over R^n: the channel term (1/(2 Delta))||x - c a||^2 with c = e^{-t} contributes exactly c^2/Delta = e^{-2t}/Delta_t to the DIAGONAL of J and h = (c/Delta) x to the linear term, leaving the nearest-neighbour couplings of Q_0 untouched - the structural fact the whole subsection rests on ('the channel enters the diagonal alone'). Also ch10_em_posterior_mean (completing the square: (1/2)a^T J a - h^T a = (1/2)(a-m)^T J (a-m) - (1/2) m^T h whenever J m = h and J is symmetric) and ch10_em_posterior_mean_min (for J positive definite m is the strict unique minimiser, i.e. the posterior mean is J^{-1}h). All correct.",
+      "tex_lines_recorded": "440-448"
+    },
+    {
+      "id": "eq:em-bulk-params",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "456-464",
+      "status": "proved",
+      "lean_name": "ch10_Jevid_eq",
+      "summary": "In the bulk J = tridiag(beta, J_d, beta) with J_d = e^{-2t}/Delta_t + (1+rho^2)/sigma_eta^2 and beta = -rho/sigma_eta^2; only J_d depends on t, monotonically, diverging like 1/(2t) as t -> 0 and falling to the prior value as t -> infinity.",
+      "note": "The t-dependent piece is isolated as ch10_Jevid t = e^{-2t}/Delta_t and all three claims proved: ch10_Jevid_eq gives the closed form 1/(e^{2t}-1) (so it -> 0 as t -> infinity, leaving exactly the prior value (1+rho^2)/sigma_eta^2); ch10_Jevid_strictAnti gives strict monotone decrease on t > 0; ch10_Jevid_bounds gives 1/(2t e^{2t}) <= e^{-2t}/Delta_t <= 1/(2t), which is the exact form of the claimed 1/(2t) divergence (both bounds are asymptotic to 1/(2t) as t -> 0). The tridiagonal Toeplitz form itself follows from eq:em-prior-precision + eq:em-posterior-precision, both checked above."
+    },
+    {
+      "id": "eq:em-bulk-cov",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "475-482",
+      "status": "proved",
+      "lean_name": "ch10_em_bulk_cov",
+      "summary": "prop:em-bulk: (J^{-1})_{k,k+d} = V q^{|d|} with q = (J_d - sqrt(J_d^2-4 beta^2))/(2|beta|) in (0,1) and V = 1/sqrt(J_d^2-4 beta^2); the square root is real for |rho| < 1 and t > 0.",
+      "note": "Proved as the exact Green's-function statement for the bi-infinite bulk operator, which is what the toolbox derivation establishes: ch10_em_bulk_cov shows beta G(d+1) + J_d G(d) + beta G(d-1) = delta_{d,0} for all separations, with G(d) = V q^{|d|}. Supporting: ch10_qroot_quadratic (the root solves beta q^2 + J_d q + beta = 0), ch10_qroot_abs_lt_one (0 < |q| < 1, 'exactly one lies inside the unit disc'), ch10_V_normalisation (V sqrt(J_d^2-4beta^2) = 1, the d = 0 relation), ch10_bulk_disc_pos (reality of the root under J_d > 2|beta|). One convention point, which the thesis itself flags parenthetically: the decay root is -(J_d - sqrt(J_d^2-4beta^2))/(2 beta), equal to the displayed (J_d - sqrt(...))/(2|beta|) > 0 only when beta < 0, i.e. rho > 0 (the operating regime); for rho < 0 it is its negative, which is exactly the toolbox's 'for rho < 0 they alternate in sign with the same modulus'. The Lean definition ch10_qroot is written sign-correctly for both cases. The finite-chain boundary correction is acknowledged in the text and not formalised."
+    },
+    {
+      "id": "noname-1",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "491-495",
+      "status": "proved",
+      "lean_name": "ch10_noname_1",
+      "summary": "Toolbox: the geometric ansatz reduces the three-term relation beta V q^{d+1} + J_d V q^d + beta V q^{d-1} = 0 to beta q^2 + J_d q + beta = 0, the same quadratic at every d.",
+      "note": "Proved as an iff, for V != 0, q != 0 and every d >= 1 (written as d = e+1). This is exactly the text's 'a quadratic that is the same for every d - which is why one geometric sequence suffices'. The companion remark that the two roots multiply to beta/beta = 1 is immediate from the quadratic and is witnessed by ch10_qroot_quadratic + ch10_qroot_abs_lt_one (the displayed root is the one of modulus < 1)."
+    },
+    {
+      "id": "noname-2",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "507-512",
+      "status": "proved",
+      "lean_name": "ch10_noname_2",
+      "summary": "Toolbox: J_d - 2|beta| = e^{-2t}/Delta_t + (1+rho^2-2|rho|)/sigma_eta^2 = e^{-2t}/Delta_t + (1-|rho|)^2/sigma_eta^2 > 0 at every operating point.",
+      "note": "Proved for t > 0 and |rho| < 1 with sigma_eta^2 = 1-rho^2: both the algebraic rewriting (1+rho^2-2|rho|) = (1-|rho|)^2 and the strict positivity of the total (the first term strictly positive for t > 0, the second non-negative), which is what makes the discriminant J_d^2 - 4 beta^2 strictly positive and the root real. Correct as stated."
+    },
+    {
+      "id": "eq:em-q-limits",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "524-536",
+      "status": "proved",
+      "lean_name": "ch10_em_q_limits_small_t_full",
+      "summary": "t -> 0: J_d -> infinity, q ~ |beta|/J_d -> 0, V -> 0. t -> infinity: J_d -> (1+rho^2)/sigma_eta^2, q -> |rho|, V -> 1, because J_d^2 - 4 beta^2 = (1-rho^2)^2/sigma_eta^4 = 1 once the evidence term vanishes.",
+      "note": "Both ends are now proved as limits, at the displayed rate, for either sign of rho.\nt -> 0 (ch10_em_q_limits_small_t_full, stated in the chapter's own parameters on the filter nhdsWithin 0 (Ioi 0)): J_d(t) = e^{-2t}/Delta_t + (1+rho^2)/sigma_eta^2 -> infinity (ch10_Jevid_tendsto_atTop, from ch10_Jevid_eq: J_evid t = 1/(e^{2t}-1), and 1/x -> infinity as x -> 0+), q -> 0 (ch10_qroot_tendsto_zero) and V -> 0 (ch10_V_tendsto_zero, from sqrt(J_d^2-4beta^2) -> infinity and Tendsto.inv_tendsto_atTop). This replaces the earlier appeal to ch10_V_pos, which asserted only positivity and could not witness V -> 0. The displayed RATE q ~ |beta|/J_d is now sharp rather than the factor-of-two bound |q| <= 2|beta|/J_d: ch10_qroot_rate gives |beta| <= J_d |q| and (J_d |q| - |beta|) J_d^2 <= 4 |beta|^3, hence ch10_qroot_asymptotic: J_d |q| -> |beta|, i.e. |q| = (|beta|/J_d)(1 + O(J_d^{-2})). The engine is the exact gap identity ch10_qroot_gap, J_d (J_d - sqrt(J_d^2-4beta^2)) = 2 beta^2 + (J_d - sqrt(J_d^2-4beta^2))^2 / 2.\nt -> infinity: ch10_em_q_limits_prior_disc gives J_d^2 - 4 beta^2 = (1-rho^2)^2/sigma_eta^4 = 1 exactly once the evidence term vanishes, which is the reason the text gives. ch10_em_q_limits_prior' now covers either sign of rho (hypotheses rho^2 < 1 and rho != 0, replacing the old 0 < rho < 1): q = rho exactly, hence |q| = |rho|, and V = 1. ch10_em_q_limits_prior_limit upgrades this from an evaluation AT the limiting parameters to genuine t -> infinity limits: ch10_Jevid_tendsto_zero gives J_d(t) -> (1+rho^2)/sigma_eta^2, and composing with continuity of q in J_d (ch10_qroot_continuous) and continuity of V at that point (the discriminant is 1 there, so the sqrt is nonzero) gives q(t) -> rho and V(t) -> 1. One wording point: the display writes q -> |rho|. What holds for either sign is q -> rho and |q| -> |rho|, which matches the toolbox's own parenthetical that for rho < 0 the entries alternate in sign with the same modulus; the display is exact for rho > 0 and correct in modulus for rho < 0.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-influence",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "545-553",
+      "status": "proved",
+      "lean_name": "ch10_em_influence_exp",
+      "summary": "d m_k/d x_{k±d} = (e^{-t}/Delta_t)(J^{-1})_{k,k±d} = (e^{-t} V/Delta_t) e^{-d/xi} with xi = 1/log(1/q).",
+      "note": "Two parts proved. ch10_em_influence_linear: m = c J^{-1} x is linear, so m_k = sum_j (c (J^{-1})_{kj}) x_j and the sensitivity to x_j is exactly the coefficient c (J^{-1})_{kj} - the derivative step. ch10_em_influence_exp: for 0 < q < 1, q^d = exp(-d/xi) with xi = 1/log(1/q) exactly, so the geometric decay of eq:em-bulk-cov is a pure exponential in the separation with that single length. Correct as stated."
+    },
+    {
+      "id": "eq:em-discarded",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "564-571",
+      "status": "proved",
+      "lean_name": "ch10_em_discarded_sums",
+      "summary": "sum_{|d|>r} q^{2|d|} / sum_{d in Z} q^{2|d|} = [2q^{2(r+1)}/(1-q^2)]/[(1+q^2)/(1-q^2)] = 2 q^{2(r+1)}/(1+q^2), exactly.",
+      "note": "Proved for 0 <= q < 1. ch10_em_discarded_sums proves all three closed forms as genuine infinite sums (tsum): sum_{d>=0} q^{2d} = 1/(1-q^2), the tail 2 sum_{d>=r+1} q^{2d} = 2q^{2(r+1)}/(1-q^2), and the total over Z, 1 + 2 sum_{d>=1} q^{2d} = (1+q^2)/(1-q^2). ch10_em_discarded then proves the quotient equals 2q^{2(r+1)}/(1+q^2). Both displayed equalities correct. (The text's own insistence that this is a squared-coefficient mass fraction and NOT a prediction risk is a scoping remark, not a formula.)",
+      "tex_lines_recorded": "564-570"
+    },
+    {
+      "id": "eq:em-truncation",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "575-578",
+      "status": "defined",
+      "lean_name": "ch10_truncation",
+      "summary": "The coefficient-tail fraction T(r) = sum_t w_t 2 q(rho,t)^{2(r+1)}/(1+q(rho,t)^2), the schedule-pooled version of eq:em-discarded.",
+      "note": "Definition (a pooled average of the eq:em-discarded quantity). Sanity lemma ch10_truncation_ratio proved: per level the summand falls by exactly a factor q^2 for each unit increase in r, which is the 'it sets the geometric exponent of everything local' reading the text gives it. The weights w_t are those of eq:em-weights.",
+      "tex_lines_recorded": "575-577"
+    },
+    {
+      "id": "eq:em-oracle",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "595-603",
+      "status": "defined",
+      "lean_name": "ch10_W",
+      "summary": "The exact Gaussian windowed-oracle error W(r) = (sum_t tr[(M_r-Q_t) Sigma_t (M_r-Q_t)^T] / sum_t tr Q_t)^{1/2}.",
+      "note": "Definition, encoded as a Lean def. Its two structural ingredients are checked: the numerator is exactly the error energy E||(M_r - Q_t)X||^2 by ch10_energy_trace, and the denominator sum_t tr Q_t is exactly the pooled reference energy sum_t E||s*||^2 by ch10_em_weights (with Q_t = Sigma_t^{-1}), so numerator and denominator are commensurable and the ratio is the relative score error in the same sense as eq:em-relerr. Sanity lemma ch10_em_oracle_zero: W = 0 when M_r = Q_t. The quoted numerical values W(r) = 0.657, 0.202, 0.089, 0.029, 0.007 require building M_r(t) over 12 levels and 32 sites and are not recomputed here."
+    },
+    {
+      "id": "eq:em-floor",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "791-794",
+      "status": "defined",
+      "lean_name": "ch10_floorFit",
+      "summary": "The two-parameter floor fit E(N)^2 = E_infinity^2 + c/N.",
+      "note": "Definition of a fitted model, not a derived identity. Two sanity lemmas proved: ch10_floorFit_antitone (strictly decreasing in N for c > 0) and ch10_floorFit_tendsto (tends to E_infinity^2 as N -> infinity), so E_infinity really is the floor the text calls it. The text's own warning that a four-point fit cannot separate this from a floorless power law is an inferential caveat, not a formula."
+    },
+    {
+      "id": "eq:em-global",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "876-881",
+      "status": "defined",
+      "lean_name": "ch10_Sigbeta",
+      "summary": "The shared-global-latent contamination a = (y + beta g)/sqrt(1+beta^2), with covariance Sigma_beta = (Sigma_0 + beta^2 1 1^T)/(1+beta^2), variance preserving for every beta.",
+      "note": "The display defines the contaminated prior; the covariance Sigma_beta is stated in the adjacent prose and is encoded as ch10_Sigbeta. Its two stated properties are proved: ch10_em_global_variance_preserving (the diagonal of Sigma_beta is 1 whenever Sigma_0 has unit diagonal - 'variance preserving for every beta'), and ch10_em_global_entry (with Sigma_0 = (rho^{|i-j|}) the entries are (rho^{|i-j|} + beta^2)/(1+beta^2), which is the covariance-at-separation-d formula used in the proof of prop:em-rankone, lines 936-937). ch10_em_global_half checks the 'at beta = 1 half the marginal variance is one shared constant' remark: beta^2/(1+beta^2) = 1/2. The step from the definition of a to Sigma_beta is elementary bilinearity of covariance (g independent of y, unit variance) and is not re-derived."
+    },
+    {
+      "id": "eq:em-longrange",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "892-899",
+      "status": "proved",
+      "lean_name": "ch10_Qlong_strictly_dominant",
+      "summary": "Q_gamma = Q_AR + gamma Q_long with [Q_long]_{ij} = -e^{-|i-j|/l} for |i-j| >= 2 and [Q_long]_{ii} = 1.05 sum_{j != i} e^{-|i-j|/l}; the diagonal compensation makes it strictly diagonally dominant, hence positive definite.",
+      "note": "Q_long is encoded as a Lean def and the compensation claim is proved: ch10_Qlong_strictly_dominant shows the absolute off-diagonal row sum is strictly less than the diagonal, for every row of a chain with n >= 2 and any l. The margin is in fact at least 0.05 S_i plus the whole |i-j| = 1 contribution, because the diagonal compensation sums e^{-|i-j|/l} over ALL j != i while the off-diagonal entries are nonzero only at |i-j| >= 2 - so the construction is strictly dominant with room to spare, as claimed. Scope: the implication 'strictly diagonally dominant (with positive diagonal, symmetric) hence positive definite' is the standard Gershgorin/dominance argument and is not re-proved here, and the dominance of the SUM Q_AR + gamma Q_long is not separately formalised (it follows since Q_AR is itself strictly dominant: (1+rho^2) - 2|rho| = (1-|rho|)^2 > 0, checked in ch10_noname_2)."
+    },
+    {
+      "id": "eq:em-woodbury",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "913-920",
+      "status": "proved",
+      "lean_name": "ch10_em_woodbury",
+      "summary": "prop:em-rankone: Q_beta = (1+beta^2) Q_AR - c_beta u u^T with u = Q_AR 1 and c_beta = (1+beta^2) beta^2/(1 + beta^2 1^T Q_AR 1), so the departure from a rescaled chain precision has rank exactly one, in the direction u.",
+      "note": "Proved by verifying that the displayed matrix really is Sigma_beta^{-1}: ch10_em_woodbury shows Sigma_beta * [(1+beta^2) Q - c_beta u u^T] = I for symmetric invertible Sigma_0, with c_beta supplied through the hypothesis c(1 + beta^2 1^T Q 1) = beta^2 (i.e. exactly the displayed c_beta/(1+beta^2) whenever the denominator is nonzero). The Sherman-Morrison core is ch10_sherman_morrison, with rank-one algebra in ch10_mul_vecMulVec, ch10_vecMulVec_mul, ch10_vecMulVec_mul_vecMulVec. The correction term is a scalar multiple of u u^T, hence of rank at most one, and it is exactly one for beta != 0 since u = Q_AR 1 != 0 for invertible Q_AR. Correct as stated.",
+      "tex_lines_recorded": "913-919"
+    },
+    {
+      "id": "eq:em-chowliu",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "925-928",
+      "status": "proved",
+      "lean_name": "ch10_em_chowliu",
+      "summary": "rho_CL(beta) = (rho + beta^2)/(1+beta^2), the lag-one correlation of the global-latent prior and hence of its best first-order chain approximation.",
+      "note": "Proved: ch10_em_chowliu evaluates Sigma_beta at |i-j| = 1 and gets exactly (rho + beta^2)/(1+beta^2) (the marginal variance being 1 by ch10_em_global_variance_preserving, so the covariance IS the correlation). ch10_em_chowliu_numeric checks the quoted 0.9250 at rho = 0.85, beta = 1: (0.85+1)/2 = 0.925 exactly. The identification of the lag-one correlation with the Chow-Liu projection's parameter is the cited tree-projection theorem (marginal matching on a path graph) and is not re-proved."
+    },
+    {
+      "id": "eq:em-delta",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "973-980",
+      "status": "defined",
+      "lean_name": "ch10_delta",
+      "summary": "delta = (1/n) KL(N(0,Sigma) || N(0,Sigma_CL)) = (1/2n)[tr(Sigma_CL^{-1} Sigma) - n + log(det Sigma_CL/det Sigma)].",
+      "note": "Definition; the right-hand side is the standard centred-Gaussian KL formula, encoded as a Lean def. Sanity lemma ch10_delta_self proved: delta = 0 when Sigma = Sigma_CL, matching the delta = 0 entry for the uncontaminated row of tab:em-misspecification. The derivation of the Gaussian KL formula itself (and hence the first equality) is standard and not re-proved; the text's careful distinction between exact KL (Gaussian arms) and covariance proxy delta_cov (Laplace arms) is a scoping statement, not a formula.",
+      "tex_lines_recorded": "973-979"
+    },
+    {
+      "id": "eq:em-breakeven-a",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "1078-1083",
+      "status": "proved",
+      "lean_name": "ch10_em_breakeven_cnn_bracket",
+      "summary": "The reported break-even brackets delta* in [1.1, 2.2]e-2 nats/site (vs CNN) and [2.2, 4.0]e-2 (vs MLP).",
+      "note": "Consistent with tab:em-misspecification and correct as a bracket. Against the CNN the measured ratio is 1.2 at delta = 1.1e-2 and 0.97 at 2.2e-2, so it crosses 1 inside [1.1,2.2]e-2; against the MLP it is 1.2 at 2.2e-2 and 0.84 at 4.0e-2, so it crosses inside [2.2,4.0]e-2.\n\n[GENERALISED 2026-09-14] The 2026-09-13 downgrade is resolved: the bracket is now formalised as what it asserts, a sign-change interval that contains a crossing, instead of three bare decimal inequalities. ch10_breakeven_bracket: for any ratio function R continuous on [a,b] with R a > 1 > R b there exists a break-even delta* in the OPEN interval (a,b) (via mathlib's intermediate_value_Ioo'). ch10_breakeven_unique: that delta* is unique wherever R is strictly antitone in delta, which is the monotonicity the section reports. Instantiated at the reported endpoints with the measured ratios of tab:em-misspecification: ch10_em_breakeven_cnn_bracket (R 0.011 = 1.2, R 0.022 = 0.97 gives delta* in (1.1e-2, 2.2e-2)) and ch10_em_breakeven_mlp_bracket (R 0.022 = 1.2, R 0.040 = 0.84 gives delta* in (2.2e-2, 4.0e-2)). ch10_em_breakeven_mlp_no_earlier_crossing shows why the MLP bracket correctly starts at 2.2e-2 and not at 1.1e-2: with R antitone up to 2.2e-2 and R(2.2e-2) = 1.2, R stays strictly above 1 on the whole earlier interval, so nothing is bracketed there (the MLP ratio is still 1.7 at delta = 1.1e-2). Both bracket endpoints and both endpoint ratios now occur in the Lean statements, and the instantiations would be unprovable if the reported ratios did not straddle 1. Two inputs remain hypotheses rather than theorems, by the nature of the claim: the endpoint ratios are measurements read off tab:em-misspecification, and continuity of the empirical ratio in delta is an explicit hypothesis of each theorem - speaking of a crossing at all presupposes an interpolating curve, and the text itself declines to attach an interval to delta* because each condition is a single unreplicated run. The old ch10_em_breakeven_brackets is superseded but left in place. The companion interpolation error is recorded separately as eq:em-breakeven-b.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-breakeven-b",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "1084-1086",
+      "status": "discrepancy",
+      "lean_name": "ch10_em_breakeven_mlp_discrepancy",
+      "summary": "The prose attached to eq:em-breakeven says 'A straight line through those endpoints crosses at 2.1 and 3.0e-2 respectively'; the MLP value is 3.2e-2, not 3.0e-2.",
+      "note": "TEX LINES 1084-1086 ('the CNN ratio falling from 1.2 to 0.97 across its bracket and the MLP one from 1.2 to 0.84 across its own. A straight line through those endpoints crosses at 2.1 and 3.0 x 10^{-2} respectively'). READING: 'those endpoints' are the two bracket endpoint pairs just named, so this is two-point linear interpolation of the ratio against delta. COUNTEREXAMPLE (verified in Lean, exact rational arithmetic): for the MLP, the line through (delta, ratio) = (2.2e-2, 1.2) and (4.0e-2, 0.84) has slope -0.2 per 1e-2 nats/site and reaches 1 at delta = 2.2 + 0.2/0.2 = 3.2e-2 exactly (ch10_em_breakeven_mlp_crossing: ch10_lin 2.2 1.2 4.0 0.84 3.2 = 1). At the stated delta = 3.0e-2 the interpolant is 1.04, still ABOVE break-even, not at it (ch10_em_breakeven_mlp_discrepancy: ch10_lin 2.2 1.2 4.0 0.84 3.0 = 1.04 and != 1). The CNN number is right: the line through (1.1, 1.2) and (2.2, 0.97) crosses 1 at 1.1 + 22/23 = 2.0565e-2, which rounds to the quoted 2.1 (ch10_em_breakeven_cnn_crossing, ch10_em_breakeven_cnn_rounds). CORRECTED STATEMENT: 'crosses at 2.1 and 3.2 x 10^{-2} respectively'. Note for the author: no single interpolation convention reproduces the printed pair (2.1, 3.0). Interpolating the ratio linearly in log delta instead gives 2.0 and 3.1; log-log interpolation gives 2.0 and 3.0 (so 3.0 is reproducible only under log-log, which then contradicts the printed 2.1); plain linear interpolation, which the wording 'a straight line through those endpoints' describes, gives 2.1 and 3.2. Only the second number changes under the reading the text states, and the error is 6% - immaterial to the argument (the sentence explicitly says these interpolations 'are quoted nowhere as results'), but the printed pair is internally inconsistent."
+    },
+    {
+      "id": "eq:em-cumulants",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "1123-1130",
+      "status": "proved",
+      "lean_name": "ch10_em_cumulants",
+      "summary": "kappa_2(X_t) = e^{-2t} kappa_2(A) + Delta_t = 1, kappa_4(X_t) = e^{-4t} kappa_4(A), kappa_11(X_{t,i}, X_{t,i+1}) = e^{-2t} rho.",
+      "note": "All three proved for X_t = e^{-t}A + sqrt(Delta_t) eps with Delta_t = 1-e^{-2t}, in the Ch09 style: the cumulant calculus (additivity over independent summands, order-n homogeneity kappa_n(cY) = c^n kappa_n(Y), Gaussian kappa_4 = 0, and independence of the noise across sites so it contributes nothing to the lag-one joint cumulant) enters as the explicit hypotheses h2, h4, h11, and the conclusions follow. The kappa_2 = 1 identity genuinely needs the variance matching kappa_2(A) = 1 together with Delta_t = 1 - e^{-2t} (e^{-2t}*1 + (1-e^{-2t}) = 1); the e^{-4t} damping of kappa_4 needs only Gaussian noise; the e^{-2t} attenuation of the lag-one cumulant needs only independence across sites. Correct as stated, and consistent with eq:em-cumulant-damping of Chapter 9."
+    },
+    {
+      "id": "noname-3",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "1139-1142",
+      "status": "defined",
+      "lean_name": "ch10_infoHeuristic",
+      "summary": "The delta-method reading I_theta ~ (d_theta kappa(X_t))^2 / Var(kappa_hat).",
+      "note": "A definition of the heuristic, explicitly labelled in the text as 'a delta-method heuristic, not a likelihood calculation'. Encoded as a Lean def and used to derive eq:em-info-prediction below. Nothing to falsify."
+    },
+    {
+      "id": "eq:em-info-prediction",
+      "tex_file": "thesis/chapters/ch10-comparison.tex",
+      "tex_lines": "1148-1157",
+      "status": "proved",
+      "lean_name": "ch10_em_info_prediction",
+      "summary": "I_rho(t) ~ e^{-4t}, I_p(t) ~ e^{-8t}, and the contrast I_p(t)/I_rho(t) ~ e^{-4t}.",
+      "note": "Proved as the exact consequence of the boxed heuristic (noname-3) with the eq:em-cumulants sensitivities: d_rho kappa_11 proportional to e^{-2t} gives I_rho = (c1^2/v1) e^{-4t}; d_p kappa_4 proportional to e^{-4t} gives I_p = (c2^2/v2) e^{-8t}; and the ratio is ((c2^2/v2)/(c1^2/v1)) e^{-4t}, so the CONTRAST is e^{-4t} with all t-independent constants cancelling - exactly the text's 'the third statement is the robust one: it is a contrast, so whatever common factors the leading-order reading omits cancel from it'. Two numerical checks from tab:em-information: ch10_em_info_contrast_exponent confirms the predicted contrast exponent 4*(1.6-0.05) = 6.2, and ch10_em_info_geomean brackets the geometric mean of the five measured contrasts 112, 236, 776, 867, 1222 strictly between 464.5^5 and 465^5, so it is 464.96, rounding to the quoted 465. The predicted e^{6.2} = 492.75 ~ 493 was checked by hand only (exponential decimal bounds are not cheap in Lean); the exponent arithmetic is verified."
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

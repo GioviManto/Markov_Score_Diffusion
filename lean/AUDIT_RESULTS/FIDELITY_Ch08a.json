@@ -1,0 +1,39 @@
+{
+  "module": "ThesisAudit.Ch08a",
+  "checked": 21,
+  "issues": [
+    {
+      "id": "eq:em-fisher",
+      "lean_name": "ch08a_em_fisher",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "The tex display (lines 562-574) asserts an identity about the likelihood gradient: '\\nabla_\\theta\\mathcal L(\\theta) = \\E_{a,c\\mid x,\\theta}[ \\sum_{i=2}^{\\nsites} \\nabla_\\theta \\log \\widetilde\\kernel_\\theta(a_i,c_i\\mid a_{i-1}) ]'. The Lean theorem recorded as its proof is 'theorem ch08a_em_fisher {iota} (s : Finset iota) (K : R) (T : iota -> R -> R) (T' : iota -> R) (theta : R) (hd : forall i in s, HasDerivAt (T i) (T' i) theta) : HasDerivAt (fun t => K + sum i in s, T i t) (sum i in s, T' i) theta := HasDerivAt.const_add K (HasDerivAt.fun_sum hd)'. Nothing from the display appears in the statement: no L / ch08a_L, no posterior expectation E_{a,c|x,theta} (no ch08a_post, no weights), no ch08a_ktilde, no index range 2..N (an arbitrary Finset), and no derivation that the theta-independent part really is log p(a_1) + sum log phi_i -- that is *assumed* by writing the integrand as 'K + sum T_i'. It is the generic fact that the derivative of a constant plus a finite sum is the sum of the derivatives. The JSON note concedes 'Combined with eq:em-fisher-general and eq:em-complete-ll this gives the display', but that combination is never formalised anywhere in Ch08a.lean, so a reader of the audit is told a display is verified when only a one-line calculus lemma is. Contrast eq:em-fisher-Q (ch08a_em_fisher_Q), which really does exhibit both L and Q with the same derivative -- that one is faithful.",
+      "suggested_status": "partial (supporting lemma only; the display itself is not assembled in Lean)"
+    },
+    {
+      "id": "prop:em-estep",
+      "lean_name": "",
+      "kind": "missing",
+      "severity": "medium",
+      "detail": "Lines 335-342 of the tex contain a labelled result, 'Proposition (The E-step is exact) \\label{prop:em-estep}: Since the posterior factor graph is a tree, one forward and one backward sum--product sweep return the exact single-site and pairwise posterior marginals ... the E-step requires neither a variational approximation nor Monte Carlo sampling'. It sits squarely inside the audited range (lines 1-600) and is a mathematical assertion, not prose colour -- and it is the load-bearing justification for the whole E-step. It appears nowhere in Ch08a.json: it is not proved, not skipped, not even listed. Every other numbered environment in the range has an entry (including the purely pictorial arrow diagram, honestly recorded as 'skipped'), so its silent absence reads as coverage where there is none. Note also that the Lean model is the *finite/grid* latent space, in which exactness of sum-product on a tree is a real theorem that was not attempted.",
+      "suggested_status": "skipped (with an explicit note that tree-exactness of sum-product is out of scope), or proved"
+    },
+    {
+      "id": "eq:em-chain",
+      "lean_name": "ch08a_em_chain",
+      "kind": "vacuous",
+      "severity": "low",
+      "detail": "Item status is honestly 'defined', but its note claims a proof: 'the variance-matching claim implicit in Var(eps)=1-alpha^2 is proved (alpha^2*1+(1-alpha^2)=1), i.e. the chain is stationary with unit variance.' The Lean content is 'theorem ch08a_em_chain (alpha : R) : alpha ^ 2 * 1 + (1 - alpha ^ 2) = 1 := by ring'. That is an arithmetic tautology over the reals: no random variable, no variance operator, no reference to ch08a_em_chain_next, and no use of independence of eps_i from a_{i-1} (which is exactly the modelling hypothesis that makes Var(a_i) = alpha^2 Var(a_{i-1}) + Var(eps_i) true in the first place). The tex claim at lines 23-31 -- a_1 ~ N(0,1), a_i = alpha a_{i-1} + eps_i with Var(eps)=1-alpha^2, hence stationary unit variance -- is therefore not verified; only the numerical bookkeeping is. The gloss 'i.e. the chain is stationary with unit variance' overstates what 'ring' established.",
+      "suggested_status": "defined (with the note weakened to 'arithmetic consistency of the variance budget only')"
+    },
+    {
+      "id": "noname-5",
+      "lean_name": "ch08a_bayes / ch08a_em_marginalisation / ch08a_em_log_mixture",
+      "kind": "vacuous",
+      "severity": "low",
+      "detail": "Three items carry status 'proved' for statements that hold by 'rfl' against the auditor's own definitions, so nothing about the thesis's objects is tested. (i) noname-5, tex 194-198, 'p_theta(a,c|x) = p_theta(a,c,x)/p_theta(x)': Lean 'theorem ch08a_bayes ... : ch08a_post P z = P z / ch08a_marg P := rfl', where ch08a_post is *defined* as that ratio -- Bayes' rule cannot fail here by construction. (ii) eq:em-marginalisation, tex 122-129: 'ch08a_marg P = sum z, P z := rfl', again the definition; only the companion ch08a_em_marginalisation_pair (sum over pairs = sum_c sum_a) has content. (iii) eq:em-log-mixture, tex 365-378: 'Real.log (ch08a_em_mixture_kernel ...) = Real.log (sum c, p c * ch08a_gauss ...) := rfl', pure unfolding. Each JSON note does disclose the rfl, so this is a labelling rather than a substantive problem -- but a reader scanning the 'status' column counts three more verified displays than exist. Recommend a distinct status word (e.g. 'definitional') for rfl-only entries.",
+      "suggested_status": "definitional / defined"
+    }
+  ],
+  "note": "Reviewed all 21 'proved' items line-by-line against tex lines 1-600; no instance_checked items. The substantive mathematics is sound and faithful: ch08a_em_single_transition_log reproduces eq:em-single-transition-log exactly (the -1/2 log(2pi), -1/2 log s_c^2 and -(a_i - alpha a_{i-1} - nu_c)^2/(2 s_c^2) terms all match in sign and factor, from the explicit density exp(-(u-nu)^2/(2 s^2))/sqrt(2 pi s^2)); ch08a_em_decomposition proves the boxed identity L = Q + H + KL in full generality over positive q and P (not at a specialisation); ch08a_kl_nonneg is a genuine Gibbs proof; ch08a_em_Q_full quantifies over arbitrary N, arbitrary C and any weight vector w summing to one, and its dropped constant is exactly card(Icc 2 N)*(1/2)log(2pi) = (N-1) half-log-2pi, matching the tex's '=^c' claim; ch08a_em_fisher_Q genuinely exhibits the same derivative value for L and for Q(.|theta^(k)) at theta^(k). Index ranges (Icc 2 N transitions, Icc 1 N observations, N-1 labels) agree with the tex throughout, and the positivity hypotheses added in Lean are legitimate precision, not smuggled assumptions. All tex line numbers cited in Ch08a.json check out against the file. The one genuine discrepancy the audit reports (noname-inline-1, the inline stationary-variance formula at tex lines 58-60 omitting -(sum_c pi_c nu_c)^2) is correct and honestly labelled 'discrepancy', not 'proved'."
+}

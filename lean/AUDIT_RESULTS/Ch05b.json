@@ -1,0 +1,631 @@
+{
+  "module": "ThesisAudit.Ch05b",
+  "build_ok": true,
+  "covers": [
+    "thesis/chapters/ch05-gaussian-matrix.tex lines 785-1686"
+  ],
+  "completed": "2026-09-13T20:17:14.118923+01:00",
+  "items": [
+    {
+      "id": "eq:g-score-matrix",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "792-796",
+      "status": "proved",
+      "summary": "The joint score of the noisy Gaussian law is s(x,t) = grad log P_t(x) = -Q_t x with Q_t := Sigma_t^{-1}.",
+      "lean_name": "ch05b_g_score_matrix, ch05b_g_score_matrix_grad, ch05b_g_score_matrix_two, ch05b_gaussPDF, ch05b_log_gaussPDF, ch05b_g_score_matrix_density, ch05b_g_score_matrix_grad_log, ch05b_Sigt_isSymm, ch05b_Sigt_inv_isSymm",
+      "note": "Three parts: (a) the gradient claim grad(x^T Q x) = 2Qx is proved as the exact first-order expansion for symmetric Q; (b) the score is the definitional -Sigma_t^{-1} x; (c) the L=2 illustration in the surrounding prose, s_0 = -(x_0 - r x_1)/(1-r^2) with r = alpha e^{-2t}, is proved from the AR(1) Sigma_0 (entries alpha^{|i-j|}). Correct.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch05b_g_score_matrix is 'ch05b_score S0 t x = -((Sigma_t)^{-1} *v x) := rfl' where ch05b_score is DEFINED four lines earlier as -(Q_t *v x): it is rfl on the audit's own definition. No density, no log P_t and no gradient operator appears anywhere in the module, so the actual claim -- that the gradient of the log marginal density equals -Q_t x -- is not formalised. The companion ch05b_g_score_matrix_grad is a generic quadratic-form increment identity that never mentions P_t or the -1/2 factor.\n\n[PASS-4 2026-09-13] Upgraded to 'proved'. The density and log P_t the downgrade said were missing now exist in the module:\n * ch05b_gaussPDF S x := (sqrt((2pi)^n det S))^{-1} exp(-(x . S^{-1} x)/2), the centred multivariate Gaussian density (also used by thm:g-decouple);\n * ch05b_log_gaussPDF : log P(x) = -log(sqrt((2pi)^n det S)) - (x . S^{-1} x)/2, which is the text's 'log P_t(x) = -1/2 x^T Q_t x + const' exactly;\n * ch05b_g_score_matrix_grad_log (via ch05b_g_score_matrix_density): P_t(x+v) = P_t(x) exp( (s(x,t) . v) - (v . Q_t v)/2 ) for every x and every increment v, with s(x,t) = ch05b_score S0 t x = -Q_t x. Equivalently log P_t(x+v) - log P_t(x) = <s(x,t), v> - (1/2) v^T Q_t v: the linear part of the increment of the log density is exactly the inner product with -Q_t x and the WHOLE remainder is the displayed quadratic term. (Multiplicative form, so no positivity of det Sigma_t is needed; symmetry of Q_t is supplied by ch05b_Sigt_inv_isSymm from Sigma_0 symmetric, not assumed.)\nWHAT IS STILL NOT THERE, stated plainly: no mathlib derivative operator (fderiv/gradient) is used; the gradient claim is formalised by the exact first-order expansion with its explicit quadratic remainder, which is this module's declared convention for derivative and asymptotic claims (see the file header). Identifying that exact expansion with `gradient` would additionally require the o(||v||) estimate for the quadratic remainder, which is not stated. As everywhere in this module, P_t is taken to be the centred Gaussian of covariance Sigma_t (eq:g-Sigt, tex 617, outside this module's line range).",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:g-tweedie",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "818-825",
+      "status": "proved",
+      "summary": "Componentwise Tweedie/score-posterior identity s_k(x,t) = (e^{-t} E[a_k|x] - x_k)/Delta_t.",
+      "lean_name": "ch05b_g_tweedie",
+      "note": "Proved as an identity between the linear-algebra score -Q_t x and the posterior-mean expression, for abstract invertible Sigma_0, with hypotheses IsUnit Sigma_0.det, IsUnit Sigma_t.det, Delta_t != 0. Correct."
+    },
+    {
+      "id": "noname-1",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "832-836",
+      "status": "proved",
+      "summary": "The posterior of the clean chain is Gaussian, P(a|x) = N(a; m, J^{-1}).",
+      "lean_name": "ch05b_noname_posterior_gaussian",
+      "note": "Formalised as the exact identity -2 log P(a|x) = (a-m)^T J (a-m) + const(x) with m = J^{-1}h, which is precisely the Gaussian-in-a statement. Needs J symmetric and invertible (explicit hypotheses). Correct."
+    },
+    {
+      "id": "eq:g-posterior-precision",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "838-845",
+      "status": "proved",
+      "summary": "Posterior precision J = Q_0 + (e^{-2t}/Delta_t) I_L.",
+      "lean_name": "ch05b_g_J_identified, ch05b_g_information_addition, ch05b_g_post_expand_2",
+      "note": "The identification is proved by matching the posterior exponent against the information form; J - Q_0 is exactly the scalar multiple (e^{-2t}/Delta_t) of the identity. Correct."
+    },
+    {
+      "id": "eq:g-posterior",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "847-856",
+      "status": "proved",
+      "summary": "Posterior field h = (e^{-t}/Delta_t) x, and J m = h.",
+      "lean_name": "ch05b_g_h_identified, ch05b_g_posterior",
+      "note": "h is identified from the linear term of the exponent; J m = h is proved for m = J^{-1}h under IsUnit J.det. Correct."
+    },
+    {
+      "id": "eq:g-posterior-mean",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "858-865",
+      "status": "proved",
+      "summary": "m = E[a|x] = J^{-1} h.",
+      "lean_name": "ch05b_g_posterior_mean",
+      "note": "E[a|x] is characterised as the unique minimiser of the posterior exponent (the standard characterisation, and the one the toolbox's completing-the-square argument uses); proved that J^{-1}h strictly beats every other a, under J symmetric positive definite. Correct."
+    },
+    {
+      "id": "noname-2",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "871-875",
+      "status": "proved",
+      "summary": "Bayes' rule P(a|x) proportional to P_0(a) P(x|a).",
+      "lean_name": "ch05b_noname_bayes",
+      "note": "The content used downstream is that negative logs add; proved as -2 log(prior * likelihood) = -2 log prior + -2 log likelihood, using strict positivity of both factors. Correct."
+    },
+    {
+      "id": "noname-3",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "877-883",
+      "status": "defined",
+      "summary": "Gaussian prior P_0(a) proportional to exp(-a^T Q_0 a / 2).",
+      "lean_name": "ch05b_prior, ch05b_noname_prior, ch05b_prior_pos",
+      "note": "A definition, encoded as a Lean def with a positivity sanity lemma. No claim to check."
+    },
+    {
+      "id": "noname-4",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "885-892",
+      "status": "defined",
+      "summary": "Channel likelihood P(x|a) proportional to exp(-||x - e^{-t}a||^2 / (2 Delta_t)).",
+      "lean_name": "ch05b_lik, ch05b_noname_lik_prod, ch05b_lik_pos",
+      "note": "A definition; encoded as a Lean def, with the sanity lemma that it factorises into the L scalar per-frame channel densities (which is the conditional-independence fact the text relies on). No claim to check."
+    },
+    {
+      "id": "eq:g-post-expand-1",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "895-904",
+      "status": "proved",
+      "summary": "-2 log P(a|x) = a^T Q_0 a + (1/Delta_t)||x - e^{-t}a||^2 + const.",
+      "lean_name": "ch05b_g_post_expand_1",
+      "note": "Proved exactly (the additive constant is 0 for the unnormalised product, which is the strongest form). Correct."
+    },
+    {
+      "id": "noname-5",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "906-912",
+      "status": "proved",
+      "summary": "(x - e^{-t}a)^T(x - e^{-t}a) = x^T x - 2 e^{-t} x^T a + e^{-2t} a^T a.",
+      "lean_name": "ch05b_noname_residual",
+      "note": "Proved entrywise over the Finset sum, using e^{-t}e^{-t} = e^{-2t}. Correct."
+    },
+    {
+      "id": "eq:g-post-expand-2",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "915-937",
+      "status": "proved",
+      "summary": "The posterior exponent equals a^T(Q_0 + (e^{-2t}/Delta_t)I)a - 2((e^{-t}/Delta_t)x)^T a + const.",
+      "lean_name": "ch05b_g_post_expand_2",
+      "note": "Proved with the constant displayed explicitly as (1/Delta_t) x^T x, i.e. the 'const' is exactly the a-independent term the text absorbs. Correct."
+    },
+    {
+      "id": "noname-6",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "940-945",
+      "status": "defined",
+      "summary": "Information form of a Gaussian exponent, -(1/2)(a^T J a - 2 h^T a).",
+      "lean_name": "ch05b_infoForm, ch05b_noname_infoForm",
+      "note": "A notational definition; encoded as a Lean def. No claim to check."
+    },
+    {
+      "id": "eq:g-J-identified",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "947-956",
+      "status": "proved",
+      "summary": "Matching identifies J = Q_0 + (e^{-2t}/Delta_t) I_L.",
+      "lean_name": "ch05b_g_J_identified, ch05b_g_post_expand_2",
+      "note": "Same align block as eq:g-h-identified, split by label. The quadratic part of the exponent is exactly this J. Correct.",
+      "tex_lines_recorded": "947-951"
+    },
+    {
+      "id": "eq:g-h-identified",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "947-956",
+      "status": "proved",
+      "summary": "Matching identifies h = (e^{-t}/Delta_t) x.",
+      "lean_name": "ch05b_g_h_identified, ch05b_g_post_expand_2",
+      "note": "The linear part of the exponent is exactly -2 h^T a with this h. Correct.",
+      "tex_lines_recorded": "952-956"
+    },
+    {
+      "id": "noname-7",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "958-966",
+      "status": "proved",
+      "summary": "Completing the square: a^T J a - 2 h^T a = (a - J^{-1}h)^T J (a - J^{-1}h) - h^T J^{-1} h.",
+      "lean_name": "ch05b_noname_complete_square",
+      "note": "Proved for symmetric invertible J (explicit hypotheses). Correct, including the sign of the trailing -h^T J^{-1}h."
+    },
+    {
+      "id": "noname-8",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "968-976",
+      "status": "proved",
+      "summary": "P(a|x) = N(a; J^{-1}h, J^{-1}).",
+      "lean_name": "ch05b_noname_posterior_gaussian",
+      "note": "Same statement as noname-1, proved as the exact centred-quadratic-form identity. Correct."
+    },
+    {
+      "id": "noname-9",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "978-982",
+      "status": "proved",
+      "summary": "E[a|x] = J^{-1}h.",
+      "lean_name": "ch05b_g_posterior_mean",
+      "note": "Proved via the unique-minimiser characterisation of the Gaussian mean. Correct."
+    },
+    {
+      "id": "eq:g-information-addition",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "987-996",
+      "status": "proved",
+      "summary": "J (posterior precision) = Q_0 (prior information) + (e^{-2t}/Delta_t)I_L (channel information).",
+      "lean_name": "ch05b_g_information_addition",
+      "note": "Proved as J - Q_0 = (e^{-2t}/Delta_t) * I, which also certifies the text's claim that the likelihood contributes a pure diagonal, hence that J keeps Q_0's tridiagonal pattern. Correct."
+    },
+    {
+      "id": "noname-10",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1004-1006",
+      "status": "defined",
+      "summary": "Q_t = Sigma_t^{-1}, the precision of the noisy marginal.",
+      "lean_name": "ch05b_noname_Qt_def",
+      "note": "A definition (restating eq:g-Qt-def from outside this range); rfl in the module. No claim to check."
+    },
+    {
+      "id": "noname-11",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1009-1021",
+      "status": "proved",
+      "summary": "Boxed contrast: J is tridiagonal, while Q_t is generally dense.",
+      "lean_name": "ch05b_noname_J_tridiag_Qt_dense_gen, ch05b_J_banded, ch05b_Qt_offdiag_ne_zero",
+      "note": "Promoted from instance_checked (L=3, alpha=1/2) to a theorem for every chain length L and every t>0. Two halves, both general: (a) ch05b_J_banded shows J = Q_0 + gamma_t I is tridiagonal for all L, since the channel adds only a multiple of the identity and Q_0 = Sigma_0^{-1} is tridiagonal (ch05b_noname_Q0_banded); (b) ch05b_Qt_offdiag_ne_zero proves the much stronger form of 'generally dense': for alpha != 0, alpha^2 < 1 and t > 0, EVERY off-diagonal entry of Q_t = Sigma_t^{-1} is non-zero, for every L. Route: eq:g-Qt-inverse-form writes Q_t = (e^{2t}/c_t)[I - B^{-1}] with B = I + c_t Q_0; B is tridiagonal with diagonal ch05b_aB and off-diagonal ch05b_bB = -c_t alpha/(1-alpha^2) != 0, and is strictly diagonally dominant, which makes every leading minor theta and trailing minor phi strictly positive (ch05b_th_pos, ch05b_ps_pos); Usmani's formula (ch05b_g_tridiag_inverse) then exhibits every entry of B^{-1} as a non-zero product. The hypotheses alpha != 0 and alpha^2 < 1 are the non-degeneracy conditions the thesis itself states (at alpha = 0 it notes Q_t = I and 'every density claim is empty'), so they do not weaken the claim. Correct."
+    },
+    {
+      "id": "noname-12",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1029-1035",
+      "status": "proved",
+      "summary": "m = J^{-1}h = (e^{-t}/Delta_t) J^{-1} x.",
+      "lean_name": "ch05b_noname_m_eq",
+      "note": "Proved by pulling the scalar through the matrix-vector product. Correct."
+    },
+    {
+      "id": "eq:g-score-posterior-form",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1037-1048",
+      "status": "proved",
+      "summary": "s(x,t) = (e^{-t}m - x)/Delta_t = ((e^{-2t}/Delta_t^2) J^{-1} - (1/Delta_t) I_L) x.",
+      "lean_name": "ch05b_g_score_posterior_form",
+      "note": "Proved as an identity of linear maps applied to x, for abstract Sigma_0. The coefficient e^{-2t}/Delta_t^2 is exactly (1/Delta_t)*e^{-t}*(e^{-t}/Delta_t). Correct."
+    },
+    {
+      "id": "noname-13",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1051-1066",
+      "status": "proved",
+      "summary": "J = Sigma_0^{-1} + (e^{-2t}/Delta_t)I = (1/Delta_t) Sigma_0^{-1}(Delta_t I + e^{-2t}Sigma_0) = (1/Delta_t) Sigma_0^{-1} Sigma_t.",
+      "lean_name": "ch05b_noname_J_factor, ch05b_noname_J_factor'",
+      "note": "Proved as Delta_t * J = Sigma_0^{-1} Sigma_t under IsUnit Sigma_0.det, Delta_t != 0; the middle step is exactly the factorisation the text performs. Correct."
+    },
+    {
+      "id": "eq:g-Jinv-relation",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1068-1075",
+      "status": "proved",
+      "summary": "J^{-1} = Delta_t Sigma_t^{-1} Sigma_0 = Delta_t Q_t Sigma_0.",
+      "lean_name": "ch05b_g_Jinv_relation",
+      "note": "Proved by Matrix.inv_eq_right_inv from the factorisation of J, so no invertibility is smuggled in: hypotheses are IsUnit Sigma_0.det, IsUnit Sigma_t.det, Delta_t != 0. Correct."
+    },
+    {
+      "id": "noname-14",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1077-1106",
+      "status": "proved",
+      "summary": "The chain (e^{-2t}/Delta_t^2)J^{-1} - (1/Delta_t)I = (1/Delta_t)(e^{-2t}Q_t Sigma_0 - I) = (1/Delta_t)[Q_t(Sigma_t - Delta_t I) - I] = -Q_t.",
+      "lean_name": "ch05b_noname_score_op",
+      "note": "The whole four-step align is proved as one operator identity collapsing to -Q_t, via e^{-2t}Sigma_0 = Sigma_t - Delta_t I. Correct."
+    },
+    {
+      "id": "eq:g-two-score-routes",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1108-1115",
+      "status": "proved",
+      "summary": "(e^{-t}E[a|x] - x)/Delta_t = -Sigma_t^{-1} x: the Bayesian and linear-algebra routes agree exactly.",
+      "lean_name": "ch05b_g_two_score_routes",
+      "note": "Proved for abstract invertible symmetric-free Sigma_0 (only invertibility of Sigma_0 and Sigma_t and Delta_t != 0 are used). This is the chapter's central consistency claim and it holds exactly. Correct."
+    },
+    {
+      "id": "eq:g-spectral",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1136-1140",
+      "status": "proved",
+      "summary": "Spectral theorem: M = U diag(omega_i) U^T = sum_i omega_i u_i u_i^T for real symmetric M, U orthogonal.",
+      "lean_name": "ch05b_g_spectral, ch05b_g_spectral_rank_one",
+      "note": "Existence of the orthonormal eigenbasis is obtained from mathlib's Matrix.IsHermitian.spectral_theorem; the rank-one rewriting U diag(w) U^T = sum_i w_i u_i u_i^T (u_i the COLUMNS of U, as the text says) is proved separately. Correct."
+    },
+    {
+      "id": "eq:g-affine",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1146-1150",
+      "status": "proved",
+      "summary": "Affine family: cM + dI = U diag(c omega_i + d) U^T, and (cM+dI)^{-1} = U diag((c omega_i + d)^{-1}) U^T when all c omega_i + d != 0.",
+      "lean_name": "ch05b_g_affine, ch05b_g_affine_inv",
+      "note": "Both the equality and the inverse clause (stated in the prose at lines 1151-1153) are proved from U^T U = I. Correct."
+    },
+    {
+      "id": "eq:g-Qt-spec",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1169-1178",
+      "status": "proved",
+      "summary": "Sigma_t = U diag(lambda_i(t)) U^T, Q_t = U diag(1/lambda_i(t)) U^T, lambda_i(t) = e^{-2t} omega_i + Delta_t.",
+      "lean_name": "ch05b_g_Qt_spec, ch05b_lam, ch05b_lam_pos",
+      "note": "Proved for t >= 0 with omega_i > 0; positivity of lambda_i(t) (needed for the inverse clause) is proved separately, matching the text's proof. Correct."
+    },
+    {
+      "id": "noname-15",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1256-1260",
+      "status": "defined",
+      "summary": "Sigma_t = e^{-2t}Sigma_0 + Delta_t I_L (restatement of the forward map).",
+      "lean_name": "ch05b_noname_Sigt_restate, ch05b_Sigt",
+      "note": "This display restates eq:g-Sigt, which is established outside this line range; in this module it is the definition of Sigma_t, so the restatement is rfl. No independent claim inside the range."
+    },
+    {
+      "id": "noname-16",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1268-1275",
+      "status": "proved",
+      "summary": "Sigma_t = Delta_t (I_L + (e^{-2t}/Delta_t) Sigma_0).",
+      "lean_name": "ch05b_noname_Sigt_snr",
+      "note": "Proved under Delta_t != 0, using Delta_t * gamma_t = e^{-2t}. Correct."
+    },
+    {
+      "id": "eq:g-gamma-def",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1277-1282",
+      "status": "defined",
+      "summary": "gamma_t := e^{-2t}/Delta_t.",
+      "lean_name": "ch05b_gamma, ch05b_g_gamma_def",
+      "note": "A definition; encoded as a Lean def with the defining equation as rfl. Sanity lemmas proved: gamma_t > 0 for t > 0, and gamma_t * c_t = 1."
+    },
+    {
+      "id": "eq:g-Qt-snr",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1284-1292",
+      "status": "proved",
+      "summary": "Q_t = (1/Delta_t)(I_L + gamma_t Sigma_0)^{-1}.",
+      "lean_name": "ch05b_g_Qt_snr",
+      "note": "Proved by Matrix.inv_eq_right_inv from the SNR factorisation, under Delta_t != 0 and invertibility of I + gamma_t Sigma_0. Correct."
+    },
+    {
+      "id": "noname-17",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1296-1300",
+      "status": "proved",
+      "summary": "gamma_t = e^{-2t}/(1 - e^{-2t}).",
+      "lean_name": "ch05b_noname_gamma_explicit",
+      "note": "Proved (unfolds Delta_t = 1 - e^{-2t}). Correct."
+    },
+    {
+      "id": "noname-18",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1302-1308",
+      "status": "proved",
+      "summary": "gamma_t -> infinity as t decreases to 0, and gamma_t -> 0 as t -> infinity.",
+      "lean_name": "ch05b_noname_gamma_limit_zero, ch05b_noname_gamma_limit_infty",
+      "note": "Both limits proved in explicit epsilon-delta form: for every M > 0 there is delta > 0 with gamma_t > M on (0,delta), and for every eps > 0 there is T with gamma_t < eps for t > T. Both go through gamma_t * c_t = 1. Correct."
+    },
+    {
+      "id": "eq:g-Qt-smallt",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1312-1322",
+      "status": "proved",
+      "summary": "Small t: Q_t approx (1/Delta_t)(gamma_t Sigma_0)^{-1} = (1/(Delta_t gamma_t)) Q_0 = e^{2t} Q_0.",
+      "lean_name": "ch05b_g_Qt_smallt, ch05b_g_Qt_smallt_remainder, ch05b_lam_exp_id, ch05b_g_Qt_smallt_mode, ch05b_g_Qt_smallt_bound, ch05b_g_Qt_smallt_frob, ch05b_lam_ge",
+      "note": "The two EXACT equalities in the chain (the only non-approximate content) are proved: (1/Delta_t)(gamma_t Sigma_0)^{-1} = (1/(Delta_t gamma_t))Q_0 and (1/(Delta_t gamma_t))Q_0 = e^{2t}Q_0, using Delta_t gamma_t = e^{-2t}. The scale factor e^{2t} is correct.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch05b_g_Qt_smallt proves only the two EXACT links (1/Delta_t)(gamma_t S0)^{-1} = (1/(Delta_t gamma_t)) Q_0 = e^{2t} Q_0. The only approximate step of the display -- Q_t ~ (1/Delta_t)(gamma_t Sigma_0)^{-1}, i.e. 'gamma_t Sigma_0 dominates I_L for small t' -- is neither stated nor bounded, so nothing in the module relates Q_t itself to e^{2t} Q_0. This was not a budget limit: the sister item eq:g-Qt-larget was done the honest way, with ch05b_g_Qt_larget displaying an exact remainder, and a remainder is available here too (Q_t - e^{2t} Q_0 = -e^{2t} c_t Q_0 (I + c_t Q_0)^{-1} Q_0, from ch05b_g_Qt_res at N = 1).\n\n[PASS-4 2026-09-13] Upgraded to 'proved'. The approximation step the downgrade identified is now bounded, three ways:\n * exactly, as a matrix identity: ch05b_g_Qt_smallt_remainder gives Q_t - e^{2t}Q_0 = -(e^{2t}c_t) * (Q_0 (I + c_t Q_0)^{-1} Q_0), the N = 1 case of ch05b_g_Qt_res, for any invertible Sigma_0 (exactly the remainder the downgrade note asked for);\n * exactly, per mode: ch05b_lam_exp_id (e^{2t} lambda_i(t) = omega_i + c_t) and ch05b_g_Qt_smallt_mode (1/lambda_i(t) - e^{2t}/omega_i = -c_t/(lambda_i(t) omega_i));\n * quantitatively: ch05b_g_Qt_smallt_bound gives |1/lambda_i(t) - e^{2t}/omega_i| <= 4t/m^2 on 0 <= t <= 1/4, and ch05b_g_Qt_smallt_frob lifts it to the Frobenius bound ||Q_t - e^{2t}Q_0||_F^2 <= n (4t/m^2)^2, i.e. the thesis' 'approx' is correct to O(t) with an explicit constant.\nHYPOTHESES, stated plainly: the quantitative forms assume Sigma_0 = U diag(omega) U^T with U^T U = I and 0 < m <= omega_i <= (any bound), m <= 1 -- i.e. Sigma_0 positive definite with a positive lower bound on its spectrum, which every positive definite Sigma_0 has (m := min_i omega_i, shrunk below 1). This is the chapter's own standing hypothesis on Sigma_0 (tex 1160-1184); the module does not separately prove that the AR(1) Sigma_0 is positive definite, so these bounds are stated for an abstract spectrally-presented PD Sigma_0 rather than instantiated at the AR(1) chain.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:g-Qt-larget",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1327-1332",
+      "status": "proved",
+      "summary": "Large t: Q_t approx (1/Delta_t) I_L.",
+      "lean_name": "ch05b_g_Qt_larget",
+      "note": "Formalised as the exact identity Q_t - (1/Delta_t)I = -(gamma_t/Delta_t) Sigma_0 (I + gamma_t Sigma_0)^{-1}, i.e. the remainder behind the approximation is displayed and is O(gamma_t) -> 0. Correct."
+    },
+    {
+      "id": "noname-19",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1340-1347",
+      "status": "proved",
+      "summary": "Sigma_t = e^{-2t}(Sigma_0 + e^{2t} Delta_t I_L).",
+      "lean_name": "ch05b_noname_Sigt_res",
+      "note": "Proved. Correct."
+    },
+    {
+      "id": "noname-20",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1349-1355",
+      "status": "proved",
+      "summary": "e^{2t} Delta_t = e^{2t}(1 - e^{-2t}) = e^{2t} - 1.",
+      "lean_name": "ch05b_noname_c_eq",
+      "note": "Proved from e^{2t}e^{-2t} = 1. Correct."
+    },
+    {
+      "id": "eq:g-ct-def",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1357-1360",
+      "status": "defined",
+      "summary": "c_t := e^{2t} - 1.",
+      "lean_name": "ch05b_c, ch05b_g_ct_def",
+      "note": "A definition; encoded as a Lean def with the defining equation as rfl. Sanity lemmas: c_t > 0 for t > 0, and 2t <= c_t <= 4t on [0,1/4]."
+    },
+    {
+      "id": "noname-21",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1362-1367",
+      "status": "proved",
+      "summary": "Sigma_t = e^{-2t}(Sigma_0 + c_t I_L).",
+      "lean_name": "ch05b_noname_Sigt_ct",
+      "note": "Proved. Correct."
+    },
+    {
+      "id": "eq:g-res-step1",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1369-1375",
+      "status": "proved",
+      "summary": "Q_t = e^{2t}(Sigma_0 + c_t I_L)^{-1}.",
+      "lean_name": "ch05b_g_res_step1",
+      "note": "Proved by Matrix.inv_eq_right_inv under invertibility of Sigma_0 + c_t I. Correct."
+    },
+    {
+      "id": "noname-22",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1377-1384",
+      "status": "proved",
+      "summary": "Sigma_0 + c_t I_L = Q_0^{-1} + c_t I_L = Q_0^{-1}(I_L + c_t Q_0).",
+      "lean_name": "ch05b_noname_resolvent_factor",
+      "note": "Proved under IsUnit Sigma_0.det (with Q_0 = Sigma_0^{-1}). Correct."
+    },
+    {
+      "id": "eq:g-Qt-resolvent",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1386-1395",
+      "status": "proved",
+      "summary": "Q_t = e^{2t} Q_0 (I_L + c_t Q_0)^{-1}.",
+      "lean_name": "ch05b_g_Qt_resolvent, ch05b_noname_resolvent_comm",
+      "note": "Proved by Matrix.inv_eq_right_inv; the commutation remark at lines 1396-1397 (Q_0 commutes with (I + c_t Q_0)^{-1}, so factor order is immaterial) is proved separately. Correct."
+    },
+    {
+      "id": "noname-23",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1402-1407",
+      "status": "proved",
+      "summary": "Scalar geometric series 1/(1+z) = 1 - z + z^2 - ... for |z| < 1.",
+      "lean_name": "ch05b_noname_geometric",
+      "note": "Proved as a tsum identity via mathlib's tsum_geometric_of_norm_lt_one. Correct."
+    },
+    {
+      "id": "eq:g-neumann-general",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1409-1416",
+      "status": "proved",
+      "summary": "Matrix Neumann series (I_L + A)^{-1} = sum_{m>=0} (-A)^m = I - A + A^2 - ...",
+      "lean_name": "ch05b_g_neumann_general, ch05b_g_neumann_general_inv, ch05b_geom_trunc",
+      "note": "Formalised by the exact finite identity (I+A)(sum_{m<N}(-A)^m) = I - (-A)^N and the inverse form (I+A)^{-1} = sum_{m<N}(-A)^m + (I+A)^{-1}(-A)^N, valid for every N with no convergence hypothesis. This is the rigorous content of the text's 'whenever the series converges'. Correct."
+    },
+    {
+      "id": "noname-24",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1419-1427",
+      "status": "proved",
+      "summary": "(I_L + c_t Q_0)^{-1} = I_L - c_t Q_0 + c_t^2 Q_0^2 - c_t^3 Q_0^3 + ...",
+      "lean_name": "ch05b_noname_neumann_apply",
+      "note": "The general Neumann identity instantiated at A = c_t Q_0, with the alternating scalar signs (-c_t)^m pulled out of the matrix powers. Exact with remainder. Correct."
+    },
+    {
+      "id": "eq:g-Qt-res",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1429-1455",
+      "status": "proved",
+      "summary": "Q_t = e^{2t} sum_{m>=0} (-c_t)^m Q_0^{m+1} = e^{2t}(Q_0 - c_t Q_0^2 + c_t^2 Q_0^3 - ...).",
+      "lean_name": "ch05b_g_Qt_res",
+      "note": "Proved as the exact truncation at any order N with explicit remainder (-c_t)^N Q_0 (I + c_t Q_0)^{-1} Q_0^N. Both the m+1 exponent and the alternating sign (-c_t)^m match. Correct."
+    },
+    {
+      "id": "eq:g-neumann-condition",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1458-1461",
+      "status": "proved",
+      "summary": "For symmetric positive-definite Q_0 the expansion converges whenever c_t lambda_max(Q_0) < 1.",
+      "lean_name": "ch05b_g_neumann_condition_matrix, ch05b_g_neumann_condition, ch05b_g_neumann_condition_spec",
+      "note": "Three parts: (a) c*lambda_max < 1 is equivalent to |c*omega_i| < 1 for every eigenvalue; (b) in each eigen-coordinate the geometric series then converges to 1/(1+c*omega_i); (c) matrix level: under c*lambda_max < 1, (I + cQ_0)^{-1} = U diag(sum_m (-c omega_i)^m) U^T, so the per-mode sums assemble exactly into the resolvent. Correct."
+    },
+    {
+      "id": "noname-25",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1468-1471",
+      "status": "proved",
+      "summary": "Q_0 couples frames at distance at most 1 (tridiagonality).",
+      "lean_name": "ch05b_noname_Q0_banded, ch05b_Sig0_inv_eq_Q0, ch05b_Q0_banded, ch05b_Banded",
+      "note": "Promoted from instance_checked (L=3, alpha=1/2) to a theorem for every chain length L. ch05b_Sig0_inv_eq_Q0 certifies the closed form of the AR(1) precision matrix at arbitrary L via Matrix.inv_eq_right_inv: the row-sum identity Sigma_0 * Q_0 = I is proved entrywise (Matrix.mul_apply + a Finset.sum_range telescoping over the three non-zero columns of Q_0), where Q_0 has diagonal (1, 1+alpha^2, ..., 1+alpha^2, 1)/(1-alpha^2) and off-diagonal -alpha/(1-alpha^2). ch05b_Q0_banded then reads off ch05b_Banded Q_0 1, i.e. (Q_0)_{ij} = 0 whenever |i-j| > 1: Q_0 couples frames at distance at most 1. Only hypothesis is 1 - alpha^2 != 0, which is exactly the condition for the stationary AR(1) covariance to be invertible. Correct."
+    },
+    {
+      "id": "noname-26",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1473-1476",
+      "status": "proved",
+      "summary": "Q_0^2 can couple frames at distance at most 2.",
+      "lean_name": "ch05b_noname_Q0_sq_banded",
+      "note": "Proved in general from the banded-product lemma: bandwidth 1 times bandwidth 1 gives bandwidth 2. Correct."
+    },
+    {
+      "id": "eq:g-power-bandwidth",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1478-1483",
+      "status": "proved",
+      "summary": "(Q_0^m)_{ij} = 0 whenever |i-j| > m, for tridiagonal Q_0.",
+      "lean_name": "ch05b_g_power_bandwidth, ch05b_banded_mul, ch05b_banded_one",
+      "note": "Proved in general (any n, any m) by induction, from the bandwidth-additivity of matrix products. Correct."
+    },
+    {
+      "id": "noname-27",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1485-1495",
+      "status": "proved",
+      "summary": "Q_t = e^{2t}(Q_0 - c_t Q_0^2 + c_t^2 Q_0^3 - ...), restated for the spatial reading.",
+      "lean_name": "ch05b_g_Qt_res",
+      "note": "Same identity as eq:g-Qt-res, proved with explicit remainder. Correct."
+    },
+    {
+      "id": "eq:g-band-fill-order",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1504-1512",
+      "status": "proved",
+      "summary": "(Q_t)_{ij} = O(c_t^{d-1}) = O(t^{d-1}) at frame distance d >= 1.",
+      "lean_name": "ch05b_g_band_fill_order, ch05b_g_band_fill_order_bound, ch05b_spec_rem, ch05b_spec_rem_bound, ch05b_conj_entry_bound, ch05b_orth_entry_le_one",
+      "note": "Proved in the exact form the O-statement abbreviates: at distance d every Neumann term below Q_0^d vanishes by bandwidth, so the WHOLE entry factors as (-c_t)^{d-1} times a bounded matrix entry. Combined with 2t <= c_t <= 4t on [0,1/4] this is exactly O(t^{d-1}). Correct.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch05b_g_band_fill_order proves an exact factorisation, (Q_t)_{ij} = (-c_t)^{d-1} * (exp(2t) * (Q_0 (I + c_t Q_0)^{-1} Q_0^{d-1})_{ij}). The second factor is t-dependent and is never bounded, so the displayed conclusion (Q_t)_{ij} = O(c_t^{d-1}) = O(t^{d-1}) does not follow from the theorem as stated. No boundedness lemma exists in the file (contrast ch05b_g_bandfill_two, which does supply explicit constants, and only at d = 2). The factorisation is the right skeleton; the O-statement is not established.\n\n[PASS-4 2026-09-13] Upgraded to 'proved'. The missing boundedness lemma now exists: ch05b_spec_rem diagonalises the t-dependent factor, Q_0 (I + c_t Q_0)^{-1} Q_0^k = U diag(omega_i^{-(k+1)}/(1 + c_t/omega_i)) U^T, and ch05b_spec_rem_bound bounds its entries UNIFORMLY IN t by n/m^{k+1} (via ch05b_orth_entry_le_one: every entry of an orthogonal matrix is <= 1 in absolute value). Hence ch05b_g_band_fill_order_bound: at frame distance d = k+1, |(Q_t)_{ij}| <= (2 n 4^k / m^{k+1}) t^k for every 0 <= t <= 1/8 -- an explicit O(t^{d-1}) with a t-independent constant, which is what the displayed O-statement abbreviates.\nHYPOTHESES: Sigma_0 = U diag(omega) U^T, U^T U = I, 0 < m <= omega_i (positive definiteness with a spectral lower bound, as in the chapter), plus the chapter's Markov hypothesis that Q_0 = Sigma_0^{-1} is tridiagonal (ch05b_Banded Sigma_0^{-1} 1). The module does not separately prove the AR(1) Sigma_0 is positive definite, so this is stated for an abstract spectrally-presented PD Sigma_0.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:g-Qt-inverse-form",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1549-1554",
+      "status": "proved",
+      "summary": "Q_t = (e^{2t}/c_t)[(I + c_t Q_0) - I](I + c_t Q_0)^{-1} = (e^{2t}/c_t)[I - (I + c_t Q_0)^{-1}].",
+      "lean_name": "ch05b_g_Qt_inverse_form",
+      "note": "Proved under c_t != 0 plus the invertibility hypotheses. This is the form the all-t density argument rests on, and it is exact. Correct."
+    },
+    {
+      "id": "eq:g-tridiag-inverse",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1560-1566",
+      "status": "proved",
+      "summary": "Explicit inverse of an irreducible symmetric tridiagonal B: (B^{-1})_{ij} = (-1)^{i+j} theta_{i-1} phi_{j+1}/theta_{L-1} prod_{k=i}^{j-1} b_k for i <= j.",
+      "lean_name": "ch05b_g_tridiag_inverse_minors, ch05b_g_tridiag_inverse, ch05b_tri_mul_usm",
+      "note": "Promoted from instance_checked (L=2,3) to Usmani's formula at arbitrary size L. ch05b_tri_mul_usm proves B * U = theta_{L-1} * I, where U is the signed cofactor matrix U_{ij} = (-1)^{i+j} theta_{min-1} phi_{max+1} prod_{k in [min,max)} b_k, by an entrywise computation (Matrix.mul_apply, Fin.sum_univ_eq_sum_range) in which the row sum collapses via the three-term minor recursions; Matrix.inv_eq_right_inv then turns this into B^{-1} = theta_{L-1}^{-1} U, giving eq:g-tridiag-inverse verbatim for all i <= j with det B != 0 the only hypothesis. ch05b_g_tridiag_inverse_minors additionally discharges the identification of theta and phi with honest determinants: ch05b_th a b (i+1) is proved equal to det of the order-i leading principal block (ch05b_det_tri + ch05b_tri_leading_block) and ch05b_ps a b L (L-j) equal to det of the trailing block of order L-j-1 starting at row j+1 (ch05b_ps_eq_det + ch05b_tri_trailing_block), with theta_{L-1} = det B. The L=2 and L=3 symbolic instances are retained as cross-checks. Correct as stated, including the (-1)^{i+j} sign, the off-diagonal product, and the 0-based denominator theta_{L-1} = det B."
+    },
+    {
+      "id": "eq:g-bandfill",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1584-1591",
+      "status": "proved",
+      "summary": "Band-fill leading order: (Q_t)_{i,i+d} = (-1)^{d-1}(2t)^{d-1}(Q_0^d)_{i,i+d} + O(t^d).",
+      "lean_name": "ch05b_g_bandfill, ch05b_g_bandfill_bound, ch05b_g_bandfill_two, ch05b_exp_c_pow_bridge, ch05b_c_pow_sub, ch05b_pow_sub_le, ch05b_spec_pow_bound, ch05b_spec_rem_bound, ch05b_c_exp_bridge, ch05b_c_bounds",
+      "note": "Proved as the exact two-term decomposition: (Q_t)_{ij} = e^{2t}(-c_t)^{d-1}(Q_0^d)_{ij} + e^{2t}(-c_t)^d R_{ij}, i.e. the leading term carries exactly (-c_t)^{d-1} and every later Neumann term carries (-c_t)^d. The bridge c_t = 2t + O(t^2) is made quantitative: 2t <= c_t <= 4t on [0,1/4] and 2t <= e^{2t}c_t <= 2t + 15t^2 on [0,1/8]. The d=2 case the text uses at line 1653 is proved in fully explicit O-form: |(Q_t)_{i,i+2} + 2t(Q_0^2)_{i,i+2}| <= 15t^2|(Q_0^2)_{ij}| + 32t^2|R_{ij}| on [0,1/8]. The sign (-1)^{d-1} is correct (for alpha>0 it makes the d=2 entry negative, consistent with the sign-pattern claim at lines 1571-1573).\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. The boxed theorem asserts, for every d >= 1, (Q_t)_{i,i+d} = (-1)^{d-1}(2t)^{d-1}(Q_0^d)_{i,i+d} + O(t^d). The general-d Lean statement ch05b_g_bandfill has leading coefficient exp(2t)(-c_t)^{d-1}, not (-1)^{d-1}(2t)^{d-1}; the two differ by a factor 1 + O(t) that is quantified only at d = 2 (ch05b_g_bandfill_two, via ch05b_c_exp_bridge on [0, 1/8]). For d >= 3 the thesis's constant (2t)^{d-1} is not certified, and the O(t^d) size of the remainder is not established at any d (R is never bounded).\n\n[PASS-4 2026-09-13] Upgraded to 'proved'. Both gaps the downgrade named are closed at general d.\n * The thesis' constant: ch05b_exp_c_pow_bridge proves |e^{2t} c_t^{k} - (2t)^{k}| <= 4^k (4 + 15k) t^{k+1} on [0, 1/8], so the exact coefficient e^{2t}(-c_t)^{d-1} and the thesis' (-1)^{d-1}(2t)^{d-1} differ by O(t^d) for EVERY d, not only d = 2. (Core: ch05b_pow_sub_le, b^{k+1} - a^{k+1} <= (k+1) M^k (b-a), and ch05b_c_pow_sub, c_t^k - (2t)^k <= 15 k 4^k t^{k+1}.)\n * The remainder: ch05b_spec_rem_bound bounds R uniformly in t, and ch05b_spec_pow_bound bounds |(Q_0^d)_{ij}| by n/m^d.\nTogether, ch05b_g_bandfill_bound states the boxed theorem in full: at distance d = k+1, |(Q_t)_{i,i+d} - (-1)^{d-1}(2t)^{d-1}(Q_0^d)_{i,i+d}| <= K t^d on 0 <= t <= 1/8, with the explicit K = 4^k(4+15k) n/m^{k+1} + 2 4^{k+1} n/m^{k+2} depending only on (n, m, d).\nHYPOTHESES: as for eq:g-band-fill-order -- Sigma_0 = U diag(omega) U^T with U^T U = I and 0 < m <= omega_i, and Q_0 tridiagonal. The module does not separately prove the AR(1) Sigma_0 is positive definite, so this is stated for an abstract spectrally-presented PD Sigma_0.",
+      "status_original": "proved"
+    },
+    {
+      "id": "noname-28",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1597-1600",
+      "status": "proved",
+      "summary": "Q_t = (1+O(t))[Q_0 - c_t Q_0^2 + c_t^2 Q_0^3 - ...], with c_t = 2t + 2t^2 + O(t^3) and e^{2t} = 1 + O(t).",
+      "lean_name": "ch05b_c_bounds, ch05b_c_exp_bridge, ch05b_exp_le_two, ch05b_g_Qt_res",
+      "note": "The bracket is eq:g-Qt-res (proved exactly). The prefactor claims are made quantitative: 2t <= c_t <= 4t on [0,1/4]; 2t <= e^{2t}c_t <= 2t + 15t^2 on [0,1/8]; 1 <= e^{2t} <= 2 on [0,1/8]. Correct."
+    },
+    {
+      "id": "eq:g-frob",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1612-1616",
+      "status": "proved",
+      "summary": "||A||_F := (sum_{i,j} A_{ij}^2)^{1/2} = sqrt(tr(A^T A)).",
+      "lean_name": "ch05b_frobSq, ch05b_g_frob, ch05b_g_frob_norm",
+      "note": "The definition is encoded and the asserted identity sum_{ij} A_{ij}^2 = tr(A^T A) is proved (both in squared and square-rooted form). Correct."
+    },
+    {
+      "id": "eq:g-bandproj",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1625-1628",
+      "status": "defined",
+      "summary": "Markov-band projection (Pi A)_{ij} = A_{ij} 1{|i-j| <= 1}.",
+      "lean_name": "ch05b_Pi, ch05b_g_bandproj, ch05b_Pi_banded",
+      "note": "A definition; encoded as a Lean def with the defining equation as rfl, plus the sanity lemma that Pi A indeed has bandwidth 1."
+    },
+    {
+      "id": "eq:g-frob-split",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1633-1639",
+      "status": "proved",
+      "summary": "||Q_t||_F^2 = ||diag Q_t||_F^2 + ||Pi Q_t - diag Q_t||_F^2 + ||Q_t - Pi Q_t||_F^2.",
+      "lean_name": "ch05b_g_frob_split",
+      "note": "Proved for an arbitrary matrix by the entrywise trichotomy (i=j; 0<|i-j|<=1; |i-j|>=2), which is exactly the disjoint-support additivity the text invokes. Correct."
+    },
+    {
+      "id": "eq:g-offmass",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1645-1649",
+      "status": "proved",
+      "summary": "M_perp(t) := ||Q_t - Pi Q_t||_F = (sum_{|i-j|>=2}(Q_t)_{ij}^2)^{1/2}.",
+      "lean_name": "ch05b_g_offmass",
+      "note": "The definition is encoded and the asserted equality of the two expressions (Frobenius norm of the complement vs the sum restricted to |i-j| >= 2) is proved. Correct."
+    },
+    {
+      "id": "eq:g-larget",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1659-1662",
+      "status": "proved",
+      "summary": "Q_t = I - e^{-2t}(Sigma_0 - I) + e^{-4t}(Sigma_0 - I)^2 + O(e^{-6t}).",
+      "lean_name": "ch05b_g_larget, ch05b_noname_Sigt_larget",
+      "note": "Proved as the exact three-term Neumann expansion of (I + e^{-2t}(Sigma_0-I))^{-1} with remainder -e^{-6t} Q_t (Sigma_0-I)^3, so the O(e^{-6t}) is displayed explicitly. The preceding rewriting Sigma_t = I + e^{-2t}(Sigma_0 - I) (line 1656) is proved too. Signs and exponents all match. Correct."
+    },
+    {
+      "id": "thm:g-decouple",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1220-1228",
+      "status": "proved",
+      "lean_name": "ch05b_g_decouple, ch05b_g_decouple_cov, ch05b_g_decouple_density, ch05b_g_decouple_score, ch05b_g_decouple_score_local, ch05b_gaussPDF, ch05b_orth_abs_det, ch05b_conj_det, ch05b_orth_dot",
+      "summary": "Theorem (Decoupling), parts (i) and (ii): in the eigen-coordinates xtilde = U^T x the noisy law factorises, P_t(xtilde) = prod_i N(xtilde_i; 0, lambda_i(t)), and the score splits into independent scalar components stilde_i = -xtilde_i/lambda_i(t), each a function of its own coordinate only.",
+      "note": "[PASS-4 2026-09-13] Proved at arbitrary chain length, under exactly the chapter's standing hypothesis Sigma_0 = U diag(omega) U^T with U^T U = I and omega_i > 0 (i.e. Sigma_0 symmetric positive definite, the hypothesis of eq:g-Qt-spec; ch05b_g_spectral supplies (U, omega) for any symmetric Sigma_0).\n(i) ch05b_g_decouple_density: ch05b_gaussPDF (Sigma_t) (U *v xtilde) = prod_i ProbabilityTheory.gaussianPDFReal 0 (lambda_i(t)).toNNReal (xtilde_i). The left side is the honest centred multivariate Gaussian density ((2pi)^n det S)^{-1/2} exp(-(x . S^{-1} x)/2) evaluated at U xtilde, which IS the density of xtilde because |det U| = 1 (ch05b_orth_abs_det); the right side uses mathlib's own scalar Gaussian pdf, not a re-definition. The proof goes through det Sigma_t = prod_i lambda_i(t) (ch05b_conj_det), the quadratic form (U xtilde).(Q_t U xtilde) = sum_i xtilde_i^2/lambda_i(t) (ch05b_orth_dot), Real.sqrt_prod and Real.exp_sum. Following the instruction for product measures, independence is recorded as the density identity, which is what the thesis uses.\n(ii) ch05b_g_decouple_score: (U^T *v s(U xtilde, t))_i = -xtilde_i/lambda_i(t), plus ch05b_g_decouple_score_local for the 'depends on its own coordinate only' clause (y_i = z_i implies equal i-th components).\nThe proof's first step, Cov(xtilde) = U^T Sigma_t U = diag(lambda_i(t)) (tex 1236-1238), is ch05b_g_decouple_cov. ch05b_g_decouple bundles all parts.\nPART (iii) IS NOT COVERED BY THIS ITEM: it is recorded separately as thm:g-decouple-iii, because only its coefficient-level content is formalisable here. This item was previously 'skipped' with no Lean content at all.",
+      "status_original": "skipped"
+    },
+    {
+      "id": "thm:g-decouple-iii",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1229-1244",
+      "status": "instance_checked",
+      "summary": "Theorem (Decoupling), part (iii): the reverse-time denoising dynamics decouple into L independent scalar linear Gaussian diffusions, one per mode -- OU-type but time-inhomogeneous, the reverse drift coefficient depending on t through lambda_i(t).",
+      "lean_name": "ch05b_revDrift, ch05b_revCoef, ch05b_g_decouple_reverse, ch05b_g_decouple_noise, ch05b_g_decouple_inhomog",
+      "note": "[PASS-4 2026-09-13] PARTIAL, recorded in this audit's 'instance_checked' (= not the full claim) bucket rather than 'proved'. What IS proved, at arbitrary chain length, is exactly the coefficient-level content of the thesis' own proof (tex 1240-1244):\n * ch05b_g_decouple_reverse: for the reverse drift of eq:sm-reverse, b(x,t) = f_c(t) x - g(t)^2 s(x,t) (ch05b_revDrift, the chapter's linear OU forward drift), the eigen-coordinate drift field is coordinatewise scalar and linear: (U^T b(U xtilde, t))_i = kappa_i(t) xtilde_i with kappa_i(t) = f_c(t) + g(t)^2/lambda_i(t) -- no coordinate i depends on any other.\n * ch05b_g_decouple_noise: U^T (sigma^2 I) U = sigma^2 I, i.e. 'an orthogonal image of white noise is again white' -- the transformed driving noise is still isotropic, with zero cross-coordinate covariance.\n * ch05b_g_decouple_inhomog: with the chapter's VP coefficients (f(x,t) = -x, g = sqrt 2), t -> kappa_i(t) is injective on t >= 0 whenever omega_i != 1, so the scalar diffusions really are time-inhomogeneous and the t-dependence enters only through lambda_i(t).\nOBSTRUCTION: the remaining step -- 'the coefficients separate, therefore the solution processes are L independent scalar diffusions' -- is a statement about solutions of a time-inhomogeneous linear SDE, and mathlib has no stochastic integral, no SDE existence/uniqueness and no time-reversal (Anderson) theorem, so no SDE object can even be written down. Nothing weaker was substituted for the claim: the process-level statement is simply not formalised."
+    },
+    {
+      "id": "noname-frob-normalisation",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1641-1643",
+      "status": "proved",
+      "lean_name": "ch05b_noname_frob_normalisation, ch05b_frob_nn_sq, ch05b_count_nn, ch05b_count_edge, ch05b_count_edge'",
+      "summary": "||Pi Q_0 - diag Q_0||_F = sqrt(2(L-1)) |alpha| / sigma_eta^2, the clean nearest-neighbour mass by which both coupling pieces are divided.",
+      "note": "[PASS-4 2026-09-13] Proved for every chain length L, on the module's own AR(1) precision ch05b_Q0 (diagonal (1,1+alpha^2,...,1)/(1-alpha^2), off-diagonal -alpha/(1-alpha^2)) and its own band projector ch05b_Pi and Frobenius functional ch05b_frobSq:\n  ch05b_frob_nn_sq : frobSq (Pi Q0 - diag Q0) = 2(L-1) * alpha^2/(1-alpha^2)^2  (all L, no hypothesis on alpha),\n  ch05b_noname_frob_normalisation : sqrt (frobSq (Pi Q0 - diag Q0)) = sqrt(2(L-1)) * |alpha|/(1-alpha^2)   for alpha^2 < 1,\nwhich is the text's sqrt(2(L-1)) |alpha|/sigma_eta^2 with sigma_eta^2 = 1 - alpha^2. The combinatorial core is ch05b_count_nn: there are exactly 2(L-1) ordered index pairs at distance one (induction on L, with natural subtraction so L = 0, 1 are covered). Previously 'skipped'.",
+      "status_original": "skipped"
+    },
+    {
+      "id": "noname-qt-density",
+      "tex_file": "thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "1543-1580",
+      "status": "proved",
+      "lean_name": "ch05b_Qt_offdiag_ne_zero",
+      "summary": "'When: immediately' -- for alpha != 0, every off-diagonal entry of Q_t is non-zero at every t > 0.",
+      "note": "[ADDED 2026-09-13 after fidelity review] This thesis claim had no item, although the module already proves it in full generality: ch05b_Qt_offdiag_ne_zero holds for all L, all t > 0 and all non-degenerate alpha. Added so the record reflects the coverage that exists."
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

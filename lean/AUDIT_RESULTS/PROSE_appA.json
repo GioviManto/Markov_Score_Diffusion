@@ -1,0 +1,23 @@
+{
+  "chapter": "appA-reproducibility",
+  "claims_checked": 24,
+  "findings": [
+    {
+      "tex_lines": "30-31",
+      "severity": "error",
+      "claim": "two are Ti\\emph{k}Z schematics drawn in the source",
+      "lean_name": "",
+      "problem": "There are THREE TikZ figures, not two. Counting over thesis/chapters/: 31 figure environments and 31 \\label{fig:...}. Of these, 28 use \\includegraphics (21 .pdf = exactly the 21 rows of Table~\\ref{tab:figure-map}; 7 .png = exactly the seven literature figures named in this same sentence) and 3 use \\begin{tikzpicture}: fig:thesis-pipeline (ch01-introduction.tex, 1 tikzpicture), fig:rbm-graph and fig:posterior-factor-graph (ch03-model.tex, 2 tikzpictures). Arithmetic: 21 + 7 + 2 = 30, but the thesis has 31 figures; 21 + 7 + 3 = 31. Per-file tikzpicture counts are ch01=1, ch03=2, all other chapters 0.",
+      "suggested_fix": "Change \"two are Ti\\emph{k}Z schematics drawn in the source\" to \"three are Ti\\emph{k}Z schematics drawn in the source\"."
+    },
+    {
+      "tex_lines": "146-151",
+      "severity": "inconsistency",
+      "claim": "written there by one of the thirteen generators below ... Nine live under \\texttt{research/tools/}; three are thesis-side scripts ... \\texttt{make\\_ref\\_energy} is the fourteenth name and writes no macro at all",
+      "lean_name": "",
+      "problem": "Off-by-one: make_ref_energy is counted twice. The table that follows lists exactly 13 names (col 1: make_tab_efficiency, make_tab_structured, make_tab_screening, make_tab_capacity, make_tab_nonmarkov, fig_ch10, make_build_manifest = 7; col 2: make_aggregation_robustness, make_aggregation_structured, make_convergence_numbers, make_grid_diagnostics, make_ref_energy, make_laplace_oracle = 6). The sentence's own breakdown gives 9 + 3 = 12 macro-writing generators, not thirteen. And since make_ref_energy IS one of the 13 listed names, it is the thirteenth name, not the fourteenth (13 macro-writers + make_ref_energy would require 14 rows in the table; there are 13). Confirmed against the generated files: thesis/sections/ has exactly 12 files containing \\newcommand, written by 11 distinct scripts (fig_ch10 writes two of them), and thesis/tools/ contains exactly the three thesis-side names fig_ch10.py, make_laplace_oracle.py, make_build_manifest.py.",
+      "suggested_fix": "Read \"one of the twelve generators below\" and \"\\texttt{make\\_ref\\_energy} is the thirteenth name\". (9 research-side + 3 thesis-side = 12 macro writers; make_ref_energy is the 13th listed name and writes no macro.)"
+    }
+  ],
+  "note": "Everything else in the appendix checks out. Verified against the generated macro files in thesis/sections/: \\structcells 192 = \\structseeds 16 x \\structsizes 4 x \\structregions 3 (and the 16x4x2=128 a two-column table suggests); \\ncellstotal 1,536 = 16 seeds x 8 sizes x 12 levels, \\ndropped 16, \\ncellsused 1,520 = 1536-16, matching ch10 line 345-346; \\nreversed 2 and \\netagree 81.1 / \\emagree 77.6 agree with ch10; \\screenconfigs 32 = 16+8+8 from tab-screening.tex, two training sizes {32,2048}, 2 learning rates, and the dilated stack (66.4k-264k params, the most capacity) does finish last at risk 0.226 vs the window head's 0.148; winner radius/width/lr/mode all match screening-numbers.tex; \\screenregion=bulk is indeed the third, unreported 'predeclared interior slice' of tab-structured.tex's caption; \\convcap 800 and \\convbudget 40 match ch09 (which likewise calls 800 the only uncensored shard, consistent with the 638 maximum settling time); 'fifteen cells from two git-archive deployments' matches make_tab_nonmarkov's provenance header (5 Laplace beta + 5 Gaussian beta + 5 Gaussian gamma) and the 5+5 columns of tab-nonmarkov; 'twelve numbers' for the per-level reference energies matches the twelve noise levels named in efficiency-numbers.tex; \\extendedn 4096 = \\biggestn and the nseq=8192 exclusion is stated consistently in both paragraphs; the build-manifest table's 7 rows use exactly the 12 macros build-manifest.tex defines. Unverifiable from the repo (not reported as findings, no speculation): the literal '400'-iteration shard length (convergence-numbers.tex says only 'the shorter shard'), the 'sixteen-file import closure', commit 569a67c, SLURM job 628601, and 'development seeds numbered from 10000' -- all live in research/tools/ and outputs/frozen/, which are not present in this checkout. Two non-numerical nits, not reported as findings: (i) the tab:figure-map row for fig:em-nonmarkov is the only exp_NN row not marked 'frozen', yet the prose on line 133 says it is reported from outputs/frozen/exp_21_clean; (ii) line 284 'Those are version floors' is plural but only one floor (Python >= 3.10) is stated."
+}

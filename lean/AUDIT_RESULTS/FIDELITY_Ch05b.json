@@ -1,0 +1,63 @@
+{
+  "module": "ThesisAudit.Ch05b",
+  "checked": 56,
+  "issues": [
+    {
+      "id": "thm:g-decouple",
+      "lean_name": "(none)",
+      "kind": "missing",
+      "severity": "medium",
+      "detail": "The JSON's coverage line claims 'ch05-gaussian-matrix.tex lines 785-1686', but its items jump from eq:g-Qt-spec (1169-1178) straight to noname-15 (1256-1260). The whole of tex 1180-1255 is unrecorded, including Theorem 'Decoupling' (\\begin{theorem}[Decoupling]\\label{thm:g-decouple}, tex 1220ff) and its three claims: '(i) the noisy law factorises, $P_t(\\tilde x) = \\prod_i \\Nd(\\tilde x_i; 0, \\lambda_i(t))$'; '(ii) the score splits into independent scalar components, $\\tilde\\score_i(\\tilde x,t) = -\\tilde x_i/\\lambda_i(t)$'; '(iii) the reverse-time denoising dynamics decouple into L independent scalar linear Gaussian diffusions'. Claim (ii) in particular is a pure linear-algebra identity ($\\tilde\\score = -U^\\T \\Qt U \\tilde x = -\\operatorname{diag}(1/\\lambda_i(t))\\tilde x$) that the module already has every ingredient for (ch05b_g_Qt_spec, ch05b_g_affine_inv), yet no theorem states it and no JSON entry marks it as skipped. A reader of the audit sees an unbroken list of 'proved' items and has no way to learn that the chapter's central structural theorem was never formalised.",
+      "suggested_status": "add an item for thm:g-decouple (at minimum parts (i)-(ii)) or record it explicitly as not_attempted"
+    },
+    {
+      "id": "eq:g-tridiag-inverse / noname-25 / noname-11",
+      "lean_name": "ch05b_g_tridiag_inverse_minors, ch05b_noname_Q0_banded, ch05b_noname_J_tridiag_Qt_dense_gen, ch05b_Qt_offdiag_ne_zero",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "The JSON's record of the Lean file is stale and, in one place, states something the file contradicts. (a) eq:g-tridiag-inverse is recorded status 'instance_checked' with the note 'Usmani's formula for general L is out of reach at this budget, so it is verified symbolically at L=2 ... and at L=3'. The file's Pass-3 section proves it for every L: 'theorem ch05b_g_tridiag_inverse_minors (a b : N -> R) (L : N) (hdet : (ch05b_tri a b L).det != 0) (i j : Fin L) (hij : i <= j) : (ch05b_tri a b L)^{-1} i j = (-1)^(i+j) * ((ch05b_tri a b i).det * (trailing block).det) / (ch05b_tri a b L).det * prod_{k in Ico i j} b k', which is exactly the tex's '(B^{-1})_{ij} = (-1)^{i+j} \\theta_{i-1}\\phi_{j+1}/\\theta_{L-1} \\prod_{k=i}^{j-1} b_k'. (b) noname-25 is recorded 'instance_checked ... verified for the AR(1) instance alpha=1/2, L=3', but ch05b_noname_Q0_banded proves Banded ((ch05b_Sig0 alpha L)^{-1}) 1 for every alpha with 1-alpha^2 != 0 and every L. (c) noname-11 is recorded 'instance_checked ... L=3, alpha=1/2, e^{-2t}=1/2', but ch05b_noname_J_tridiag_Qt_dense_gen proves J banded AND every off-diagonal (Q_t)_{ij} != 0 for all L, all t>0, all non-degenerate alpha. (d) Relatedly, the general-L theorem ch05b_Qt_offdiag_ne_zero discharges the chapter's 'When: immediately' claim (tex 1543-1580, 'For alpha != 0, every off-diagonal entry of Q_t is non-zero at every t > 0') and that thesis claim has no JSON item at all. The direction of error is under-claiming rather than inflation, but the audit record misdescribes what was verified and asserts a false limitation.",
+      "suggested_status": "proved (general L) for eq:g-tridiag-inverse, noname-25 and noname-11; add an item for the tex 1543-1580 density claim"
+    },
+    {
+      "id": "eq:g-score-matrix",
+      "lean_name": "ch05b_g_score_matrix",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "Tex (792-796): 'Since $\\log P_t(x) = -\\tfrac12 x^\\T \\Qt x + \\mathrm{const}$ and $\\nabla_x(x^\\T\\Qt x) = 2\\Qt x$ for symmetric $\\Qt$, $\\score(x,t) = \\nabla_x \\log P_t(x) = -\\Qt x$.' The Lean witness for the boxed identity is 'theorem ch05b_g_score_matrix ... : ch05b_score S0 t x = -((ch05b_Sigt S0 t)^{-1} *v x) := rfl', where ch05b_score is *defined* four lines earlier as 'def ch05b_score ... := -(ch05b_Qt S0 t *v x)'. It is rfl on the agent's own definition and carries no content. No density, no log P_t and no gradient operator appears anywhere in the module, so the actual claim - that the gradient of the log marginal density equals -Q_t x - is not formalised. The companion lemma ch05b_g_score_matrix_grad is a generic quadratic-form increment identity '(x+v).(Q(x+v)) - x.(Qx) = 2*(Qx).v + v.(Qv)' that never mentions P_t or the -1/2 factor. The JSON note does say '(b) the score is the definitional -Sigma_t^{-1} x', but the item's status is 'proved' and its summary reads 's(x,t) = grad log P_t(x) = -Q_t x', which overstates what compiles.",
+      "suggested_status": "proved (gradient lemma only); the identification score = grad log P_t is assumed, not verified"
+    },
+    {
+      "id": "eq:g-Qt-smallt",
+      "lean_name": "ch05b_g_Qt_smallt",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "Tex (1312-1322) is an approximation chain: 'For small $t$, $\\gamma_t\\Sigz$ dominates $I_L$, hence $\\Qt \\approx \\frac{1}{\\Deltat}(\\gamma_t\\Sigz)^{-1} = \\frac{1}{\\Deltat\\gamma_t}\\Qz = e^{2t}\\Qz$.' ch05b_g_Qt_smallt proves only the two exact links '(1/Delta_t)(gamma_t*S0)^{-1} = (1/(Delta_t*gamma_t))S0^{-1}' and '= exp(2t) S0^{-1}'; the only approximate step, Q_t ~ (1/Delta_t)(gamma_t Sigma_0)^{-1}, is neither stated nor bounded, so nothing in the module relates Q_t itself to e^{2t}Q_0. The sister item eq:g-Qt-larget was handled the honest way - ch05b_g_Qt_larget displays the exact remainder 'Q_t - (1/Delta_t)I = -(gamma_t/Delta_t) S0 (I + gamma_t S0)^{-1}' - so the asymmetry is not a budget limit. Status 'proved' on an item whose content is an approximation with no error term overstates the result; the note's phrase 'the only non-approximate content' is misleading given a remainder was available (Q_t - e^{2t}Q_0 = -e^{2t} c_t Q_0 (I + c_t Q_0)^{-1} Q_0 follows from ch05b_g_Qt_res at N=1).",
+      "suggested_status": "partially_proved (exact algebraic links only; approximation step unbounded)"
+    },
+    {
+      "id": "eq:g-bandfill",
+      "lean_name": "ch05b_g_bandfill",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "The boxed Theorem 'Band-fill leading order' (tex 1584-1591) asserts, for every d >= 1, '(\\Qt)_{i,i+d} = (-1)^{d-1}(2t)^{d-1}(\\Qz^d)_{i,i+d} + O(t^d)'. The general-d Lean statement ch05b_g_bandfill instead ends at 'ch05b_Qt S0 t i j = exp(2t) * ((-(ch05b_c t))^(d-1) * (S0^{-1}^d) i j) + exp(2t) * ((-(ch05b_c t))^d * R i j)': the leading coefficient is exp(2t)(-c_t)^{d-1}, not (-1)^{d-1}(2t)^{d-1}, and the two differ by a factor 1+O(t) that is only quantified at d = 2 (ch05b_g_bandfill_two, via ch05b_c_exp_bridge on [0,1/8]). For d >= 3 the thesis's stated constant (2t)^{d-1} is therefore not certified, and neither is the O(t^d) size of the remainder (R is never bounded). The note discloses the d=2 specialisation but the item is carried as 'proved' for a theorem the tex states for all d.",
+      "suggested_status": "proved for d=2; exact-with-remainder form only for general d"
+    },
+    {
+      "id": "eq:g-band-fill-order",
+      "lean_name": "ch05b_g_band_fill_order",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "Tex (1504-1512): '(\\Qt)_{ij} = O(c_t^{d-1}) = O(t^{d-1}), d >= 1.' The Lean theorem proves a factorisation only: 'ch05b_Qt S0 t i j = (-(ch05b_c t))^(d-1) * (exp(2t) * (S0^{-1} * (1 + c_t S0^{-1})^{-1} * S0^{-1}^(d-1)) i j)'. The second factor is t-dependent and is never bounded, so the O(t^{d-1}) conclusion does not follow from the theorem as stated; the JSON note asserts the entry 'factors as (-c_t)^{d-1} times a bounded matrix entry', but no boundedness lemma exists in the file (contrast ch05b_g_bandfill_two, which does supply explicit constants, and only at d=2). The factorisation is the right skeleton but the O-statement is not established.",
+      "suggested_status": "proved (exact factorisation); O(t^{d-1}) not established - remainder factor unbounded"
+    },
+    {
+      "id": "eq:g-frob-split",
+      "lean_name": "(none)",
+      "kind": "missing",
+      "severity": "low",
+      "detail": "Inside the audited range, tex 1641-1643 states a concrete quantitative formula that has no JSON item: the two coupling pieces are 'each divided by the clean nearest-neighbour mass $\\|\\Pi\\Qz - \\operatorname{diag}\\Qz\\|_F = \\sqrt{2(L-1)}\\,|\\alpha|/\\sigma_\\eta^2$'. It is fully checkable with objects the module already defines (ch05b_Q0 gives the AR(1) precision's off-diagonal entries explicitly, ch05b_Pi and ch05b_frobSq give the norm), and it is the normalisation on which Figure fig:g-markov-survival's 'below one-tenth' headline rests. Being inline rather than displayed, it slipped out of the item list entirely.",
+      "suggested_status": "add an item (provable for general L from ch05b_Q0)"
+    }
+  ],
+  "note": "56 proved/instance_checked items reviewed against tex 785-1686. The algebraic core is genuinely sound: the two-routes identity (ch05b_g_two_score_routes), the J/h identification and completing-the-square chain, the resolvent and Neumann machinery, the bandwidth-of-powers induction, and the Frobenius split are all stated for abstract invertible Sigma_0 at arbitrary n, with hypotheses that are the thesis's own standing assumptions and no hidden invertibility (every inverse is discharged through Matrix.inv_eq_right_inv). Signs, factors and index ranges match the tex wherever I checked them line by line, including the trailing -h^T J^{-1} h in completing the square, the m+1 exponent and alternating (-c_t)^m in eq:g-Qt-res, and the 0-based theta/phi indexing in Usmani. No unsatisfiable-hypothesis vacuity was found. The issues above are (i) one substantive gap in coverage (thm:g-decouple), (ii) a stale audit record that understates three items the file actually proves in general, and (iii) three asymptotic items where the status 'proved' is stronger than the Lean statement, which supplies an exact identity but no error bound."
+}

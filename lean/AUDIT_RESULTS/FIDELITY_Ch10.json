@@ -1,0 +1,47 @@
+{
+  "module": "ThesisAudit.Ch10",
+  "checked": 34,
+  "issues": [
+    {
+      "id": "eq:em-breakeven-a",
+      "lean_name": "ch10_em_breakeven_brackets",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "TEX (lines 1078-1083): 'delta^star in [1.1, 2.2] x 10^{-2} nats/site (vs CNN), [2.2, 4.0] x 10^{-2} nats/site (vs MLP)', with the surrounding prose 'the CNN ratio falling from 1.2 to 0.97 across its bracket and the MLP one from 1.2 to 0.84 across its own'. LEAN, in full: 'theorem ch10_em_breakeven_brackets : (0.97 : R) < 1 AND (1 : R) < 1.2 AND (0.84 : R) < 1 := by refine <by norm_num, by norm_num, by norm_num>'. The statement mentions no delta, no bracket endpoint (1.1, 2.2, 4.0 do not appear), no ratio function, and no entry of tab:em-misspecification; it is three decimal literals compared by norm_num and is true by evaluation regardless of what the thesis or the table says. Nothing in it could fail if the reported brackets were wrong, if the ratios were mis-transcribed, or if the table said something else. The audit records this item as status 'proved', which tells a reader the displayed break-even brackets were verified; what was actually verified is 0.97 < 1 < 1.2 and 0.84 < 1. The JSON note does spell out the lemma's content, but the status line does not, and eq:em-breakeven itself is nowhere formalised.",
+      "suggested_status": "asserted (hand-checked against tab:em-misspecification; no Lean content)"
+    },
+    {
+      "id": "eq:em-bimp",
+      "lean_name": "ch10_bimp_fwd",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "TEX (lines 285-292) displays THREE objects: the forward recurrence 'h_fwd_k = tanh(A z_k + F h_fwd_{k-1} + a)', the BACKWARD recurrence 'h_bwd_k = tanh(B z_k + G h_bwd_{k+1} + b)', and the joint readout. The audit note states the display is 'encoded as ch10_bimp_fwd, ch10_bimp_bwd (recurrences started from a zero boundary state) and ch10_bimp_readout'. There is no ch10_bimp_bwd in Ch10.lean: grep for 'bimp' returns only ch10_bimp_fwd (line 415), ch10_bimp_readout (line 423) and ch10_bimp_fwd_causal (line 431). The backward recurrence -- the half of the display that carries the 'bidirectional' claim, and the only half whose recursion runs the other way (k+1 rather than k-1, over a type where that direction is not the Nat recursor) -- is not encoded at all, and the causality lemma ch10_bimp_fwd_causal covers only the forward sweep. A reader of the audit is told a Lean name exists that does not.",
+      "suggested_status": "defined (forward recurrence and readout only; backward recurrence not encoded)"
+    },
+    {
+      "id": "eq:em-weights-smallt",
+      "lean_name": "ch10_trQ0_rounds / ch10_smallt_coefficient_rounds",
+      "kind": "inflated",
+      "severity": "medium",
+      "detail": "TEX (lines 77-82) quotes 'tr Q_0 = 193.4 at t -> 0' and 'the linear coefficient in eq:em-weights-smallt is -3140' for the AR(1) chain at rho = 0.85, n = 32. The audit records eq:em-weights-smallt as 'proved' and asserts 'Both quoted values correct'. In Lean the two numbers are evaluated from stand-alone defs typed in by the agent: 'def ch10_trQ0 (n : N) (r : R) : R := (((n : R) - 2) * (1 + r ^ 2) + 2) / (1 - r ^ 2)' and 'def ch10_trQ0sq ... := (((n : R) - 2) * (1 + r ^ 2) ^ 2 + 2 + 2 * ((n : R) - 1) * r ^ 2) / (1 - r ^ 2) ^ 2', and the 'proofs' are 'unfold ch10_trQ0; norm_num'. Neither def is ever connected to a matrix: grep shows ch10_trQ0 and ch10_trQ0sq appear only in their own defining lines and in the four numeric lemmas, never with ch10_arSig, never with Matrix.trace, never with an inverse. The claim they encode -- that Sigma_0^{-1} at n = 32 is tridiagonal with interior diagonal (1+r^2)/(1-r^2), boundary diagonal 1/(1-r^2), off-diagonal -r/(1-r^2) -- is verified only at n = 2, 3, 4 (ch10_arQ2_inv/ch10_arQ3_inv/ch10_arQ4_inv), and the further step tr(Q_0^2) = sum of squared entries is not proved at all. The arithmetic is correct given those defs (I recomputed both: 53.675/0.2775 = 193.42 and 2*(193.4234 - 1763.56) = -3140.3), but 'proved' overstates a small-n extrapolation plus two unverified closed forms.",
+      "suggested_status": "proved (expansion shape); instance_checked/asserted (the n = 32 numerics)"
+    },
+    {
+      "id": "eq:em-q-limits",
+      "lean_name": "ch10_V_pos",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "TEX (lines 524-536) states for the t -> 0 end: 'J_d -> infinity, q ~ |beta|/J_d -> 0, V -> 0'. The audit records eq:em-q-limits as 'proved' and its note says 'ch10_V_pos with V = 1/sqrt(J_d^2-4beta^2) gives V -> 0'. The lemma in question is 'theorem ch10_V_pos (hb : b != 0) (hJ : 2 * |b| < Jd) : 0 < ch10_V Jd b := by unfold ch10_V; exact div_pos one_pos (ch10_bulk_sqrt_pos hb hJ)' -- it asserts only POSITIVITY of V, at a fixed pair (J_d, beta). It contains no filter, no limit, and no monotonicity in J_d; it is equally true when V is bounded away from zero, so it cannot witness 'V -> 0'. The V half of the t -> 0 limit is unformalised, and a positivity lemma is cited in its place. (Secondary, on the same item: the q half is proved only as the bound |q| <= 2|beta|/J_d, a factor of 2 looser than the displayed q ~ |beta|/J_d -- that one is disclosed; and the t -> infinity end is proved by evaluation AT the prior parameter values with 0 < rho < 1, not as a limit and not for rho < 0, where the display's q -> |rho| still applies.)",
+      "suggested_status": "proved (t -> infinity end, rho > 0); partially proved (t -> 0: q bound only, V limit not formalised)"
+    },
+    {
+      "id": "eq:em-weights",
+      "lean_name": "ch10_em_weights_Sig_tendsto_one",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "TEX (lines 62-67) displays two claims: 'E||s*(X_t,t)||^2 = tr Sigma_t^{-1}' and 'Sigma_t^{-1} -> I (t -> infinity)'. The first is genuinely proved. For the second, the Lean statement is about Sigma_t, not its inverse: 'theorem ch10_em_weights_Sig_tendsto_one ... : Filter.Tendsto (fun t => ch10_Sig S0 t i j) Filter.atTop (nhds ((1 : Matrix ...) i j))'. Passing from Sigma_t -> I to Sigma_t^{-1} -> I needs continuity of inversion at I (and non-singularity along the way), which is not established anywhere in the file. The item is recorded 'proved' with 'Correct as stated'; the note does disclose the substitution, so this is a labelling overstatement rather than a hidden one.",
+      "suggested_status": "proved (trace identity); proved for Sigma_t -> I, inverse limit not formalised"
+    }
+  ],
+  "note": "Coverage is complete: every display in the tex range (labelled eq:em-* at lines 35, 48, 62, 70, 124, 192, 223, 236, 257, 273, 285, 388, 431, 441, 456, 475, 524, 545, 564, 575, 595, 791, 876, 892, 913, 925, 973, 1078, 1123, 1148, plus the three unnumbered displays at 491-495, 507-512 and 1139-1142) has a JSON entry; nothing is MISSING. I re-derived and confirmed the substantive items: eq:em-pooling (energy-weighted pooling identity), eq:em-parameterisation (both the head identity and the e^t sqrt(Delta_t) residual rescaling), eq:em-mlp (25,248 = 128*35+128+128^2+128+32*128+32), eq:em-window (4,801 at r=2, W=64), eq:em-posterior-precision (channel enters the diagonal alone; c^2/Delta and c/Delta match e^{-2t}/Delta_t and e^{-t}/Delta_t), eq:em-bulk-params, eq:em-bulk-cov (Green's-function relation including the d=0 normalisation 2 beta V q + J_d V = 1), noname-1 (the d >= 1 index range matches the tex), noname-2, eq:em-discarded (genuine tsums), eq:em-woodbury ((1+beta^2)*c reproduces the displayed c_beta exactly; hypothesis hc is satisfiable, not vacuous), eq:em-chowliu, eq:em-longrange (the Lean def's diagonal 1.05 * sum over ALL j != i matches the tex's '[Q_long]_ii = 1.05 sum_{j != i} e^{-|i-j|/l}' verbatim -- the generous dominance margin is the thesis's own construction, not a Lean weakening), and eq:em-info-prediction. The eq:em-breakeven-b discrepancy entry is well-founded: I confirmed the MLP interpolant through (2.2, 1.2) and (4.0, 0.84) reaches 1 at 3.2e-2 and is 1.04 at the printed 3.0e-2."
+}

@@ -1,0 +1,39 @@
+{
+  "module": "ThesisAudit.Ch08b",
+  "checked": 31,
+  "issues": [
+    {
+      "id": "eq:em-pairwise",
+      "lean_name": "ch08b_em_pairwise",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "Tex (lines 614-623): 'On a chain this marginal is obtained exactly from the forward and backward messages: b_i(a_{i-1},a_i) \\propto \\lmsg_{i-1}(a_{i-1}) \\phi_{i-1}(a_{i-1}) \\kernel_{\\theta^{(k)}}(a_i|a_{i-1}) \\phi_i(a_i) \\rmsg_i(a_i)'. Lean: 'theorem ch08b_em_pairwise ... (Lpart : U -> S -> R) (Rpart : S -> V -> R) ... : (sum u, sum v, Lpart u a * phiL a * K a' a * phiR a' * Rpart a' v) = (sum u, Lpart u a) * phiL a * K a' a * phiR a' * (sum v, Rpart a' v)'. The whole content of the thesis display -- that on a CHAIN the unnormalised joint splits into a part depending only on the variables strictly left of the edge, the two site factors, the transition kernel, and a part depending only on the variables strictly right -- is written into the SHAPE OF THE SUMMAND as a hypothesis. What remains and is actually proved is bare distributivity (Finset.mul_sum / sum_mul): the identity holds for arbitrary Lpart, Rpart, phiL, phiR, K with no chain, no site index i, no factor graph, and no BP recursion for lmsg/rmsg anywhere in the file. It is also never connected to ch08b_em_pairwise_def (which takes lam and rho as opaque inputs), so nothing ties the sums (sum_u Lpart) and (sum_v Rpart) to messages produced by forward-backward. The audit note 'Proved in the form that carries the content' is the misleading part: the content is assumed, the algebra is what is proved.",
+      "suggested_status": "proved (distributivity only) -- downgrade note: the chain factorisation is a hypothesis, not a result; the forward/backward recursions are not formalised"
+    },
+    {
+      "id": "noname-20",
+      "lean_name": "ch08b_em_likelihood_monotone (hQ); ch08b_em_mstep_pi_max, ch08b_mixture_block_ascent, ch08b_em_alpha_block_ascent",
+      "kind": "inflated",
+      "severity": "medium",
+      "detail": "Tex (lines 1150-1154): 'Q(\\theta^{(k+1)}|\\theta^{(k)}) \\geq Q(\\theta^{(k)}|\\theta^{(k)})'. The JSON note claims: 'the antecedent itself is DISCHARGED blockwise for the chapter's own ECM updates ... The chapter asserts this conditional maximality without verifying it; here it is verified.' No Lean theorem states or assembles that. The three block lemmas are about three SEPARATE expressions and are never composed: ch08b_em_mstep_pi_max concludes 'ch08b_Qpi R p <= ch08b_Qpi R (ch08b_mstep_pi R)'; ch08b_mixture_block_ascent concludes 'ch08b_Qtau R (ch08b_S ... nu) tau <= ch08b_Qtau R (ch08b_S ... (ch08b_mstep_nu ...)) (ch08b_mstep_var ...)'; ch08b_em_alpha_block_ascent concludes an inequality for '-sum_c ch08b_S ... / (2 * s2 c)'. There is no lemma adding the three pieces back into the RHS of ch08b_em_Q_suffstats, none that applies the alpha block at the already-updated (nu+, s2+) as ECM actually sequences it, and no lemma linking any of them to the Q that appears in ch08b_em_likelihood_monotone / ch08b_em_likelihood_monotone_concrete (there Q is 'sum_z (pj0 z / sum pj0) * log (pj1 z)' on an abstract fintype, a different object entirely). So in the Lean the antecedent remains exactly what the note first says it is -- the hypothesis hQ -- and a reader is told it was discharged.",
+      "suggested_status": "hypothesis (hQ) + three unlinked per-block ascent lemmas; NOT a discharged antecedent"
+    },
+    {
+      "id": "eq:em-indicator-responsibility",
+      "lean_name": "ch08b_em_indicator_responsibility",
+      "kind": "vacuous",
+      "severity": "low",
+      "detail": "Tex (lines 692-700): 'E[1{c_i=c} | a_{i-1},a_i,x,\\theta^{(k)}] = r_{i,c}^{(k)}(a_{i-1},a_i)'. Lean: 'theorem ch08b_em_indicator_responsibility {C} (r : Fin C -> R) (c : Fin C) : (sum d, (if d = c then (1:R) else 0) * r d) = r c := by simp'. The variable r is an arbitrary real-valued function on Fin C: it is not ch08b_em_responsibility, it is not required to be nonnegative or to sum to one, and no hypothesis relates it to the label posterior. The statement is Finset.sum_ite_eq and is true of any r whatsoever, so it carries none of the display's content (that the conditional law of the label given (a_{i-1},a_i,x) IS the responsibility). The note 'The expectation of an indicator against the label posterior collapses to that posterior's c-th entry' describes something the statement does not say.",
+      "suggested_status": "proved (trivial: sum_ite_eq); r is unconstrained and unconnected to ch08b_em_responsibility"
+    },
+    {
+      "id": "eq:em-mstep-mixture",
+      "lean_name": "ch08b_em_mstep_mixture",
+      "kind": "vacuous",
+      "severity": "low",
+      "detail": "Tex (lines 977-995) is the boxed collection of the three mixture updates. Lean: 'theorem ch08b_em_mstep_mixture ... (hR : forall c, R c != 0) (c : Fin C) : ch08b_mstep_pi R c = R c / sum d, R d /\\ ch08b_mstep_nu (U c) (V c) (R c) alpha = (U c - alpha * V c) / R c /\\ ch08b_mstep_var ... = (G c - 2*alpha*P c + alpha^2*W c - R c * (ch08b_mstep_nu ...)^2) / R c := <rfl, rfl, rfl>'. Every conjunct is closed by rfl -- it restates the audit's own definitions verbatim -- and the hypothesis hR is never used. Nothing about the thesis is tested here beyond what the earlier items already established. The note is broadly honest ('each of the three agrees with the definition established above'), but the status 'proved' on a <rfl,rfl,rfl> unfolding can read as independent confirmation of the boxed display.",
+      "suggested_status": "definitional (rfl); no content beyond eq:em-mstep-pi / -nu / -var"
+    }
+  ],
+  "note": "Coverage check: every display in tex lines 601-1383 has a JSON entry (all 34 numbered/boxed equations plus the \\[tau_c=s_c^2\\] display and the trailing e^{-t}/Delta_t estimate at 1288-1290) -- no MISSING items. Spot checks that PASSED: eq:em-suffstats role assignment (U,G = child a_i first/second moment via y; V,W = parent a_{i-1} via x; P = cross) matches the prose at 752-756 and feeds ch08b_em_residual_stat with the residual (y - alpha*x - nu)^2, all six signs and coefficients of eq:em-residual-expand / eq:em-residual-stat verified; ch08b_em_Q_suffstats's LHS is exactly eq:em-Q (tex 458-483, re-read: log pi_c - (1/2) log s_c^2 - (a_i - alpha a_{i-1} - nu_c)^2/(2 s_c^2)), and the only dropped term is the theta-independent -(1/2)log(2pi), so the =^c is honest; eq:em-alpha-derivative's two right-hand sides and the 1/(2 s_c^2) factor check out, as does the HasDerivAt; ch08b_em_monotone was re-derived by hand and is an exact identity with no sign error; Delta_t = 1 - e^{-2t} confirmed at ch03-model.tex:195 and 317, so ch08b_score_amplification_exact/_asymptotic are faithful, and the asymptotic is a genuine Tendsto, not a restated closed form. Strengthenings beyond the thesis (global maximality via Gibbs and via exact quadratic excess) are real and correctly labelled."
+}

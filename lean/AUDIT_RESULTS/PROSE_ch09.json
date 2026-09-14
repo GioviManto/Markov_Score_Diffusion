@@ -1,0 +1,47 @@
+{
+  "chapter": "ch09-em-kernel",
+  "claims_checked": 38,
+  "findings": [
+    {
+      "tex_lines": "182-198 (Table 9.1, tab:em-rates: caption, tau column, asymptotic k column, ratio row)",
+      "severity": "error",
+      "claim": "rel. tolerance tau = 1.2e-3 (alpha) and 6.7e-3 (kappa_4); asymptotic k(tau,lambda) = 211 and 1256; ratio row 'asymptotic 5.9'. Caption: 'The asymptotic column applies (9.4) with the relative tolerance actually used.'",
+      "problem": "The tolerances actually used in the sweep are RELATIVE 1e-3 (alpha) and RELATIVE 2e-2 (excess kurtosis), not absolute. Verified two ways: (i) research/nongaussian-bp/tools/make_convergence_numbers.py docstring, 'stays within a relative tolerance of its final value (rho 1e-3, innovation variance 1e-2, excess kurtosis 2e-2)'; (ii) recomputing settle_* from exp_27_seed16/shape_trace.csv reproduces all 16 CSV values exactly under the relative rule and none of them under the absolute rule. The printed taus are the absolute values divided by the endpoints (1e-3/0.8504 = 1.18e-3 -> '1.2e-3'; 2e-2/2.98 = 6.71e-3 -> '6.7e-3'), i.e. a conversion that should not have been made. With the tolerances actually used: k(1e-3, 0.9686) = ln(1e-3)/ln(0.9686) = -6.9078/-0.031903 = 216 (not 211), and k(2e-2, 0.9960) = ln(0.02)/ln(0.9960) = -3.9120/-0.0040080 = 976 (not 1256). The asymptotic ratio becomes (ln 0.02/ln 0.001) x (ln 0.9686/ln 0.9960) = 0.5663 x 7.960 = 4.5, not 5.9. (Unrounded lambdas from the trace, 0.968561 and 0.996018, give 216, 981, 4.5.) The kappa_4 asymptotic count is therefore 29% too large.",
+      "suggested_fix": "Set tau = 1.0e-3 and 2.0e-2 in the table, asymptotic k = 216 and 976, ratio 4.5; and propagate 5.9 -> 4.5 at line 219.",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "262-265",
+      "severity": "error",
+      "claim": "\"Settled\" is trace stability --- the first update after which a coordinate stays within $10^{-3}$ of its end-of-run value for $\\alpha$, or $2\\times10^{-2}$ for the excess kurtosis",
+      "problem": "Stated as an absolute distance; the criterion that produced every settling number in this chapter is relative to the end-of-run value. The absolute reading does not reproduce the reported medians: recomputing from exp_27_seed16/shape_trace.csv with an absolute 2e-2 band on the excess kurtosis gives a median settling time of 416 updates (per-seed values 92...686), whereas the relative 2e-2 band reproduces the CSV exactly and gives the reported median of 229. For alpha the two conventions nearly coincide (|alpha| ~ 0.85), which is why only the shape coordinate shows the discrepancy. This mis-statement is the root of the tau column error above.",
+      "suggested_fix": "\"...stays within a relative $10^{-3}$ of its end-of-run value for $\\alpha$, or a relative $2\\times10^{-2}$ for the excess kurtosis\".",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "219-221",
+      "severity": "error",
+      "claim": "the asymptotic counts over-predict both individual settling times by a factor of two to three",
+      "problem": "Only alpha is in that range. As printed: 211/80 = 2.64 for alpha but 1256/229 = 5.48 for the shape. With the corrected taus of the first finding: 216/80 = 2.7 and 976/229 = 4.3. Either way the two over-prediction factors are not both in [2,3], and the sentence is self-contradictory with its own first half: the same sentence says the predicted ratio is 5.9 while the measured ratio is 2.8, and 5.9/2.8 = 2.1 forces the two individual over-prediction factors to differ by a factor of ~2 (they do: 5.48/2.64 = 2.08). A common 2-3x over-prediction would have left the ratio intact.",
+      "suggested_fix": "\"...over-predict the correlation's settling time by a factor of about three and the shape's by a factor of about five\" (or, with the corrected taus, \"about three and about four\").",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "296-297",
+      "severity": "rounding",
+      "claim": "the two arms finish ... within a fifth of a unit on excess kurtosis",
+      "problem": "Table 9.3 (tab-convergence) gives 2.939 (clean) and 2.729 (through the channel); 2.939 - 2.729 = 0.210, which is not within 0.2. Confirmed against the source: pooled medians of exp_06/clean_vs_noised_shape.csv are 2.9390 and 2.7286, difference 0.2104. The correlation half of the sentence is fine (0.8526 - 0.8509 = 0.0017 < 0.002).",
+      "suggested_fix": "\"within about a fifth of a unit\" or \"within a quarter of a unit\".",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "147-148",
+      "severity": "error",
+      "claim": "(9.6) says the channel removes an $e^{-4t}$ fraction of exactly the structure that identifies it",
+      "problem": "Backwards relative to the display equation it cites. Equation (9.6) is kappa_4(X_t) = e^{-4t} kappa_4(A), so e^{-4t} is the fraction that SURVIVES; the fraction removed is 1 - e^{-4t}. As written the sentence says the damage shrinks as t grows (at t = 0.2, e^{-0.8} = 0.449, so it claims 45% is removed when in fact 55% is removed; as t -> infinity it claims almost nothing is removed, the opposite of the argument being made). The surrounding argument -- that the channel concentrates its information loss on the fourth-order coordinate -- needs the complementary fraction.",
+      "suggested_fix": "\"...the channel leaves only an $e^{-4t}$ fraction of exactly the structure that identifies it\" (equivalently, removes a $1-e^{-4t}$ fraction).",
+      "lean_name": ""
+    }
+  ],
+  "note": "Verified clean and not reported: log-rate ratio ln(0.9686)/ln(0.9960) = 7.96 -> '8.0' and 'a factor of eight in the exponent'; lambda values 0.9686 / 0.9671 / 0.9960 reproduced from exp_27_seed16/shape_trace.csv by the chapter's own fitting windows (0.968561, 0.996018); measured medians 80 / 68 / 229 and max 638 (CSV: 79.5, 68.5, 229, 638); paired ratio median 2.84 -> 2.8 and quotient of medians 229/80 = 2.86 -> 2.9; budget miss 229/40 = 5.7 -> 'about a factor of six'; 105/112 = 93.75% -> 94% (recounted over all five exp_27 shards: 112 configurations, 105 over budget); Figure 9.1(b) claim that the 40-update budget lies below every observed settling time (observed minima 57 / 58 / 72); all five columns of Table 9.2 and their ratios 1.97, 1.97, 2.23, 2.53, 3.02 -> 2.0, 2.0, 2.2, 2.5, 3.0; clean arm 0.0229/0.0057 = 4.02 'fourfold' and noised 0.0451/0.0172 = 2.62 '2.6-fold' (the fourfold over a 16x range is exactly the N^{-1/2} reference invoked); endpoints 0.8509/0.8526 vs generating 0.85; ivar = 1 - corr^2 giving kappa_2(A) = 1 and the VP-channel cumulant identities kappa_2(X_t) = kappa_2(A), kappa_4(X_t) = e^{-4t} kappa_4(A); the ECM Jacobian G^r + (I - G^r)J and its r -> infinity limit; I_com = I_obs + I_mis with J = I_com^{-1} I_mis = I - I_com^{-1} I_obs; the per-observation normalisation of I_obs^{-1}/N against the sqrt(N) CLT statement later in the chapter (consistent); the sixteen inner sweeps against Remark 8.x in ch08; the 229-vs-80 medians quoted in ch11. Nothing needed a Lean witness -- every finding is one line of arithmetic or a direct recomputation from the frozen CSVs. Note for the author: findings 1 and 2 have a single root cause (the settling tolerance is relative, not absolute) and the fix to Table 9.1 also changes the '5.9' at line 219 and the wording at 219-221."
+}

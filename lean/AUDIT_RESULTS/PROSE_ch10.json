@@ -1,0 +1,71 @@
+{
+  "chapter": "ch10-comparison.tex",
+  "claims_checked": 97,
+  "findings": [
+    {
+      "tex_lines": "1085-1087",
+      "severity": "error",
+      "claim": "the CNN ratio falling from $1.2$ to $0.97$ across its bracket and the MLP one from $1.2$ to $0.84$ across its own. A straight line through those endpoints crosses at $2.1$ and $3.0 \\times 10^{-2}$ respectively",
+      "problem": "The MLP crossing is 3.2, not 3.0. Under the convention the sentence itself states (a straight line through the two bracket endpoints, linear in delta) the MLP bracket is (delta=2.2e-2, R=1.2) -> (delta=4.0e-2, R=0.84); crossing R=1 at delta = 2.2 + (1.2-1.0)/(1.2-0.84)*(4.0-2.2) = 2.2 + 0.5556*1.8 = 3.2 (x1e-2). The CNN number is right under that same convention: 1.1 + (1.2-1.0)/(1.2-0.97)*(2.2-1.1) = 1.1 + 0.8696*1.1 = 2.06 -> 2.1. No single convention produces the printed pair: a straight line in log(delta) gives 2.01 and 3.07, i.e. (2.0, 3.1). So the second printed value is wrong whichever of the two readings is intended.",
+      "lean_name": "",
+      "suggested_fix": "Replace '3.0' with '3.2' (keeping '2.1'), or state the log-delta convention and print '2.0 and 3.1'."
+    },
+    {
+      "tex_lines": "893-899 (eq:em-longrange) vs table at 1009-1021",
+      "severity": "error",
+      "claim": "$[Q_{\\mathrm{long}}]_{ij} = -e^{-|i-j|/\\ell}\\ (|i-j| \\geq 2)$, $[Q_{\\mathrm{long}}]_{ii} = 1.05 \\sum_{j\\neq i} e^{-|i-j|/\\ell}$",
+      "problem": "The diagonal compensation as printed sums over all j != i, but the off-diagonal it is compensating is zero at |i-j| = 1, and the code that produces the delta column of Table 10.9 (thesis/tools/fig_ch10.py, longrange_cov: off[dist<2]=0 then Ql[i,i] = -off.sum(axis=1)*1.05) sums only over |i-j| >= 2. The two are not the same matrix: e^{-1/8}=0.8825, so the printed diagonal is larger by 1.05*2*0.8825 ~ 1.85 at interior sites. Taken literally the printed equation gives delta = 7.2e-3, 1.24e-2, 1.81e-2, 2.34e-2 at gamma = 0.05, 0.10, 0.20, 0.40, against the table's 1.1e-2, 2.2e-2, 4.0e-2, 6.0e-2 (which reproduce the code exactly: 1.079e-2, 2.244e-2, 3.963e-2, 6.037e-2). It also destroys the sentence the section rests on: under the literal reading delta(gamma=0.05)/delta(beta=1) = 7.2e-3/6.53e-3 = 1.10, not the stated 'factor of 1.7' (true value 1.65), so beta=1 and gamma=0.05 would no longer be cleanly separated on the delta axis, and the break-even brackets of eq:em-breakeven would move.",
+      "lean_name": "",
+      "suggested_fix": "Change the diagonal subscript to match the implementation: $[Q_{\\mathrm{long}}]_{ii} = 1.05 \\sum_{|i-j| \\geq 2} e^{-|i-j|/\\ell}$."
+    },
+    {
+      "tex_lines": "835-839 (and figure caption, 826-828)",
+      "severity": "inconsistency",
+      "claim": "no capacity buys anything: every paired mean is negative, the $\\nseq = 128$ deficit at the largest capacity is resolved against zero ($-4.4 \\times 10^{-4}$, CI $[-9.2\\times10^{-4},\\,-1.1\\times10^{-4}]$)",
+      "problem": "Those numbers are the predeclared C=16 vs C=8 equivalence test (sections/capacity-numbers.tex says so in its own comment, and Table 10.12's verdict row states it correctly as 'C=16 resolved worse than C=8'), but the sentence sits inside a list of statements about the pairing against C=1, so a reader checks it against Table 10.8 and finds the C=16 / nseq=128 entry to be -2.35e-2 +/- 1.18e-2 -- a factor of 53 larger, and only marginally resolved against zero (|mean|/s.e. = 1.99). The figure 10.5(a) caption has the same problem ('at nseq = 128 the C = 16 deficit is resolved against zero').",
+      "lean_name": "",
+      "suggested_fix": "Say what the contrast is: '... the nseq = 128 deficit of C = 16 against C = 8 is resolved (...)', in both the prose and the figure caption."
+    },
+    {
+      "tex_lines": "948-952",
+      "severity": "inconsistency",
+      "claim": "the correction in \\eqref{eq:em-longrange} is $\\gamma Q_{\\mathrm{long}}$, dense by construction, with numerical rank $\\nsites = 32$ and $30$ to $31$ eigenvalues above $1\\%$ of its largest at the strengths tested",
+      "problem": "The spectrum of gamma*Q_long is scale-invariant in gamma, so no count from it can vary 'at the strengths tested'; and the count at a 1% threshold is 32, not 30-31 (|eig| sorted: 13.248 ... 4.416, 0.469; the smallest is 3.54% of the largest, so all 32 clear 1%). 31 clear 5% and 30 clear 33%. The printed 30-31 does reproduce a different object -- the realised departure of the rescaled contaminated precision from the chain precision, Q_gamma - Q_AR, which gives 30, 30, 30, 31 eigenvalues above 1% of its largest at gamma = 0.05, 0.10, 0.20, 0.40 and is the true analogue of the rank-one statement in Prop. 10.2 (which compares Q_beta with (1+beta^2)Q_AR, not with beta^2 * 11^T).",
+      "lean_name": "",
+      "suggested_fix": "Attribute the count to the object that produces it: '... the departure $Q_\\gamma - Q_{\\mathrm{AR}}$ is dense, of numerical rank 32, with 30 to 31 eigenvalues above 1% of its largest at the strengths tested'."
+    },
+    {
+      "tex_lines": "808-811",
+      "severity": "inconsistency",
+      "claim": "the generic-MLP ratio overstates what can be attributed specifically to the supplied Markov model, and by roughly a factor of three",
+      "problem": "Nothing a reader can compute gives three. Size-matched, headline / structured is 6.9/2.34 = 2.95 (n=32), 7.9/2.82 = 2.80 (n=128), 8.2/3.58 = 2.29 (n=512), 8.6/6.14 = 1.40 (n=2048); the ratio of the two quoted ranges is 6.6/2.3 = 2.87 at the low end and 10.9/6.1 = 1.79 at the high end. The overstatement factor shrinks by more than two-fold across the tested budgets because the structured-baseline ratio grows faster (2.34 -> 6.14, a factor of 2.6) than the headline (6.9 -> 8.6, a factor of 1.25). 'Roughly a factor of three' is true only at the smallest training set.",
+      "lean_name": "",
+      "suggested_fix": "'... and by a factor that runs from about three at the smallest training set to about 1.4 at the largest' -- or simply 'by roughly a factor of two to three'."
+    },
+    {
+      "tex_lines": "1213-1221 (caption of tab:em-information) vs 1224-1236",
+      "severity": "rounding",
+      "claim": "Entries are ratios of outer-product estimates at $D = 512$ sequences, so only the order is meaningful and two significant digits are printed for that reason.",
+      "problem": "The table prints more than two significant digits in three of its columns: loss in $\\ivar$ is 235, 392, 459, 501, 522 (three s.f.), the contrast column is 112, 236, 776, 867, 1222 (three and four s.f.), and the summary rows print 465 and 493 (three s.f.). Only 'loss, rho' (78, 87, 83, 75, 56) and 'loss, p' (8.7e3, 2.0e4, 6.4e4, 6.5e4, 6.8e4) obey the stated rule. The contrast column is the one the caption says only the order of is meaningful, yet it is the one printed to four figures.",
+      "lean_name": "",
+      "suggested_fix": "Either round the sigma-eta, contrast and summary entries to two significant digits (240, 390, 460, 500, 520; 110, 240, 780, 870, 1200; 470 against 490), or drop the 'two significant digits' claim from the caption."
+    },
+    {
+      "tex_lines": "839-841",
+      "severity": "inconsistency",
+      "claim": "above $C = \\capcappedfrom$ every cell stops at the $\\capiterlimit$-iteration cap rather than at tolerance",
+      "problem": "Off by one against the generator's own count. sections/capacity-numbers.tex has \\capcappedfrom = 4 with \\capcappedcells = \\capcappedtotal = 96 out of \\capcells = 160; with 16 seeds x 2 sizes = 32 cells per capacity, 96 = three capacities, i.e. C in {4, 8, 16}. 'Above C = 4' names only C in {8, 16} = 64 cells. The macro name (\\capcappedfrom) and the count both say capping starts at C = 4, not above it. The same sentence appears in ch11-conclusions.tex line 153.",
+      "lean_name": "",
+      "suggested_fix": "'from $C = \\capcappedfrom$ upward every cell stops at the cap' (fix both chapters)."
+    },
+    {
+      "tex_lines": "sections/tab-efficiency.tex:24 (rendered inside ch10 at line 350) vs ch10 lines 141-143 and 347-349",
+      "severity": "inconsistency",
+      "claim": "Appendix~\\ref{app:aggregation} reports the same cells under five alternative aggregations.",
+      "problem": "The chapter prose says 'four alternative summaries' twice (lines 141-143 and 347-349), Appendix B says 'four alternatives', and Table B.1 carries one reported estimand (0) plus four alternatives (1)-(4); its column (5) is a bootstrap CI on (0), not an aggregation. Five estimands, four alternatives -- the table caption is the only place that says five alternatives.",
+      "lean_name": "",
+      "suggested_fix": "In sections/tab-efficiency.tex change 'five alternative aggregations' to 'four alternative aggregations' (or 'five estimands')."
+    }
+  ],
+  "note": "Verified by direct recomputation (numpy, using the chapter's own generator thesis/tools/fig_ch10.py where it exists): tr Q0 = 193.423 (text 193.4) and the small-t linear coefficient 2[tr Q0 - tr Q0^2] = -3140.27 (text -3140); the whole of Table 10.7 (q, xi, w_t at all eight displayed levels) reproduces to the printed digits; the four smallest levels carry 53.587% (53.6) and the four largest 19.247% (19.2) with xi >= 3.553 (3.55); the bulk-formula checks 6.27e-15 at t=0.05 and 2.67e-4 at t=3 reproduce exactly; the Gaussian windowed oracle is 0.65701, 0.20233, 0.08905, 0.02937, 0.00658 (0.657, 0.202, 0.089, 0.029, 0.007); q^5 = 0.93% at t=0.1527; 128^(0.332-0.256) = 1.446 (1.45) and 10.9/6.9 = 1.580 (1.58); the MLP has exactly 25,248 parameters and the window head (2r+4)W + W^2 + 3W + 1 gives 4,801 at (r=2, W=64) and 21,377 at (r=16, W=128), matching '4.8k--21.4k'; dim theta = 3C = 24; every delta in Table 10.9 reproduces (4.60e-6, 1.50e-4, 1.43e-3, 6.53e-3, 1.079e-2, 2.244e-2, 3.963e-2, 6.037e-2) and the beta=1 vs gamma=0.05 'factor of 1.7' is 1.65; rho_CL(1) = 0.9250 and |0.939 - 0.925| = 0.014 with 0.098/0.014 = 7; the rank-one correction has one nonzero eigenvalue (second is 3e-13) with overlap 1.00000000; all nine advantage columns of Table 10.9 match Table 10.10 (tab-nonmarkov) to the printed digits; GGD excess kurtoses 3.00, 1.744, 0.762, 0.00, -0.582 match; the contrast geometric mean is 464.96 (465) against e^{4*1.55} = 492.75 (493); the headline range 6.6-10.9 and structured 2.3-6.1 match tab-efficiency/tab-structured, the abstract and ch11, and 1,520 - 1,518 = 2 reversed cells is consistent throughout. Identities checked and sound: the two output-head parameterisations and their e^t sqrt(Delta_t) residual rescaling; J = Q0 + (e^{-2t}/Delta_t) I and h = (e^{-t}/Delta_t) x; the transfer-matrix roots, V = 1/sqrt(Jd^2 - 4 beta^2) and the t -> 0 / t -> infinity limits (including Jd^2 - 4 beta^2 = 1); the geometric-tail identity 2q^{2(r+1)}/(1+q^2); Sherman-Morrison in eq:em-woodbury; the Gaussian KL of eq:em-delta; the cumulant relations kappa_2 = 1, kappa_4 = e^{-4t} kappa_4(A), kappa_11 = e^{-2t} rho and the e^{-4t} / e^{-8t} / e^{-4t} information contrast. Not verifiable from the repo (frozen outputs absent, not flagged as suspicious): the 54.5% measured-Laplace pooled weight, the radius sweep 0.148/0.149/0.185/0.214, the head-vs-head screen risks 0.224/0.427/0.262, the validation-agreement rates 81.1%/77.6%, the Laplace oracle column and its 14.4 bootstrap s.e. (consistent with the printed values under their own rounding), the -3.72 mean fitted log-slope, and the Fisher conditioning numbers. Two wording points not reported as findings: 'The nine contaminated cells' (line 1070) counts the uncontaminated delta = 0 control among the nine rows of Table 10.9, so there are eight contaminated cells; and the dilated stack's radius 15 'spans an n=32 chain end to end' is a receptive field of width 31, one site short."
+}

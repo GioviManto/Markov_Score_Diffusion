@@ -1,0 +1,55 @@
+{
+  "chapter": "ch07-laplace",
+  "claims_checked": 52,
+  "findings": [
+    {
+      "tex_lines": "367-369",
+      "severity": "error",
+      "claim": "the self-convergence error between the two remains $10^4$ to $10^7$ times smaller than every effect measured below (Figure~\\ref{fig:bp-closure}, left)",
+      "problem": "Both ends are wrong. The two curves plotted in fig:bp-closure (left) are score_med and grid_selfconv_med of tools/data/ch07_metrics.csv, both relative score errors. Ratio score_med/grid_selfconv_med over the 14 sweep points: 1.36e4 (t=0.02), 1.77e4, 2.38e4, 3.15e4, 3.78e4, 5.55e4, 8.02e4, 8.07e4 (t=0.3215, the maximum), 7.78e4, 5.21e4, 3.14e4, 1.40e4, 5.27e3 (t=2.07), 1.02e3 (t=3). So the range is ~1e3 to ~8e4, i.e. three to just under five orders of magnitude; it never reaches 1e5, let alone 1e7, and it drops BELOW 1e4 at the two largest t. The chapter's own caption for the same panel (lines 710-712) states the correct range: 'at least three orders of magnitude everywhere and by four to five over most of the range'.",
+      "suggested_fix": "Replace '$10^4$ to $10^7$ times smaller' with '$10^3$ to $10^5$ times smaller' (or, to match the caption, 'at least three orders of magnitude smaller everywhere and four to five over most of the range').",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "713-715",
+      "severity": "error",
+      "claim": "Directional error is one to two orders of magnitude smaller than magnitude error at every diffusion time. (caption of Figure~\\ref{fig:bp-closure}, right)",
+      "problem": "The right panel plots score_med ('relative magnitude') and 1 - cos_med ('$1-\\cos$ angle') against t. Ratio score_med/(1-cos_med): t=0.02 -> 0.3770/0.07149 = 5.3; t=0.032 -> 0.2996/0.04350 = 6.9; t=0.05 -> 0.2686/0.03646 = 7.4 (all UNDER one order, and t=0.05 is the anchor the body text quotes, cos = 0.964); then 10.4, 17.2, 23.6, 42, 57, 87, 160, 336, 1.1e3 (t=1.425), 9.2e3 (t=2.07), 2.9e5 (t=3). The gap widens monotonically from a factor of ~5 to more than five orders; 'one to two orders' holds only for t in roughly [0.07, 0.5], not 'at every diffusion time'.",
+      "suggested_fix": "State the real behaviour, e.g. 'Directional error is smaller than magnitude error at every diffusion time, by a factor of about five at $t=0.02$ and by three to five orders of magnitude once $t\\gtrsim1$.'",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "691-693",
+      "severity": "inconsistency",
+      "claim": "It is not monotone: it peaks at $t\\simeq0.07$ and is no smaller at $t=0.02$ than at $t=0.15$. (caption of Figure~\\ref{fig:l-metrics}, left)",
+      "problem": "The comparison is reversed. eps_PM = 0.03552 at t=0.02 and 0.04253 at t=0.1527 (ch07_metrics.csv; Table~\\ref{tab:l-closure} prints 0.036 and 0.043, ratio column 1.00 vs 1.20). So eps_PM at t=0.02 IS smaller than at t=0.15, by ~20%. The body text at line 639-640 says it correctly: 'is still larger at $t=0.15$ than at $t=0.02$'.",
+      "suggested_fix": "Swap the two times: 'is no smaller at $t=0.15$ than at $t=0.02$'.",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "341-345 (and 365-366)",
+      "severity": "inconsistency",
+      "claim": "the working configuration clears it with room to spare ($3h = 0.12$ against $\\sqrt{2t} = 0.32$ at the smallest reported $t$) ... It is \\eqref{eq:l-resolution}, not the innovation law, that sets the smallest diffusion time this chapter reports.",
+      "problem": "$\\sqrt{2t}=0.32$ is t = 0.05, but the smallest $t$ this chapter reports is 0.02 (first row of Table~\\ref{tab:l-closure}; ch07_metrics.csv starts at t=0.02, and t=0.032 is also reported). At t=0.02, $\\sqrt{2t} = \\sqrt{0.04} = 0.200$, not 0.32. The gate is still cleared there (0.200 > 3h = 6A/(N_g-1) = 48/400 = 0.12), so no result is invalidated -- but the quoted number belongs to t=0.05. The same slip appears at line 366, 'gate satisfied for all $t \\geq 0.05$', while the sweep reported in Table 7.1 runs down to t=0.02; and the gate itself permits $t \\gtrsim 0.12^2/2 = 0.0072$ at $N_g=401$, so it is not what sets the chapter's smallest reported time.",
+      "suggested_fix": "Either quote the true smallest reported time ('$3h = 0.12$ against $\\sqrt{2t} = 0.20$ at the smallest reported $t$, $t=0.02$') and change 'for all $t \\geq 0.05$' to 'for all $t \\geq 0.02$', or drop the claim that the gate sets the smallest reported diffusion time.",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "115-116",
+      "severity": "rounding",
+      "claim": "At $t = 0.05$ the Laplace score saturates near $\\pm 5.1$ while the Gaussian one grows without bound",
+      "problem": "Re-running the chapter's own generator (tools/fig_ch07.py, grid_bp_score with alpha=0.85, L=9, k=4, A=8, t=0.05, x_k swept over [-4,4] with the other frames at zero) gives a plateau of 5.2212, already flat from |x_k| ~ 2.5 to the plot edge, and identical at N_g = 401, 801 and 1601. The matched Gaussian reaches 14.42 at x_k = 4. So the saturation level is +/-5.2, not +/-5.1 (a 2.3% error in a value quoted to one decimal).",
+      "suggested_fix": "Change '$\\pm 5.1$' to '$\\pm 5.2$'.",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "622",
+      "severity": "rounding",
+      "claim": "Table~\\ref{tab:l-closure}, row $t=0.072$: $10$--$90\\%$ band $(0.038,\\,0.082)$",
+      "problem": "ch07_metrics.csv row t=0.0725 has eps_pm_q90 = 0.0814660249996671, which rounds to 0.081 at the three decimals the table uses, not 0.082. (The lower endpoint 0.038057... -> 0.038 is right, and every other band entry in the table rounds correctly.)",
+      "suggested_fix": "Change $(0.038,\\,0.082)$ to $(0.038,\\,0.081)$.",
+      "lean_name": ""
+    }
+  ],
+  "note": "Verified sound (no finding): b = sqrt((1-alpha^2)/2) giving Var = 1-alpha^2; Laplace kappa_4 = 3v^2 and standardised value 3; the state-kurtosis sum 3(1-a^2)^2 sum a^{4m} = 3(1-a^2)/(1+a^2)(1-a^{4k}) and its bulk value 3*0.2775/1.7225 = 0.4833 ~ 0.48 at alpha=0.85; kappa_4(x_t) = e^{-4t} kappa_4(a_k); (B^T B)_{ij} = alpha^{|i-j|}(1-alpha^{2(L-max)})/(1-alpha^2) (checked algebraically); h = 2A/(N-1) and 3h = 6A/(N-1); sd(ell_k) = sqrt(Delta_t)/mu = sqrt(e^{2t}-1) = sqrt(2t)+O(t^{3/2}); the gate demanding t >~ 0.115 at N_g=101 (3h=0.48, t >= 0.1152); the boxed normal-Laplace convolution I(y) (matches numerical quadrature to 10 digits); the master error identity and e^{-t}/Delta_t ~ 1/(2t); the LMMSE covariances and both moment maps (m,v) -> (alpha m, alpha^2 v + q) and (m/alpha, (v+q)/alpha^2); the excess-risk decomposition and eps_PM normalisation by E||a||^2 = L (excess_frac = eps_PM^2/floor holds in the CSV). Re-ran the Gaussian-chain validation at N_g=101, A=8: I get 9.4e-15 at t=0.03, 1.4e-10 at t=0.02, 1.5e-6 at t=0.012, 1.5e-2 at t=0.005 -- the four quoted numbers on lines 355-358 are right. Every other cell of Table 7.1 matches ch07_metrics.csv at the printed precision (checked all 60 entries); 'factor of 3.6' between t=0.02 and t=0.15 (3.61), 'rises by half' over [0.02,0.07] (1.501), peak at t=0.0725, crossing near t~0.5 (0.4665), p(err>10%) = 1.00 through t~0.07 / 0.55 at t=0.15 / 0 by t~0.7, cos = 0.964 at t=0.05, >0.99 by t~0.11, excess MSE 3.9% -> 0.43% -> <0.05%, floor 0.07 -> 0.92, and the alpha-sweep value 0.27 at alpha=0.85 (CSV 0.2686) are all correct. Cross-chapter: ch11 line 32 quotes 0.27 at t=0.05, <1e-2 by t~1, <1e-3 by t~2.1 -- all consistent with this chapter's CSV. Checked but NOT reported (unverifiable, exp_18 data is not in the repo): the outermost-cell posterior mass macros (4.4e-3 / 4.2e-4 / 3.9e-6 / 3.2e-8 for A = 4/6/8/10, lines 375-378) sit ~3 orders above anything I can reproduce for the Laplace chain at A=8 (my worst case over 10 trials x 5 diffusion times is 7e-9), and they also sit far above the 'endpoint values below 10^{-9}' claim on line 270; most likely exp_18 aggregates the heavier innovation laws of Sec. 7.6 or reports a worst case, so I make no claim. Also unverifiable: the 10^{-15}-10^{-12} residual of eq. (7.14), and the innovation-law sweep table (t=0.05, alpha=0.5) and the alpha=0.95 value 0.13, none of which have data in the repo."
+}

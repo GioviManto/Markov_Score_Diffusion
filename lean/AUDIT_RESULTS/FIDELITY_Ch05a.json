@@ -1,0 +1,47 @@
+{
+  "module": "ThesisAudit.Ch05a",
+  "checked": 65,
+  "issues": [
+    {
+      "id": "eq:g-markov-hessian-sparsity",
+      "lean_name": "ch05a_g_markov_hessian_sparsity",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "Tex (lines 536-542): '-log P(a) = -log p(a_0) - sum_k log p(a_{k+1}|a_k), and each summand contains only neighbouring coordinates. Consequently d^2[-log P(a)]/(d a_i d a_j) = 0, |i-j| >= 2.' The cited Lean theorem is 'theorem ch05a_g_markov_hessian_sparsity (g h : R -> R) (x0 z0 : R) : deriv (fun z => deriv (fun x => g x + h z) x0) z0 = 0'. It contains no density, no chain factorisation and no index condition |i-j| >= 2; the additive separability g(x)+h(z) -- which IS the whole content of the thesis claim (no factor of a first-order chain contains two non-neighbouring coordinates) -- is assumed as the hypothesis. The inner 'deriv (fun x => g x + h z) x0' is literally independent of z, so the outer derivative is deriv_const: the conclusion is true by construction. The JSON note discloses this, and the file DOES contain the faithful general statement 'ch05a_g_markov_hessian_sparsity_general (m f0 f a i j) (hij : i + 2 <= j) : deriv (fun v => deriv (fun u => ch05a_chainNegLog m f0 f (update (update a i u) j v)) u0) v0 = 0' (line 1509), proved for all m via ch05a_chain_separable -- but the audit record does not point at it. As recorded, the item verifies nothing.",
+      "suggested_status": "proved, with lean_name changed to ch05a_g_markov_hessian_sparsity_general (the trivial ch05a_g_markov_hessian_sparsity should not be the cited witness)"
+    },
+    {
+      "id": "eq:g-memory",
+      "lean_name": "ch05a_g_memory",
+      "kind": "vacuous",
+      "severity": "low",
+      "detail": "Tex (lines 150-154): 'E[a_k | a_0] = alpha^k a_0, because every innovation has zero mean.' Lean defines its own object: 'def ch05a_condmean (alpha a0) : N -> R | 0 => a0 | k+1 => alpha * ch05a_condmean alpha a0 k' and proves 'ch05a_condmean alpha a0 k = alpha^k a0'. The probabilistic content of the display -- that the conditional mean obeys m_{k+1} = alpha m_k because E[eta_k] = 0 -- is put in by hand in the definition; what is proved is only that the solution of x_{k+1} = alpha x_k with x_0 = a_0 is alpha^k a_0, an identity purely about the agent's own definition, never connected to ch05a_ar1. The note discloses the encoding, so this is a labelling/strength issue rather than a false claim, but 'proved' overstates what a reader would take from the summary 'E[a_k | a_0] = alpha^k a_0'.",
+      "suggested_status": "proved (encoding), with the summary/note making explicit that the recursion m_{k+1} = alpha m_k is assumed, not derived"
+    },
+    {
+      "id": "eq:g-var-sum",
+      "lean_name": "ch05a_g_var_sum",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "Tex eq:g-var-sum (lines 190-197) is a two-step chain: 'Var(a_k) = alpha^{2k} Var(a_0) + sigma_eta^2 sum_{j=0}^{k-1} alpha^{2(k-1-j)} = alpha^{2k} + sigma_eta^2 sum_{i=0}^{k-1}(alpha^2)^i'. The Lean theorem is 'alpha^(2*k) * 1 + ch05a_sigEta2 alpha * sum_{j in range k} alpha^(2*(k-1-j)) = alpha^(2*k) + ch05a_sigEta2 alpha * sum_{i in range k} (alpha^2)^i' -- i.e. ONLY the second equality (the reindexing i = k-1-j, via Finset.sum_range_reflect). The first equality, the probabilistic step 'Var(a_k) = ...' (variances of independent terms add), is not in the statement at all: nothing in the theorem mentions ch05a_var, ch05a_gcov or any variance. The JSON summary reproduces the full chain starting 'Var(a_k) = ...', which overstates the Lean statement; the note ('The reindexing i = k-1-j is exactly Finset.sum_range_reflect') is the accurate description.",
+      "suggested_status": "proved (reindexing step only) -- summary should drop the leading 'Var(a_k) =' and say the identity is between the two displayed expressions"
+    },
+    {
+      "id": "eq:g-gaussian-cond-precision",
+      "lean_name": "ch05a_g_gaussian_cond_precision",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "Tex (lines 549-555): 'For a centred Gaussian, E[a_k | a_{\\k}] = -(Q_0)_{kk}^{-1} sum_{l != k} (Q_0)_{kl} a_l.' Lean proves that -(Q k k)^{-1} * S minimises 'Q k k * x^2 + 2 * x * S' where S = sum_{l in univ.erase k} Q k l * a l, under (hq : 0 < Q k k). Two gaps: (i) the objective is written by hand, not obtained as the k-section of a^T Q a, and (ii) no symmetry hypothesis is imposed on Q -- for a non-symmetric Q the k-section of a^T Q a is Q_kk x^2 + x * sum_{l != k}(Q_kl + Q_lk) a_l, so the objective (and hence the minimiser formula) is the thesis's only when Q = Q^T. Contrast ch05a_g_general_quadratic_form_three/four, which do carry explicit symmetry hypotheses. As stated the lemma is a true but content-free algebraic fact (x = -S/q minimises q x^2 + 2 x S for q > 0), with Q supplying only two scalars.",
+      "suggested_status": "proved, after adding a symmetry hypothesis (h : Q.IsSymm or Q k l = Q l k) and stating the objective as the k-section of a ⬝ᵥ Q.mulVec a"
+    },
+    {
+      "id": "eq:g-precision-offdiag",
+      "lean_name": "ch05a_g_precision_offdiag (also ch05a_g_precision_distant_zero, ch05a_g_precision_interior, ch05a_noname17, ch05a_noname19)",
+      "kind": "vacuous",
+      "severity": "low",
+      "detail": "These five entries are recorded 'proved ... for all n', but each is a one-line unfolding of the agent's own definition 'def ch05a_Q0 n alpha := fun i j => if i = j then (if i.val = 0 or i.val = n-1 then 1 else 1 + alpha^2)/sigEta2 else if Nat.dist i j = 1 then -alpha/sigEta2 else 0' -- e.g. ch05a_g_precision_offdiag is 'simp [ch05a_Q0, hij, h]'. The thesis's claim is about entries of Sigma_0^{-1}, so the content depends entirely on ch05a_Q0 = Sigma_0^{-1}. On the JSON's own account that identification (item eq:g-Q0) is only 'instance_checked' at L = 2,3,4,5, so a reader is told the tridiagonal entries of the true precision hold 'for all n' on the strength of a chain whose recorded link is finite. In fact the file proves 'ch05a_g_Q0_general {n} (hn : 2 <= n) (alpha) (hs : sigEta2 != 0) : (ch05a_Sig0 n alpha)⁻¹ = ch05a_Q0 n alpha' (line 1287) for every n >= 2, so the mathematics is sound; only the record is inconsistent.",
+      "suggested_status": "keep 'proved', but upgrade eq:g-Q0 to 'proved' citing ch05a_g_Q0_general so the for-all-n entry claims rest on a for-all-n identification"
+    }
+  ],
+  "note": "The module is substantively strong and unusually well disclosed: notes consistently flag where a distributional statement is encoded as a moment/algebraic one (eq:g-stationary-marginal, eq:g-Sigt, eq:g-cov-lag), the i != j gap in eq:g-noisy-correlation is volunteered by the auditor, and hypotheses (alpha^2 != 1, 0 < sigEta2, t >= 0) match the tex. No display equation in tex lines 1-784 is missing from the JSON: all 39 labelled equations plus 26 unlabelled displays are recorded. No sign, factor or index-range error was found: eq:g-unroll, eq:g-split, eq:g-cov-lag, eq:g-geom, eq:g-cond-mean, eq:g-Sigt-entrywise, eq:g-Sigt-offdiag and the Q0 displays at L=2,3 all match the tex exactly, and ch05a_g_P0_two verifies eq:g-P0 including the normalisation (det Sigma_0 = sigma_eta^2 at L=2). The errors run in the conservative direction rather than the inflationary one: four items recorded 'instance_checked' are in fact proved for general L elsewhere in the same file -- eq:g-linear-map (ch05a_g_linear_map, line 837), eq:g-Q0 (ch05a_g_Q0_general, line 1287), eq:g-P0 (ch05a_g_P0_general, line 1394) and eq:g-locality-loss-summary (ch05a_g_locality_loss_Qt_unconditional, line 1735) -- and the JSON should be updated to cite them. No high-severity fidelity failure found."
+}

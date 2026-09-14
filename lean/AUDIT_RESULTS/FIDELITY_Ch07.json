@@ -1,0 +1,63 @@
+{
+  "module": "ThesisAudit.Ch07",
+  "checked": 32,
+  "issues": [
+    {
+      "id": "eq:l-lmmse",
+      "lean_name": "ch07_l_lmmse_identity, ch07_l_lmmse_scalar (and the same wording on ch07_l_score_identity_vp)",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "The Lean docstring and the JSON note say 'eq:l-lmmse at the chapter's own normalisation Sigma_0 = I (unit marginal variance): the gain matrix collapses to e^{-t} I'. Sigma_0 = I is NOT the chapter's setting. The tex fixes 'Cov(a_j,a_k)=alpha^{|j-k|}' (lines 27-32) and Theorem 7.4 (line 411) assumes 'with alpha != 0', so Sigma_0 is the AR(1) Toeplitz matrix with unit DIAGONAL and off-diagonal alpha^{|i-j|} -- unit marginal variance is the diagonal, not the whole matrix. Sigma_0 = I is exactly the excluded alpha = 0 case, where the sites are independent, the LMMSE estimator degenerates to ahat = e^{-t} x and all cross-site smoothing (the entire point of Chapter 7) disappears. Since ch07_l_lmmse itself is proved by 'rw [hCax, hCxx]', i.e. pure substitution of its own hypotheses with zero mathematical content, ch07_l_lmmse_identity / ch07_l_lmmse_scalar are the only non-tautological content recorded for this display, and they are evaluated at a parameter point the theorem's hypotheses forbid while being labelled the chapter's own normalisation. Same wording problem on ch07_l_score_identity_vp ('the chapter's normalisation (sigma^2=1, ...) gives posterior mean e^{-t}x and score -x'): that is the scalar single-site marginal, whereas the tex's S_k(x,t) in eq:l-score-identity is the JOINT score of the correlated chain, which is not -x_k.",
+      "suggested_status": "instance_checked, with the note corrected: the specialisation is Sigma_0 = I (alpha = 0), outside Theorem 7.4's hypothesis alpha != 0, not the chapter's normalisation"
+    },
+    {
+      "id": "eq:l-grid-fwd",
+      "lean_name": "ch07_l_grid_fwd",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "Tex (lines 284-288): 'f_k propto ell_k odot K(w odot f_{k-1})' with K_{ij} = M(g_i | g_j) from eq:l-grid-operators and w the trapezoid weights of eq:l-trap-weights. Lean: 'theorem ch07_l_grid_fwd {N} (K : Matrix (Fin N) (Fin N) R) (w f ell : Fin N -> R) (i) : ell i * (Matrix.mulVec K (fun j => w j * f j)) i = ell i * sum_j w j * K i j * f j', proved by 'simp only [Matrix.mulVec, dotProduct]; ... ring'. K, w, f, ell are arbitrary abstract objects, never instantiated at ch07_K, ch07_w, ch07_g or ch07_ell, and the statement is nothing but the unfolding of Mathlib's Matrix.mulVec. Nothing connects the sum to the integral int M(a_k|a_{k-1}) f_{k-1}(a_{k-1}) da_{k-1} it is supposed to approximate, so the recorded content ('which is the trapezoidal quadrature of the sum-product forward message') is prose in the note, not something the theorem establishes. Recorded as 'proved'.",
+      "suggested_status": "defined (index-convention restatement)"
+    },
+    {
+      "id": "eq:l-grid-bwd",
+      "lean_name": "ch07_l_grid_bwd",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "Tex (lines 290-293): 'beta_k propto K^T (w odot ell_{k+1} odot beta_{k+1})'. Lean: '(Matrix.mulVec K^T (fun j => w j * (ell j * b j))) i = sum_j w j * K j i * (ell j * b j)', proved by 'simp only [Matrix.mulVec, dotProduct, Matrix.transpose_apply]; ... ring'. The JSON note claims 'The transpose in the equation is the right one -- this was the substantive thing to check here', but the statement CANNOT check that: K is an arbitrary matrix with no link to ch07_K (= M(g_i|g_j)), so the mirrored lemma with K i j in place of K j i (i.e. the version with the transpose wrongly dropped) is equally provable by the same one-line proof. A check that passes for both the correct and the incorrect form of the equation has no discriminating power. Recorded as 'proved'.",
+      "suggested_status": "defined (index-convention restatement); to be substantive it must be stated with K := ch07_K and compared against ch07_M"
+    },
+    {
+      "id": "eq:lmmse-covs",
+      "lean_name": "ch07_lmmse_covs",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "Tex (lines 500-505): 'Cov(a,x) = e^{-t} Sigma_0, Cov(x) = e^{-2t} Sigma_0 + Delta_t I'. The first conjunct in Lean is '(Real.exp (-t)) • S0 + (Real.sqrt (ch07_Delta t)) • (0 : Matrix (Fin n) (Fin n) R) = (Real.exp (-t)) • S0', discharged by 'simp': the cross-covariance claim is encoded by writing Cov(a,z) as the literal zero matrix, so the lemma asserts only X + c•0 = X and could not fail. The second conjunct does carry content ((e^{-t})^2 = e^{-2t} and (sqrt(Delta_t))^2 = Delta_t, the latter genuinely using t >= 0). Status 'proved' therefore overstates half of the item.",
+      "suggested_status": "proved (second conjunct); first conjunct is an assumption restated, not a check"
+    },
+    {
+      "id": "noname-3",
+      "lean_name": "ch07_remark_square_pos, ch07_remark_square_neg, ch07_remark_Phi_arg_pos, ch07_remark_Phi_arg_neg, ch07_remark_prefactor",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "The boxed closed form of I(y) (tex lines 169-188) is never written down as a Lean statement -- there is no lemma whose conclusion is 'I(y) = e^{Delta/(2 mu^2 b^2)}/(2 mu b) [ ... ]', and no instance of I(y) is evaluated numerically either. Five algebraic ingredients are proved (I verified all five are correct: both completions of the square, both Phi arguments, and the prefactor 1/(2 b sqrt(2 pi Delta)) * sqrt(2 pi Delta / mu^2) = 1/(2 mu b)), but the final assembly -- the half-line Gaussian mass int_0^inf N(r; c, sigma^2) dr = Phi(c/sigma) and the summation of the two branches -- is done by hand in the note. The status word 'instance_checked' suggests the formula was verified at particular parameter values; it was not verified at any. The note is honest about this, so this is a labelling problem, not a hidden error.",
+      "suggested_status": "partial / ingredients_checked"
+    },
+    {
+      "id": "noname-13",
+      "lean_name": "ch07_lmmse_covs",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "noname-13 (tex lines 495-498, 'x = e^{-t} a + sqrt(Delta_t) z, z perp a') is recorded with status 'defined' and note 'Definition of the OU channel in vector form', but its lean_name points at ch07_lmmse_covs, which is the THEOREM already credited to the next item (eq:lmmse-covs). There is no Lean def (or any other object) encoding the channel: no vector x, no z, no independence statement appears in the file. The display is effectively uncovered while appearing covered, and the same Lean name is counted twice.",
+      "suggested_status": "not_formalised"
+    },
+    {
+      "id": "eq:l-epspm",
+      "lean_name": "ch07_l_epspm",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "Tex (lines 567-573): 'eps_PM = sqrt( (1/L) E|| ahat_LMMSE - E[a|x] ||^2 )' -- an expectation over the data. Lean: 'def ch07_l_epspm {L} (d : Fin L -> R) : R := Real.sqrt ((1 / (L:R)) * sum_i (d i)^2)', a per-realisation RMS of a single fixed discrepancy vector, with no expectation and no reference to ahat_LMMSE or E[a|x]. The JSON summary reproduces the tex verbatim including the E, so a reader is told the definition with the expectation was recorded when the Lean object is the deterministic norm. Definition-only item, hence low.",
+      "suggested_status": "defined (per-realisation form; the expectation in the tex is dropped)"
+    }
+  ],
+  "note": "Coverage is complete: I enumerated every display in ch07-laplace.tex lines 1-746 and all 32 (5 labelled equations in Sections 7.1-7.2, the 9 unlabelled displays of Remark 7.3 and the Theorem 7.4 proof, eq:l-grid ... eq:l-epspm) appear in the JSON. Nothing is MISSING. Most of the module is genuinely good and I verified the algebra by hand: ch07_gauss_conv and ch07_gauss_integral are real integral theorems from Mathlib's integral_gaussian; ch07_remark_change_of_var is a true change-of-variables identity over R via integral_sub_right_eq_self; ch07_l_score_identity_discrete is a genuinely non-Gaussian HasDerivAt statement for an arbitrary finitely supported prior, with the signs correct ((mu*sum w v e - x*sum w e)/Delta); ch07_l_state_kurtosis, ch07_innov_sum, ch07_lmmse_fwd_map/bwd_map and ch07_l_excess_derived (cross term derived from the tower property, not assumed) are all faithful and fully general; the (B^T B)_{ij} formula and the 0-based-indexing caveat check out by hand (sum_{k>=max} alpha^{2k-i-j} = alpha^{|i-j|}(1-alpha^{2(L-max)})/(1-alpha^2) with k running to L-1). The numerics are right too (3h = 0.12 at N=401/A=8; (3h)^2/2 = 0.1152 at N=101; 3*0.2775/1.7225 = 0.4833). The thesis bug flagged under eq:l-resolution (the '0.32 at the smallest reported t' vs t = 0.02 in Table tab:l-closure) is a real and correctly-labelled finding about the tex, not an audit defect. One further wording slip, too small to list as an issue: the note on ch07_l_lmmse_normal_eq describes its hypothesis 'IsUnit Cxx.det' as 'for any Cov(x) with unit determinant'; IsUnit means the determinant is a unit of R, i.e. nonzero, not equal to 1 -- the lemma is more general than the note claims, so it errs in the safe direction."
+}

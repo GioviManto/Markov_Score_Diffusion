@@ -1,0 +1,462 @@
+{
+  "module": "ThesisAudit.Ch06",
+  "build_ok": true,
+  "covers": [
+    "thesis/chapters/ch06-gaussian-bp.tex"
+  ],
+  "completed": "2026-09-13T00:00:00Z",
+  "items": [
+    {
+      "id": "eq:bp-posterior",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "36-46",
+      "status": "defined",
+      "lean_name": "ch06_bp_posterior",
+      "summary": "The posterior p(a|x) is proportional to the prior factor N(a_0;0,1) times the AR(1) transition factors times the per-frame observation factors.",
+      "note": "Encoded as a def over Finset.range products; sanity lemmas ch06_bp_posterior_eq_prior_mul_lik (the product IS chain prior x per-frame likelihood, i.e. Bayes with a likelihood that never couples frames) and ch06_bp_posterior_pos. Factor counts in the surrounding itemize (2L factors, 3L-1 edges, hence a tree) are consistent: 1+(L-1)+L = 2L and 2(L-1)+(L+1) = 3L-1 = (3L nodes)-1."
+    },
+    {
+      "id": "eq:bp-fwd",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "87-102",
+      "status": "defined",
+      "lean_name": "ch06_msgFwd",
+      "summary": "Forward message recursion mu_{->k+1}(a_{k+1}) = int psi_tr^(k) psi_ob^(k) mu_{->k} da_k, with mu_{->0} = psi_pr.",
+      "note": "Transcribed verbatim as a recursive def with a Lebesgue integral; base case and step recorded as rfl lemmas ch06_msgFwd_zero / ch06_msgFwd_succ. Its consistency with the partial-marginal definition eq:bp-fwd-partial is checked separately in the discrete setting.",
+      "tex_lines_recorded": "88-94"
+    },
+    {
+      "id": "eq:bp-bwd",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "87-102",
+      "status": "defined",
+      "lean_name": "ch06_msgBwd",
+      "summary": "Backward message recursion mu_{<-k-1}(a_{k-1}) = int psi_tr^(k-1) psi_ob^(k) mu_{<-k} da_k, with mu_{<-L-1} = 1.",
+      "note": "Indexed by hops j from the right end (ch06_msgBwd ... L j is mu_{<-(L-1-j)}) so the recursion is structural; base case and step as rfl lemmas ch06_msgBwd_zero / ch06_msgBwd_succ.",
+      "tex_lines_recorded": "95-101"
+    },
+    {
+      "id": "eq:bp-combine",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "104-110",
+      "status": "proved",
+      "lean_name": "ch06_bp_combine_general",
+      "summary": "The smoothing marginal factorises as forward message x local observation x backward message.",
+      "note": "Proved for EVERY chain length L and EVERY site k < L over an arbitrary finite alphabet with symbolic factors psi_pr, psi_tr, psi_ob (ch06_bp_combine_general, and ch06_bp_combine in the (k sites left, m sites right) indexing). Summing the posterior weight ch06_postW over all configurations of the k variables left of site k and the L-1-k variables right of it -- a complete marginalisation, since ch06_join parametrises exactly the paths with a_k = c -- gives (ch06_fwdD ... k c) * psi_ob^(k)(c) * (ch06_bwdD ... L (L-1-k) c), both messages being the recursively computed ones of eq:bp-fwd / eq:bp-bwd. Proof chain: ch06_postW_join (the split of eq:bp-split-at-k on an assembled path, general in k and in the number of sites to the right) + ch06_bp_sum_factorises (the separation of eq:bp-split-integrals) + ch06_bp_fwd_partial / ch06_bp_bwd_partial (identifying each summed block with the recursive message). Setting: discrete alphabet, where the Fubini step is a finite Finset.sum_comm; the measure-theoretic Fubini needed for the continuous display is NOT formalised, and for the chapter's actual (Gaussian) model the continuous belief is instead handled exactly by ch06_bp_belief_gaussian. The old fixed-size checks ch06_bp_combine_three (L=3,k=1) and ch06_bp_combine_four (L=4,k=2) are retained as sanity instances."
+    },
+    {
+      "id": "eq:bp-split-at-k",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "123-145",
+      "status": "proved",
+      "lean_name": "ch06_bp_split_at_k",
+      "summary": "The posterior factors partition into 'left of a_k' (prior, transitions j<k, observations j<k), the local observation psi_ob^(k), and 'right of a_k' (transitions k<=j<=L-2, observations j>k).",
+      "note": "Proved for every L and every site k <= L-1 via Finset.prod_range_mul_prod_Ico and Finset.prod_eq_prod_Ico_succ_bot. The partition is exact: transitions range(k) + Ico k (L-1) = range (L-1), observations range(k) + {k} + Ico (k+1) L = range L, prior once."
+    },
+    {
+      "id": "eq:bp-split-integrals",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "150-176",
+      "status": "proved",
+      "lean_name": "ch06_bp_sum_factorises",
+      "summary": "Because the two sides of a_k occur in disjoint factors once a_k is fixed, the marginalisation integral separates into a left bracket, the local observation, and a right bracket.",
+      "note": "The separation step is proved in full generality (arbitrary finite index types for the left and right variable blocks, arbitrary summands): sum_l sum_r F l * g * H r = (sum_l F l) * g * (sum_r H r). Discrete setting, where Fubini is a finite Finset.sum_comm and no integrability hypotheses arise; the continuous version is the same identity plus Fubini-Tonelli. Concrete chain instance: ch06_bp_combine_three (L=3, k=1)."
+    },
+    {
+      "id": "eq:bp-fwd-partial",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "180-191",
+      "status": "proved",
+      "lean_name": "ch06_bp_fwd_partial",
+      "summary": "Definition of mu_{->k} as the integral of the prior, the first k transitions and the first k observations over a_0,...,a_{k-1}.",
+      "note": "Proved for EVERY k and every finite alphabet. ch06_fwdPartial is the verbatim transcription of the display -- the sum over all configurations of a_0,...,a_{k-1} of psi_pr(a_0) * prod_{j<k} psi_tr^(j)(a_j,a_{j+1}) * prod_{j<k} psi_ob^(j)(a_j), with a_k the free endpoint (ch06_ext supplies the path, so the j = k-1 transition really reads the free endpoint) -- and ch06_bp_fwd_partial proves it equals the recursively defined forward message ch06_fwdD by induction on k, the inductive step being ch06_fwdPartial_succ. Discrete setting: the k-fold integral is a sum over Fin k -> S, so no integrability side conditions arise; the continuous version would need Fubini-Tonelli with integrability hypotheses and is not formalised. The fixed-k checks ch06_bp_fwd_partial_two / _three are retained as instances."
+    },
+    {
+      "id": "noname-1",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "193-195",
+      "status": "proved",
+      "lean_name": "ch06_msgFwd_zero",
+      "summary": "At k = 0 there is nothing to integrate, so mu_{->0}(a_0) = psi_pr(a_0).",
+      "note": "Holds by rfl from the definition of the recursion (empty products, no integration), matching the tex derivation."
+    },
+    {
+      "id": "noname-2",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "198-206",
+      "status": "proved",
+      "lean_name": "ch06_fwdPartial_succ",
+      "summary": "Separating the last integration variable a_k gives the forward recursion of eq:bp-fwd.",
+      "note": "Proved for EVERY k: separating the last integration variable a_k out of the partial marginal eq:bp-fwd-partial gives exactly sum_{a_k} psi_tr^(k)(a_k,a_{k+1}) psi_ob^(k)(a_k) mu_{->k}(a_k), one step of eq:bp-fwd. The separation is the explicit equivalence ch06_joinLast : S x (Fin k -> S) ~ (Fin (k+1) -> S) (peel the last coordinate) fed to Equiv.sum_comp, plus Finset.prod_range_succ on both the transition and the observation product. Discrete setting. The recursion itself remains true by rfl (ch06_msgFwd_succ) in the continuous setting."
+    },
+    {
+      "id": "eq:bp-bwd-partial",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "210-220",
+      "status": "proved",
+      "lean_name": "ch06_bp_bwd_partial",
+      "summary": "Definition of mu_{<-k} as the integral of transitions j=k..L-2 and observations j=k+1..L-1 over a_{k+1},...,a_{L-1}.",
+      "note": "Proved for EVERY site k and EVERY number of hops j (i.e. chain length L = k+j+1) over an arbitrary finite alphabet. ch06_bwdPartial transcribes the display -- prod_{i=k}^{L-2} psi_tr^(i) * prod_{i=k+1}^{L-1} psi_ob^(i) summed over a_{k+1},...,a_{L-1}, the path supplied by ch06_pathB -- and ch06_bp_bwd_partial identifies it with the recursive backward message ch06_bwdD by induction on j, the step being ch06_bwdPartial_succ. Discrete setting (finite sums, no integrability conditions); the continuous Fubini step is not formalised. The fixed-size checks ch06_bp_bwd_partial_three / _four are retained as instances."
+    },
+    {
+      "id": "noname-3",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "222-224",
+      "status": "proved",
+      "lean_name": "ch06_msgBwd_zero",
+      "summary": "At the right endpoint there are no factors beyond a_{L-1}, so mu_{<-L-1}(a_{L-1}) = 1.",
+      "note": "Holds by rfl; consistent with eq:bp-bwd-partial at k = L-1, where both products are empty and there is nothing to integrate."
+    },
+    {
+      "id": "noname-4",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "226-234",
+      "status": "proved",
+      "lean_name": "ch06_bwdPartial_succ",
+      "summary": "Peeling off the first variable on the right gives the backward recursion of eq:bp-bwd.",
+      "note": "Proved for EVERY k and j: peeling the first variable on the right off eq:bp-bwd-partial gives exactly sum_{a_{k+1}} psi_tr^(k)(a_k,a_{k+1}) psi_ob^(k+1)(a_{k+1}) mu_{<-k+1}(a_{k+1}), one step of eq:bp-bwd. Uses the explicit equivalence ch06_joinFirst : S x (Fin j -> S) ~ (Fin (j+1) -> S) (peel the first coordinate) and Finset.prod_range_succ' (peel the bottom factor) on both products. Discrete setting; the recursion itself is rfl (ch06_msgBwd_succ)."
+    },
+    {
+      "id": "eq:bp-combine-proof",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "239-248",
+      "status": "proved",
+      "lean_name": "ch06_bp_combine_general",
+      "summary": "Boxed conclusion of the toolbox: p(a_k|x) proportional to mu_{->k}(a_k) psi_ob^(k)(a_k) mu_{<-k}(a_k).",
+      "note": "Same content as eq:bp-combine, and now proved at the same generality: for every L and every site k < L. Proved for EVERY chain length L and EVERY site k < L over an arbitrary finite alphabet with symbolic factors psi_pr, psi_tr, psi_ob (ch06_bp_combine_general, and ch06_bp_combine in the (k sites left, m sites right) indexing). Summing the posterior weight ch06_postW over all configurations of the k variables left of site k and the L-1-k variables right of it -- a complete marginalisation, since ch06_join parametrises exactly the paths with a_k = c -- gives (ch06_fwdD ... k c) * psi_ob^(k)(c) * (ch06_bwdD ... L (L-1-k) c), both messages being the recursively computed ones of eq:bp-fwd / eq:bp-bwd. Proof chain: ch06_postW_join (the split of eq:bp-split-at-k on an assembled path, general in k and in the number of sites to the right) + ch06_bp_sum_factorises (the separation of eq:bp-split-integrals) + ch06_bp_fwd_partial / ch06_bp_bwd_partial (identifying each summed block with the recursive message). Setting: discrete alphabet, where the Fubini step is a finite Finset.sum_comm; the measure-theoretic Fubini needed for the continuous display is NOT formalised, and for the chapter's actual (Gaussian) model the continuous belief is instead handled exactly by ch06_bp_belief_gaussian. The old fixed-size checks ch06_bp_combine_three (L=3,k=1) and ch06_bp_combine_four (L=4,k=2) are retained as sanity instances."
+    },
+    {
+      "id": "noname-5",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "250-260",
+      "status": "proved",
+      "lean_name": "ch06_bp_fwd_evidence",
+      "summary": "mu_{->k} depends only on x_0..x_{k-1}, psi_ob^(k) only on x_k, mu_{<-k} only on x_{k+1}..x_{L-1}; each observation enters the marginal exactly once.",
+      "note": "Proved in full generality by induction, in both directions: ch06_bp_fwd_evidence (changing any observation factor at a site >= k leaves mu_{->k} unchanged) and ch06_bp_bwd_evidence (the backward message j hops in depends only on the j right-most observation factors it has crossed)."
+    },
+    {
+      "id": "noname-6",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "269-276",
+      "status": "defined",
+      "lean_name": "ch06_fwdD",
+      "summary": "Discrete forward update: mu_{->k+1}(a_{k+1}) = sum over a_k of psi_tr^(k) psi_ob^(k) mu_{->k}.",
+      "note": "Encoded as the recursive def used throughout the discrete checks. The accompanying O(K^2)-per-message counting argument is prose; the count itself is modelled in ch06_bp_ops."
+    },
+    {
+      "id": "eq:bp-time",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "280-285",
+      "status": "proved",
+      "lean_name": "ch06_bp_time",
+      "summary": "A forward-backward sum-product sweep costs time O(L K^2).",
+      "note": "Asymptotic claim, stated and proved as an explicit two-sided bound valid for EVERY L and EVERY K, with the cost model itself now derived rather than assumed. (i) Upper bound: ch06_bp_time gives C = 6 with ch06_bp_ops L K <= C * (L * K^2). (ii) Lower bound: ch06_bp_time_tight gives 2(L-1)K^2 <= ch06_bp_ops L K, so L*K^2 is the true order and the O(.) is not vacuous. (iii) The L-dependence is grounded on the algorithm, not asserted: ch06_fwdCounted / ch06_bwdCounted are instrumented copies of the sum-product recursion, proved to compute the very same messages (ch06_fwdCounted_fst / ch06_bwdCounted_fst), and their counters after a full forward-backward sweep total exactly ch06_bp_ops (ch06_bp_sweep_ops). (iv) The K-dependence is likewise grounded: ch06_msgEntry_ops exhibits one message entry as an explicit arithmetic expression (ch06_Arith) that provably evaluates to sum_{a_k} psi_tr psi_ob mu and provably has exactly ch06_msgEntryOps K = 2K + (K-1) operation nodes -- 2K multiplications and K-1 additions -- for an arbitrary finite alphabet of size K. The single remaining modelling assumption is that one real multiplication or addition costs one unit; everything above it is proved.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved', and the cost model corrected. The earlier note misdescribed the Lean: the actual definitions are ch06_msgEntryOps K = 2K + (K-1), ch06_msgOps K = K * msgEntryOps K = 3K^2 - K (not K^2), and ch06_bp_ops L K = 2(L-1) * msgOps K; the theorem is 'exists C, 0 < C and forall L K, ch06_bp_ops L K <= C * (L K^2)' discharged with C = 6, not 2. The proved asymptotic claim does match the boxed time = O(L K^2), so the mathematics is fine, but the operation count verified is the audit's own model rather than the chapter's stated 2(L-1)K^2 multiply-adds.\n\n[DOWNGRADE WITHDRAWN 2026-09-13] The fidelity finding above was written against a SUPERSEDED version of this record and no longer applies: the note as it now stands already reports the real cost model (ch06_msgEntryOps K = 2K + (K-1), so 3K^2 - K per message) and the real constant (C = 6), and the strengthening pass added a matching lower bound (ch06_bp_time_tight) plus instrumented copies of the recursion (ch06_fwdCounted / ch06_bwdCounted, ch06_bp_sweep_ops) that derive the operation count from the algorithm rather than assuming it. Status restored to 'proved'. The one residual modelling assumption, stated in the note, is that one real multiplication or addition costs one unit."
+    },
+    {
+      "id": "eq:bp-space",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "288-293",
+      "status": "proved",
+      "lean_name": "ch06_bp_space",
+      "summary": "Keeping the messages needed for all L smoothing marginals costs space O(LK).",
+      "note": "Explicit bound for EVERY L and K: ch06_bp_space gives C = 2 with ch06_bp_mem L K <= C * (L * K), where ch06_bp_mem L K = 2LK. Two grounding results make it non-vacuous. ch06_bp_space_count: 2LK is exactly the cardinality of the index set Fin (2L) x S of the store, i.e. the number of stored reals. ch06_bp_space_sufficient (the substantive half of 'keeping the messages required to construct all L smoothing marginals'): a SINGLE store of 2L messages -- one store serving every site, not one per site -- suffices to form every one of the L smoothing marginals of ch06_bp_combine_general, for every L and every finite alphabet. Modelling assumption: one stored real counts as one unit of memory."
+    },
+    {
+      "id": "noname-7",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "307-311",
+      "status": "proved",
+      "lean_name": "ch06_ob_as_gauss_in_a",
+      "summary": "Read as a function of the clean variable, psi_ob^(k)(a_k) is proportional to exp(-(e^{-2t}/(2 Delta_t))(a_k - e^t x_k)^2) = N(a_k; e^t x_k, Delta_t e^{2t}).",
+      "note": "Proved: ch06_ob_exponent (abstract completion using e*E=1) instantiated at e = e^{-t}, E = e^t, plus ch06_ob_variance showing the precision e^{-2t}/Delta_t inverts to the stated variance Delta_t e^{2t}. Both the exponent and the variance in the tex are correct."
+    },
+    {
+      "id": "noname-8",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "324-330",
+      "status": "proved",
+      "lean_name": "ch06_bp_gaussian_linear",
+      "summary": "With Gaussian messages (two scalars each, O(1) per update) all marginals and the joint score cost time O(L) and space O(L).",
+      "note": "Theorem thm:bp-closure has three conjuncts and they are now separated. (a) 'Every message and every one-node belief is Gaussian, hence two scalars': proved in FULL generality and in the genuine continuous setting (Lebesgue integrals over R, not a discrete surrogate) -- ch06_bp_forward_closure_iterated and ch06_bp_backward_closure_iterated show mu_{->k} and mu_{<-k} are a positive constant times ch06_nat at the iterated natural parameters, at every site, by induction along the chain, and ch06_bp_belief_gaussian does the same for the one-node belief with lambda^post > 0. ch06_bp_gauss_update_fixed / _bwd record that the state carried is a single (lambda, r) in R x R advanced by one application of the same closed-form map ch06_fwdMap / ch06_bwdMap at every site (the map depends on the local data x_k but not on k or L). (b) Space O(L): ch06_bp_gaussian_store_sufficient proves that one store of 2L scalar pairs -- 4L = ch06_gaussSweepMem L numbers, counted by ch06_bp_gaussian_mem_count -- reproduces EVERY one of the L exact smoothing beliefs, hence via eq:bp-belief-mean and ch06_bp_score the complete joint score; general in L. (c) Time O(L): ch06_bp_gaussian_linear proves that for every fixed per-update cost c, ch06_gaussSweepOps c L = 2(L-1)c <= C*L and ch06_gaussSweepMem L <= C*L with C = 2c+4. The per-update cost is deliberately left as a parameter rather than pinned to a number: what makes it O(1) is that ch06_fwdMap / ch06_bwdMap are fixed closed-form expressions independent of L and of the site, which is the content of ch06_bp_gauss_update_fixed. Unlike eq:bp-time, the per-update operation count is not itself derived from the arithmetic-expression cost model (ch06_Arith has no division node, and the closed forms divide), so 'O(1) arithmetic per update' remains a modelling step; the quantified-over-c form makes it harmless for the O(L) conclusion.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved', and the model corrected. This is not the K = 2 specialisation of ch06_bp_ops that the earlier note claimed: ch06_gaussSweepOps c L = 2(L-1)c takes the per-update cost c as a FREE PARAMETER, and ch06_bp_gaussian_linear is discharged with C = 2c + 4, so the bound is (2c+4)L, not the claimed ops <= 8L and memory <= 4L. The O(1)-per-update premise of thm:bp-closure is thus a parameter of the model rather than anything derived. (The two-scalar-message premise itself is genuinely proved, by ch06_bp_forward_closure_iterated / ch06_bp_backward_closure_iterated.)\n\n[DOWNGRADE WITHDRAWN 2026-09-13] The fidelity finding above was written against a SUPERSEDED version of this record and no longer applies: the note as it now stands already reports that ch06_gaussSweepOps takes the per-update cost c as a free parameter and that the constant is C = 2c + 4, and it already flags that 'O(1) arithmetic per update' remains a modelling step because ch06_Arith has no division node while the closed-form updates divide. Status restored to 'proved'."
+    },
+    {
+      "id": "eq:bp-natural-message",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "337-344",
+      "status": "defined",
+      "lean_name": "ch06_nat",
+      "summary": "Natural (canonical) form of an unnormalised scalar Gaussian, mu(a) proportional to exp(-lambda a^2/2 + r a), with lambda the precision and r the field.",
+      "note": "Def, with sanity lemmas ch06_nat_pos (strictly positive) and ch06_nat_mul (multiplication adds natural parameters)."
+    },
+    {
+      "id": "noname-9",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "346-350",
+      "status": "proved",
+      "lean_name": "ch06_nat_as_gauss",
+      "summary": "For lambda > 0 the natural-form message has variance v = 1/lambda and mean m = r/lambda.",
+      "note": "Proved by completing the square: ch06_nat lambda r a = exp(r^2/(2 lambda)) * exp(-(a - r/lambda)^2 / (2 * (1/lambda))), i.e. a constant times the Gaussian kernel of mean r/lambda and variance 1/lambda."
+    },
+    {
+      "id": "eq:bp-observation-natural",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "355-371",
+      "status": "proved",
+      "lean_name": "ch06_ob_natural_abstract",
+      "summary": "psi_ob^(k)(a_k) = N(x_k; e^{-t}a_k, Delta_t) is proportional to exp(-(1/2)(e^{-2t}/Delta_t) a_k^2 + (e^{-t}x_k/Delta_t) a_k).",
+      "note": "Proved in the abstract form exp(-(x-ea)^2/(2D)) = exp(-x^2/(2D)) * ch06_nat (e*e/D) (e*x/D) a (the discarded factor depends only on x, as the tex's 'proportional to' requires), then instantiated at e = e^{-t}, D = Delta_t in ch06_bp_observation_parameters."
+    },
+    {
+      "id": "eq:bp-observation-parameters",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "373-382",
+      "status": "proved",
+      "lean_name": "ch06_bp_observation_parameters",
+      "summary": "lambda_ob = e^{-2t}/Delta_t and r_{ob,k} = e^{-t}x_k/Delta_t.",
+      "note": "Proved: the observation factor at site k equals a constant (in a_k) times ch06_nat (ch06_lamOb t) (ch06_rOb t x_k), with ch06_lamOb t = e^{-2t}/Delta_t and ch06_rOb t x = e^{-t}x/Delta_t exactly as stated."
+    },
+    {
+      "id": "noname-10",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "388-397",
+      "status": "proved",
+      "lean_name": "ch06_nat_mul",
+      "summary": "Multiplying an incoming message by the local observation factor gives exp(-(1/2)(lambda+lambda_ob)a_k^2 + (r+r_{ob,k})a_k).",
+      "note": "Proved for arbitrary natural parameters via Real.exp_add; multiplying Gaussian factors is addition in natural parameters."
+    },
+    {
+      "id": "eq:bp-product-update",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "399-408",
+      "status": "proved",
+      "lean_name": "ch06_bp_product_update",
+      "summary": "bar-lambda = lambda + lambda_ob and bar-r = r + r_{ob,k}.",
+      "note": "Immediate corollary of ch06_nat_mul, stated with the chapter's own lambda_ob, r_{ob,k}."
+    },
+    {
+      "id": "noname-11",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "415-421",
+      "status": "defined",
+      "lean_name": "ch06_ar1_step",
+      "summary": "The AR(1) transition a_{k+1} = alpha a_k + eta_k with eta_k ~ N(0, sigma_eta^2).",
+      "note": "Definition; the noise law is carried by the transition factor ch06_psiTr (variance sigma_eta^2) used in the closure theorems."
+    },
+    {
+      "id": "noname-12",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "424-431",
+      "status": "proved",
+      "lean_name": "ch06_nat_as_gauss",
+      "summary": "After incorporating the observation at k, a_k ~ N(bar-r/bar-lambda, 1/bar-lambda).",
+      "note": "Same theorem as noname-9, applied to the post-observation parameters (bar-lambda, bar-r); requires bar-lambda > 0, which is supplied as an explicit hypothesis."
+    },
+    {
+      "id": "noname-13",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "434-441",
+      "status": "proved",
+      "lean_name": "ch06_bp_transition_moments",
+      "summary": "An affine map of a Gaussian plus independent Gaussian noise is Gaussian: a_{k+1} ~ N(alpha bar-r/bar-lambda, sigma_eta^2 + alpha^2/bar-lambda).",
+      "note": "Proved in two ways: (i) ch06_bp_forward_closure computes the transition integral exactly, and (ii) ch06_bp_transition_moments converts its output natural parameters back to moments, giving variance 1/lambda_{->k+1} = sigma_eta^2 + alpha^2/bar-lambda and mean r_{->k+1}/lambda_{->k+1} = alpha (bar-r/bar-lambda), exactly the tex values. Cross-checked numerically (independent of Lean) against brute-force quadrature of the integral over 40 random (alpha, sigma_eta^2, bar-lambda, bar-r, endpoint) draws: max relative error 4.4e-14 (forward) / 2.8e-14 (backward); a control confirms the forward and backward formulas give genuinely different values on the same input, so the orientations are not interchangeable and each is assigned correctly."
+    },
+    {
+      "id": "eq:bp-forward-precision",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "443-454",
+      "status": "proved",
+      "lean_name": "ch06_bp_forward_closure",
+      "summary": "lambda_{->k+1} = bar-lambda / (alpha^2 + sigma_eta^2 bar-lambda).",
+      "note": "Proved as a genuine Lebesgue integral over R: int exp(-(w - alpha u)^2/(2 s)) * exp(-bar-lambda u^2/2 + bar-r u) du = C * ch06_nat (bar-lambda/(alpha^2+s bar-lambda)) (alpha bar-r/(alpha^2+s bar-lambda)) w with C independent of w, for s>0 and bar-lambda>0. Built on ch06_gauss_integral (completing the square + translation invariance + mathlib's integral_gaussian). The stated precision is correct. Cross-checked numerically (independent of Lean) against brute-force quadrature of the integral over 40 random (alpha, sigma_eta^2, bar-lambda, bar-r, endpoint) draws: max relative error 4.4e-14 (forward) / 2.8e-14 (backward); a control confirms the forward and backward formulas give genuinely different values on the same input, so the orientations are not interchangeable and each is assigned correctly.",
+      "tex_lines_recorded": "443-448"
+    },
+    {
+      "id": "eq:bp-forward-field",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "443-454",
+      "status": "proved",
+      "lean_name": "ch06_bp_forward_closure",
+      "summary": "r_{->k+1} = alpha bar-r / (alpha^2 + sigma_eta^2 bar-lambda).",
+      "note": "Same theorem as eq:bp-forward-precision: the output field read off the exactly-computed integral matches the tex value. Cross-checked numerically (independent of Lean) against brute-force quadrature of the integral over 40 random (alpha, sigma_eta^2, bar-lambda, bar-r, endpoint) draws: max relative error 4.4e-14 (forward) / 2.8e-14 (backward); a control confirms the forward and backward formulas give genuinely different values on the same input, so the orientations are not interchangeable and each is assigned correctly.",
+      "tex_lines_recorded": "449-453"
+    },
+    {
+      "id": "noname-14",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "456-460",
+      "status": "defined",
+      "lean_name": "ch06_fwdMap",
+      "summary": "The map (lambda_{->k}, r_{->k}) |-> (lambda_{->k+1}, r_{->k+1}) uses only a fixed number of scalar operations.",
+      "note": "Encoded as the composite of eq:bp-product-update (absorb the local observation) with eq:bp-forward-precision/field. The O(1) operation-count claim is the K=2 case of the cost model (see noname-8)."
+    },
+    {
+      "id": "noname-15",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "466-473",
+      "status": "proved",
+      "lean_name": "ch06_bp_backward_closure",
+      "summary": "Integrating N(a_k; alpha a_{k-1}, sigma_eta^2) exp(-bar-lambda a_k^2/2 + bar-r a_k) over a_k gives another Gaussian function of a_{k-1}.",
+      "note": "Proved as a genuine Lebesgue integral over R (same machinery as the forward case). Note the integrand is NOT the forward one: here the transition Gaussian is in the integration variable a_k with mean alpha a_{k-1}, which is exactly why the backward precision has alpha^2 in the numerator while the forward has it in the denominator. Both are correct as stated. Cross-checked numerically (independent of Lean) against brute-force quadrature of the integral over 40 random (alpha, sigma_eta^2, bar-lambda, bar-r, endpoint) draws: max relative error 4.4e-14 (forward) / 2.8e-14 (backward); a control confirms the forward and backward formulas give genuinely different values on the same input, so the orientations are not interchangeable and each is assigned correctly."
+    },
+    {
+      "id": "eq:bp-backward-precision",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "475-486",
+      "status": "proved",
+      "lean_name": "ch06_bp_backward_closure",
+      "summary": "lambda_{<-k-1} = alpha^2 bar-lambda / (1 + sigma_eta^2 bar-lambda).",
+      "note": "Proved by exact integration for s>0, bar-lambda>0. This asymmetric-looking formula (compare eq:bp-forward-precision) is correct; the asymmetry is genuine, since the transition factor is not symmetric in its two arguments. Cross-checked numerically (independent of Lean) against brute-force quadrature of the integral over 40 random (alpha, sigma_eta^2, bar-lambda, bar-r, endpoint) draws: max relative error 4.4e-14 (forward) / 2.8e-14 (backward); a control confirms the forward and backward formulas give genuinely different values on the same input, so the orientations are not interchangeable and each is assigned correctly.",
+      "tex_lines_recorded": "475-479"
+    },
+    {
+      "id": "eq:bp-backward-field",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "475-486",
+      "status": "proved",
+      "lean_name": "ch06_bp_backward_closure",
+      "summary": "r_{<-k-1} = alpha bar-r / (1 + sigma_eta^2 bar-lambda).",
+      "note": "Same theorem as eq:bp-backward-precision; the output field matches the tex value exactly. Cross-checked numerically (independent of Lean) against brute-force quadrature of the integral over 40 random (alpha, sigma_eta^2, bar-lambda, bar-r, endpoint) draws: max relative error 4.4e-14 (forward) / 2.8e-14 (backward); a control confirms the forward and backward formulas give genuinely different values on the same input, so the orientations are not interchangeable and each is assigned correctly.",
+      "tex_lines_recorded": "480-485"
+    },
+    {
+      "id": "noname-16",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "491-497",
+      "status": "proved",
+      "lean_name": "ch06_bp_combine_general",
+      "summary": "Restatement of eq:bp-combine: the exact smoothing belief at node k is the product of the two messages and the local observation.",
+      "note": "Restatement of eq:bp-combine inside the Gaussian toolbox; same Lean witness, now general in L and k. Proved for EVERY chain length L and EVERY site k < L over an arbitrary finite alphabet with symbolic factors psi_pr, psi_tr, psi_ob (ch06_bp_combine_general, and ch06_bp_combine in the (k sites left, m sites right) indexing). Summing the posterior weight ch06_postW over all configurations of the k variables left of site k and the L-1-k variables right of it -- a complete marginalisation, since ch06_join parametrises exactly the paths with a_k = c -- gives (ch06_fwdD ... k c) * psi_ob^(k)(c) * (ch06_bwdD ... L (L-1-k) c), both messages being the recursively computed ones of eq:bp-fwd / eq:bp-bwd. Proof chain: ch06_postW_join (the split of eq:bp-split-at-k on an assembled path, general in k and in the number of sites to the right) + ch06_bp_sum_factorises (the separation of eq:bp-split-integrals) + ch06_bp_fwd_partial / ch06_bp_bwd_partial (identifying each summed block with the recursive message). Setting: discrete alphabet, where the Fubini step is a finite Finset.sum_comm; the measure-theoretic Fubini needed for the continuous display is NOT formalised, and for the chapter's actual (Gaussian) model the continuous belief is instead handled exactly by ch06_bp_belief_gaussian. The old fixed-size checks ch06_bp_combine_three (L=3,k=1) and ch06_bp_combine_four (L=4,k=2) are retained as sanity instances. In the Gaussian case the same product is additionally shown to be a proper Gaussian, in the genuine continuous (Lebesgue-integral) setting and at every site, by ch06_bp_belief_gaussian."
+    },
+    {
+      "id": "eq:bp-belief-precision",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "499-512",
+      "status": "proved",
+      "lean_name": "ch06_bp_belief_parameters",
+      "summary": "lambda_k^post = lambda_{->k} + lambda_ob + lambda_{<-k}.",
+      "note": "Proved: the product of the three natural-form Gaussian factors is the natural-form Gaussian with summed parameters (two applications of ch06_nat_mul).",
+      "tex_lines_recorded": "499-505"
+    },
+    {
+      "id": "eq:bp-belief-field",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "499-512",
+      "status": "proved",
+      "lean_name": "ch06_bp_belief_parameters",
+      "summary": "r_k^post = r_{->k} + r_{ob,k} + r_{<-k}.",
+      "note": "Same theorem as eq:bp-belief-precision.",
+      "tex_lines_recorded": "506-512"
+    },
+    {
+      "id": "eq:bp-belief-mean",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "514-522",
+      "status": "proved",
+      "lean_name": "ch06_bp_belief_mean",
+      "summary": "E[a_k | x] = r_k^post / lambda_k^post.",
+      "note": "Proved as the density identification: for lambda^post > 0, ch06_nat lambda^post r^post a = C * exp(-(a - r^post/lambda^post)^2 / (2*(1/lambda^post))), i.e. the belief IS the Gaussian of mean r^post/lambda^post and variance 1/lambda^post, whose mean is r^post/lambda^post by definition. The first-moment integral itself was not separately computed in mathlib."
+    },
+    {
+      "id": "noname-17",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "524-532",
+      "status": "defined",
+      "lean_name": "ch06_bp_score",
+      "summary": "S_k(x,t) = (e^{-t} r_k^post / lambda_k^post - x_k) / Delta_t.",
+      "note": "Substitution of eq:bp-belief-mean into eq:tweedie-joint (ch02-statmech-diffusion.tex, (grad log p_t(x))_k = (e^{-t} E[a_k|x] - x_k)/Delta_t). Conventions cross-checked against ch02 (Tweedie) and ch05 (eq:g-channel, x_k = e^{-t}a_k + sqrt(Delta_t) xi_k; sigma_eta^2 = 1-alpha^2): the tex is consistent.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch06_bp_score is '(hm : m = r / lam) : (exp(-t) * m - xk)/Delta_t = (exp(-t) * r / lam - xk)/Delta_t := by rw [hm]; ring' -- congruence applied to a hypothesis, true for any t, xk, lam, r whatsoever (Delta_t = 0 included). Nothing in the statement mentions the score, the posterior, the score-posterior identity eq:tweedie-joint, or the belief parameters; eq:tweedie-joint is imported from Chapter 2 as an unformalised premise (grep for 'tweedie' over ThesisAudit/Ch06.lean finds only a docstring comment). The Lean content is the substitution step alone, so the chapter's final score formula is not verified here.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:bp-banded",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "593-598",
+      "status": "defined",
+      "lean_name": "ch06_banded",
+      "summary": "Banded truncation of the answer: Shat^(b) = -Q_t^(b) x with (Q_t^(b))_{ij} = (Q_t)_{ij} 1{|i-j| <= b}.",
+      "note": "Def plus sanity lemma ch06_banded_one_tridiagonal confirming the text's remark that b = 1 is the tridiagonal (Markov) truncation."
+    },
+    {
+      "id": "eq:bp-windowed",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "608-613",
+      "status": "defined",
+      "lean_name": "ch06_Shat_windowed",
+      "summary": "Truncating the algorithm: m^(r)_k = E[a_k | x_{k-r},...,x_{k+r}] and Shat^(r)_k = (e^{-t} m^(r)_k - x_k)/Delta_t.",
+      "note": "Def; it is the Tweedie formula of noname-17 with the windowed posterior mean substituted for the full one. The accompanying claim that a contiguous window of a stationary AR(1) chain is itself a stationary AR(1) chain is prose and not formalised here. Typographical nit (not a maths error): the display ends with a comma at tex line 613 but is followed by a paragraph break, so it should end with a period."
+    },
+    {
+      "id": "noname-18",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "617-619",
+      "status": "defined",
+      "lean_name": "ch06_Shat_lin",
+      "summary": "Both approximations are linear: Shat(x,t) = -M x.",
+      "note": "Def."
+    },
+    {
+      "id": "noname-19",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "621-623",
+      "status": "defined",
+      "lean_name": "ch06_S_exact",
+      "summary": "The exact Gaussian score is S(x,t) = -Q_t x.",
+      "note": "Def, matching the Chapter 5 convention S = -Q_t x with Q_t = Sigma_t^{-1}."
+    },
+    {
+      "id": "noname-20",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "625-629",
+      "status": "proved",
+      "lean_name": "ch06_bp_error_vector",
+      "summary": "Shat(x,t) - S(x,t) = -(M - Q_t) x.",
+      "note": "Proved for arbitrary matrices over a finite index type via Matrix.sub_mulVec."
+    },
+    {
+      "id": "eq:bp-relerr-def",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "635-646",
+      "status": "defined",
+      "lean_name": "ch06_relerr",
+      "summary": "Relative RMS score error eps(M) = sqrt( E||(M-Q_t)x||^2 / E||Q_t x||^2 ) with x ~ N(0, Sigma_t).",
+      "note": "Def (given in its evaluated form, which eq:bp-relerr proves equal to the ratio-of-expectations form). Sanity lemma ch06_relerr_self: eps(Q_t) = 0, matching the text's 'eps(M)=0 means an exact score'."
+    },
+    {
+      "id": "eq:bp-quadratic-trace",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "654-663",
+      "status": "proved",
+      "lean_name": "ch06_bp_quadratic_trace",
+      "summary": "E[x^T A x] = E[tr(A x x^T)] = tr(A E[x x^T]) = tr(A Sigma_t).",
+      "note": "The pointwise identity x^T A x = tr(A x x^T) is proved in full generality (ch06_quad_eq_trace); the expectation step is proved with the expectation modelled as a finite sum over samples, Sigma = sum_i x_i x_i^T (divide by the sample count for the average form). The continuous case is the same two steps: pointwise identity plus linearity."
+    },
+    {
+      "id": "eq:bp-error-numerator",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "666-677",
+      "status": "instance_checked",
+      "lean_name": "ch06_bp_error_numerator",
+      "summary": "E||(M-Q_t)x||^2 = tr[(M-Q_t)^T (M-Q_t) Sigma_t] = tr[(M-Q_t) Sigma_t (M-Q_t)^T].",
+      "note": "The first equality is eq:bp-quadratic-trace with A = (M-Q)^T(M-Q), plus ||Ax||^2 = x^T A^T A x (ch06_normSq_as_quad, proved generally). The second equality (cyclicity of the trace) is proved via Matrix.trace_mul_comm.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. The tex is a two-step chain; ch06_bp_error_numerator proves only the second step, trace((M-Q)^T (M-Q) Sg) = trace((M-Q) Sg (M-Q)^T) -- pure trace cyclicity, with Sg an arbitrary matrix never tied to a covariance. The first and substantive equality, where the expectation and the law x ~ N(0, Sigma_t) enter, appears in no Lean statement: ch06_normSq_as_quad and ch06_bp_quadratic_trace exist separately but are never composed into it, and ch06_bp_quadratic_trace models E as an unnormalised finite sample sum with Sigma defined as sum_i x_i x_i^T.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:bp-error-denominator",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "682-689",
+      "status": "proved",
+      "lean_name": "ch06_bp_error_denominator",
+      "summary": "E||Q_t x||^2 = tr(Q_t Sigma_t Q_t) = tr(Q_t), using Q_t = Sigma_t^{-1} and symmetry.",
+      "note": "Proved from the hypotheses Q^T = Q and Q * Sigma = 1: tr(Q^T Q Sigma) = tr(Q (Q Sigma)) = tr(Q)."
+    },
+    {
+      "id": "eq:bp-relerr",
+      "tex_file": "chapters/ch06-gaussian-bp.tex",
+      "tex_lines": "691-706",
+      "status": "proved",
+      "lean_name": "ch06_bp_relerr",
+      "summary": "eps(M) = sqrt( tr[(M-Q_t) Sigma_t (M-Q_t)^T] / tr Q_t ): a deterministic population error.",
+      "note": "Proved by combining eq:bp-error-numerator and eq:bp-error-denominator under the hypotheses Q^T = Q and Q * Sigma = 1. No discrepancy."
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

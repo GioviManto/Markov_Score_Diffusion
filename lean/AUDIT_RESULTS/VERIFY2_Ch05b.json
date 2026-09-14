@@ -1,0 +1,75 @@
+{
+  "module": "ThesisAudit.Ch05b",
+  "checked": 8,
+  "verdicts": [
+    {
+      "id": "thm:g-decouple",
+      "lean_name": "ch05b_g_decouple, ch05b_g_decouple_cov, ch05b_g_decouple_density, ch05b_g_decouple_score, ch05b_g_decouple_score_local",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "Genuine, at general dimension, about the thesis's own objects. Quantified over `{n : ℝ}` (the file's `variable {n : ℕ}`), not a fixed L. The hypotheses are exactly the chapter's: `hU : Uᵀ * U = 1` (tex: U orthogonal), `hS0 : S0 = U * diagonal ω * Uᵀ` (tex 1168: Σ₀ = U diag(ωᵢ) Uᵀ), `hω : ∀ i, 0 < ω i` (tex 1180: 'Σ₀ ≻ 0 gives ωᵢ > 0'), `ht : 0 ≤ t`. NOT a freshly-defined diagonal object: Σ_t is the module's global `ch05b_Sigt S0 t = e^{-2t}•S0 + Δ_t•1` (eq:g-Sigt) used by every other item, Q_t = (Σ_t)⁻¹, and the score is the global `ch05b_score S0 t x = -(Q_t *ᵥ x)`, which is tied to the density by ch05b_g_score_matrix_grad_log. Part (i), tex 'the noisy law factorises, P_t(x̃) = ∏ᵢ N(x̃ᵢ; 0, λᵢ(t))', is ch05b_g_decouple_density: `ch05b_gaussPDF (ch05b_Sigt S0 t) (U *ᵥ xt) = ∏ i, ProbabilityTheory.gaussianPDFReal 0 (ch05b_lam (ω i) t).toNNReal (xt i)` — LHS is the honest full multivariate density ((2π)ⁿ det Σ_t)^{-1/2} exp(-½ xᵀΣ_t⁻¹x), RHS is mathlib's own scalar Gaussian pdf (the proof unfolds `ProbabilityTheory.gaussianPDFReal`, so it is not a re-definition); the factorisation is earned through det Σ_t = ∏λᵢ and (Ux̃)·(Q_t Ux̃) = ∑ x̃ᵢ²/λᵢ, not by construction. Part (ii), tex 's̃ᵢ(x̃,t) = -x̃ᵢ/λᵢ(t), each depending on its own coordinate only', is ch05b_g_decouple_score `(Uᵀ *ᵥ ch05b_score S0 t (U *ᵥ xt)) i = -(xt i) / ch05b_lam (ω i) t` plus ch05b_g_decouple_score_local (y i = z i → equal i-th components) — both clauses stated. The proof's first step (tex 1236) is ch05b_g_decouple_cov. Two residual caveats, both non-fatal but worth stating: (a) the Jacobian step is proved (ch05b_orth_abs_det : |det U| = 1) but the change-of-variables identification 'density of x at Ux̃ = density of x̃ at x̃' is asserted in the note, not in Lean (no pushforward measure appears); (b) the item is 'proved' for a label whose tex theorem has three parts — part (iii) is honestly carved out into a separate item with a narrowed tex range (1220-1228 vs 1229-1244) and the summary names parts (i) and (ii), which is the honest split, but a reader skimming only `thm:g-decouple | proved` could over-read it. No vacuity, no inflation found."
+    },
+    {
+      "id": "thm:g-decouple-iii",
+      "lean_name": "ch05b_revDrift, ch05b_revCoef, ch05b_g_decouple_reverse, ch05b_g_decouple_noise, ch05b_g_decouple_inhomog",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "instance_checked",
+      "detail": "Honestly labelled and honestly described; not flagged per the brief. Checked anyway: ch05b_g_decouple_reverse is general in n, ω, and in (fc, g), and gives (Uᵀ b(Ux̃,t))ᵢ = κᵢ(t) x̃ᵢ with κᵢ = fc + g²/λᵢ — sign correct, since -g²·(-x̃ᵢ/λᵢ) = +g²x̃ᵢ/λᵢ. ch05b_g_decouple_inhomog fixes the chapter's VP coefficients (fc ≡ -1, g ≡ √2), i.e. it is an instance, which is what the bucket says. The note states plainly that the process-level claim ('therefore L independent scalar diffusions') is not formalised and why (no stochastic integral / SDE / time-reversal in mathlib), and nothing weaker is substituted for it."
+    },
+    {
+      "id": "noname-frob-normalisation",
+      "lean_name": "ch05b_noname_frob_normalisation, ch05b_frob_nn_sq, ch05b_count_nn",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "tex 1641-1643: '‖ΠQ₀ - diag Q₀‖_F = sqrt(2(L-1)) |α|/σ_η²'. Lean: `ch05b_noname_frob_normalisation (α : ℝ) (L : ℕ) (hα2 : α^2 < 1) : √(ch05b_frobSq (ch05b_Pi (ch05b_Q0 α L) - ch05b_diagPart (ch05b_Q0 α L))) = √(2*((L-1:ℕ):ℝ)) * (|α| / (1 - α^2))`. Every L (no lower bound on L; natural subtraction handles L = 0,1), α free apart from the chapter's stationarity α² < 1, which is exactly what makes σ_η² = 1-α² positive so the absolute value can be dropped. Not vacuous: the combinatorial content is ch05b_count_nn (exactly 2(L-1) ordered pairs at distance one, by induction), and Π / diagPart / frobSq are the same functionals used by eq:g-frob-split and eq:g-offmass, not ad hoc ones. ch05b_Q0 is the module's AR(1) precision, and it is separately tied to the thesis's Σ₀ by ch05b_Sig0_inv_eq_Q0 ((ch05b_Sig0 α L)⁻¹ = ch05b_Q0 α L for 1-α² ≠ 0, L ≥ 2), so this is not a lemma about a convenient private definition. Note discloses the σ_η² = 1-α² identification."
+    },
+    {
+      "id": "noname-qt-density",
+      "lean_name": "ch05b_Qt_offdiag_ne_zero",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "New item recording pre-existing coverage; the record now matches the Lean. `ch05b_Qt_offdiag_ne_zero (α t : ℝ) (L : ℕ) (ht : 0 < t) (hα2 : α^2 < 1) (hα0 : α ≠ 0) (i j : Fin L) (hij : i ≠ j) : ch05b_Qt (ch05b_Sig0 α L) t i j ≠ 0` — all L, all t > 0, stated about the genuine AR(1) Σ₀ (α^{|i-j|}) and Q_t = Σ_t⁻¹, matching tex 1543-1546 ('for α ≠ 0 every off-diagonal entry of Q_t is non-zero at every t > 0'). α² < 1 is the chapter's standing stationarity hypothesis, not extra strength."
+    },
+    {
+      "id": "eq:g-score-matrix",
+      "lean_name": "ch05b_gaussPDF, ch05b_log_gaussPDF, ch05b_g_score_matrix_density, ch05b_g_score_matrix_grad_log",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "The earlier downgrade's complaint (rfl on the audit's own definition of the score; no density, no log P_t, no gradient) is genuinely answered. ch05b_gaussPDF is the standard centred multivariate density; ch05b_log_gaussPDF gives log P(x) = -log√((2π)ⁿ det S) - ½ xᵀS⁻¹x, i.e. the tex's 'log P_t = -½ xᵀQ_t x + const'; ch05b_g_score_matrix_grad_log gives, for every x and v, P_t(x+v) = P_t(x)·exp(⟨s(x,t), v⟩ - ½ vᵀQ_t v) with s = ch05b_score = -Q_t x — an exact expansion whose whole remainder is displayed, at general n. Symmetry of Q_t is derived (ch05b_Sigt_inv_isSymm from Σ₀ symmetric), not assumed as a convenience. The note states plainly that no mathlib derivative operator is used and that identifying the expansion with `gradient` would need the o(‖v‖) estimate; that is the file's declared convention and it is disclosed, so it does not mislead. Multiplicative form means the statement degenerates harmlessly (0 = 0) if det Σ_t ≤ 0, which the note also states."
+    },
+    {
+      "id": "eq:g-Qt-smallt",
+      "lean_name": "ch05b_g_Qt_smallt_remainder, ch05b_g_Qt_smallt_mode, ch05b_g_Qt_smallt_bound, ch05b_g_Qt_smallt_frob",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "The approximation step the downgrade demanded is now bounded, and the bounds are about Q_t itself, not only about the exact algebraic links. ch05b_g_Qt_smallt_remainder: Q_t - e^{2t}•Σ₀⁻¹ = -(e^{2t}c_t)•(Σ₀⁻¹(I+c_tΣ₀⁻¹)⁻¹Σ₀⁻¹), general n, only unit-determinant hypotheses. ch05b_g_Qt_smallt_bound: |λᵢ(t)⁻¹ - e^{2t}ωᵢ⁻¹| ≤ 4t/m² on [0,1/4]. ch05b_g_Qt_smallt_frob lifts it to ‖Q_t - e^{2t}Q₀‖_F² ≤ n(4t/m²)² via orthogonal invariance (ch05b_frobSq_conj), general n. Extra hypotheses (0 < m ≤ ωᵢ, m ≤ 1) are a spectral lower bound every PD Σ₀ has, and the note says so, including that the AR(1) Σ₀ is not separately proved PD."
+    },
+    {
+      "id": "eq:g-band-fill-order",
+      "lean_name": "ch05b_g_band_fill_order_bound, ch05b_spec_rem, ch05b_spec_rem_bound, ch05b_orth_entry_le_one",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "The missing boundedness lemma really exists and really is uniform in t: ch05b_spec_rem diagonalises Σ₀⁻¹(I+cΣ₀⁻¹)⁻¹Σ₀⁻¹^k, and ch05b_spec_rem_bound bounds its entries by n·m^{-(k+1)} for every c ≥ 0 (so for every t), through |U_{ik}| ≤ 1. ch05b_g_band_fill_order_bound then gives |(Q_t)_{ij}| ≤ (2n·4^k·m^{-(k+1)})·t^k at |i-j| = k+1 on [0,1/8] — an O(t^{d-1}) with a t-independent constant, general n, general d, and stated for all index pairs at distance d (stronger than the tex's (i,i+d)). Hypotheses are the chapter's own: Σ₀ spectrally presented and PD, Q₀ tridiagonal."
+    },
+    {
+      "id": "eq:g-bandfill",
+      "lean_name": "ch05b_g_bandfill_bound, ch05b_exp_c_pow_bridge, ch05b_spec_pow_bound, ch05b_spec_rem_bound",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "Both gaps named by the downgrade are closed at general d, not only d = 2. ch05b_g_bandfill_bound states the boxed theorem in the thesis's own constant: |(Q_t)_{ij} - (-1)^k(2t)^k(Q₀^{k+1})_{ij}| ≤ K·t^{k+1} at |i-j| = k+1 on [0,1/8], with K = 4^k(4+15k)·n/m^{k+1} + 2·4^{k+1}·n/m^{k+2} depending only on (n, m, d) — i.e. leading coefficient (-1)^{d-1}(2t)^{d-1} and a genuine O(t^d) remainder, matching tex 1584-1591 including the sign. The coefficient bridge ch05b_exp_c_pow_bridge (|e^{2t}c_t^k - (2t)^k| ≤ 4^k(4+15k)t^{k+1}) is proved for every k, and the remainder is bounded by ch05b_spec_rem_bound / ch05b_spec_pow_bound. General n, general d. Same disclosed Σ₀ hypotheses as eq:g-band-fill-order."
+    }
+  ],
+  "notes": [
+    "No item moved out of instance_checked in this pass: the module has exactly one instance_checked item (thm:g-decouple-iii), and it is new. The two status changes are thm:g-decouple and noname-frob-normalisation, both skipped -> proved.",
+    "No `sorry`, `admit`, `native_decide`, or added `axiom` anywhere in ThesisAudit/Ch05b.lean. The module's build was not re-run here (read-only task); build_ok:true is the last pass's own record.",
+    "Non-blocking disclosure gap worth one line in the record for thm:g-decouple (i): |det U| = 1 is proved (ch05b_orth_abs_det) but the change-of-variables step that turns 'density of x at Ux̃' into 'density of x̃ at x̃' lives in the note, not in Lean."
+  ]
+}

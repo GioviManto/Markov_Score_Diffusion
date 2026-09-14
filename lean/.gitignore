@@ -1,0 +1,5 @@
+.lake/
+*.olean
+*.olean.tmp
+derivations.log
+derivations.xdv

@@ -1,0 +1,47 @@
+{
+ "module": "ThesisAudit.Ch02",
+ "checked": 30,
+ "issues": [
+  {
+   "id": "eq:sm-generator",
+   "lean_name": "",
+   "kind": "missing",
+   "severity": "medium",
+   "detail": "Labelled display absent from Ch02.json entirely (no item with this id, not even a 'skipped' entry). Tex lines 589-600: 'd/dt E[phi(X_t)] = E[ f(X_t,t).grad phi(X_t) + (1/2) g(t)^2 Laplacian phi(X_t) ] = E[(L_t phi)(X_t)]', carrying \\label{eq:sm-generator}. The audit records eq:sm-forward with status 'skipped' precisely because it is an Ito statement, so the mechanism for recording out-of-reach displays exists and was simply not used here. A reader of Ch02.json cannot tell 'we looked at this and it needs stochastic calculus' from 'we never saw it'.",
+   "suggested_status": "skipped"
+  },
+  {
+   "id": "eq:sm-weakform",
+   "lean_name": "",
+   "kind": "missing",
+   "severity": "medium",
+   "detail": "Labelled display absent from Ch02.json entirely. Tex lines 618-626: 'int phi d_t p_t dx = int f.grad phi p_t dx + (1/2) g(t)^2 int Laplacian phi p_t dx', carrying \\label{eq:sm-weakform}. This is the weak form of Fokker-Planck and the load-bearing intermediate step of toolbox tb:sm-fokkerplanck, whose conclusion eq:sm-fokkerplanck IS recorded. The audit also records unlabelled toolbox displays (item 'noname-1'), so omitting a labelled one is not a scope rule applied consistently.",
+   "suggested_status": "skipped"
+  },
+  {
+   "id": "audit-vs-current-tex",
+   "lean_name": "",
+   "kind": "missing",
+   "severity": "medium",
+   "detail": "Every tex_lines field from eq:sm-jarzynski-physical onward points at the wrong place in the current file, with a drift that grows monotonically: JSON 274-277 for eq:sm-jarzynski-physical (actual label line 338), 292-301 for eq:sm-forward-path (actual 362), 442-454 for eq:sm-elbo-gap (actual 515), 524-534 for eq:sm-fokkerplanck (actual 697), 708-717 for eq:tweedie (actual 883), 915-922 for eq:sm-dsm (actual 1088). Items up to eq:sm-ou (JSON 240-245, actual 244) are correct, so the divergence starts in Section sm-nonequilibrium and inside tb:sm-fokkerplanck. The audit was therefore run against an earlier revision of ch02-statmech-diffusion.tex -- and that is exactly the region where the two missing labelled displays sit (eq:sm-generator at 599, eq:sm-weakform at 625). The 'covers' field asserts coverage of the current file; that assertion is not supported. Line numbers should be regenerated and the file re-swept before the JSON is read as a completeness claim.",
+   "suggested_status": "needs_recheck"
+  },
+  {
+   "id": "eq:sm-dsm",
+   "lean_name": "ch02_sm_dsm_population_optimum",
+   "kind": "unfaithful",
+   "severity": "medium",
+   "detail": "Recorded 'proved', with the note that 'the text's claim about it -- that its population minimiser is the exact score -- is proved as ch02_sm_dsm_population_optimum'. The Lean statement is: 'theorem ch02_sm_dsm_population_optimum {N : Nat} (w z : Fin N -> R) (hw1 : sum i, w i = 1) (s : R) : sum i, w i * (s + z i)^2 = (sum i, w i * (z i - sum j, w j * z j)^2) + (s + sum j, w j * z j)^2', with the companion ch02_sm_dsm_min. That is a bias-variance decomposition of a scalar quadratic over an arbitrary finite weighting. It mentions neither ch02_sm_dsm (the module's own definition of the objective this item is about), nor ch02_gauss / ch02_marg / ch02_Delta, nor any score; s is a bare real rather than a function s_phi, and there is no expectation over t or a. The tex display is 'E_t E_{a~p_data} E_eps || s_phi(e^{-t} a + sqrt(Delta_t) eps, t) + eps/sqrt(Delta_t) ||^2'. Two steps of the claim are prose only and are not flagged in the note: (i) that minimising over all measurable s_phi reduces to minimising pointwise at each x_t (tower property / conditioning on x_t), and (ii) the identification of the pointwise minimiser -E[eps|x_t]/sqrt(Delta_t) with grad log p_t, i.e. eq:sm-eps-score -- which is itself only abstract algebra (ch02_sm_eps_score takes both the score-posterior identity hS and the posterior noise mean hE as free hypotheses on bare reals and is never instantiated at the finite-prior model). Nothing recorded is false, but no Lean statement in the module connects the DSM objective to the score.",
+   "suggested_status": "instance_checked"
+  },
+  {
+   "id": "eq:sm-ou",
+   "lean_name": "ch02_sm_ou_fokkerplanck",
+   "kind": "inflated",
+   "severity": "low",
+   "detail": "eq:sm-ou ('x = e^{-t} a + sqrt(Delta_t) eps, Delta_t = 1 - e^{-2t}', tex 237-244) is recorded 'proved', yet the identical Lean theorem ch02_sm_ou_fokkerplanck is recorded as only 'instance_checked' under eq:sm-fokkerplanck -- the same evidence carries two statuses. What the theorem establishes is that the stated Gaussian density satisfies d_t p = d_x(x p) + d_x^2 p, a consistency check against a PDE whose own derivation the audit elsewhere calls out of reach, plus the two moment ODEs and (e^{-t})^2 + Delta_t = 1. Nothing formalises that the solution of dX = -X dt + sqrt(2) dW has this transition law, and the initial condition p_t -> delta_a is not checked (only ch02_sm_ou_Delta_zero : ch02_Delta 0 = 0 gestures at it). The check is genuinely strong -- it does pin the exponent and the constant in Delta_t -- but 'proved' invites a reader to think the transition law was derived rather than verified against an assumed Fokker-Planck equation.",
+   "suggested_status": "instance_checked"
+  }
+ ],
+ "note": "Scope: all 30 items recorded 'proved' or 'instance_checked' were read against the tex. The mathematical core is sound and in several places stronger than the thesis text: ch02_sm_boltzmann_maxent is a real Gibbs-inequality proof rather than a Lagrange-multiplier restatement; ch02_sm_ou_fokkerplanck genuinely pins Delta_t = 1 - e^{-2t}; ch02_sm_reverse consumes the g^2 (not g^2/2) coefficient essentially, so it would fail for the probability-flow drift; ch02_sm_elbo is routed through the exact gap identity rather than Jensen; the Tweedie chain (ch02_marg, ch02_split, ch02_condmean, ch02_tweedie_tb, ch02_denoiser, ch02_noiseform, ch02_tilted, ch02_potentialform) matches the tex sign for sign and factor for factor, including the single Delta in the kernel-gradient denominator and kappa_t = e^{-2t}/Delta_t; ch02_sm_empirical is proved for arbitrary N and arbitrary training points, not at an instance. No unsatisfiable hypotheses, no rfl-vacuity, and no hypothesis stronger than the thesis's own assumptions were found; the sign convention difference on the Langevin current (Lean proves E' q + beta^{-1} q' = 0, the tex writes J = -grad E p - beta^{-1} grad p, the negative of it) is harmless since both sides vanish. Three further entries UNDERSTATE what the Lean file contains -- conservative rather than misleading, so not listed as issues, but the same staleness: eq:sm-langevin's note says the d-dimensional statement 'is not formalised here' although ch02_sm_langevin_flux_nd proves it on any real normed space; eq:sm-jarzynski-physical is 'instance_checked' under an assumed Crooks relation although ch02_sm_jarzynski_physical_db derives the pathwise Crooks relation from local detailed balance and ch02_sm_jarzynski_gibbs gives an unconditional instance; eq:tweedie-joint is 'instance_checked' at L = 2 although ch02_tweedie_joint_full proves it for arbitrary L, N and distinguished coordinate k. The JSON lagging the Lean in both directions is the same underlying problem as the stale tex_lines: the verdict file should be regenerated from the current tex and the current module."
+}

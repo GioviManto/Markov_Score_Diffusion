@@ -1,0 +1,39 @@
+{
+  "chapter": "ch06-gaussian-bp.tex",
+  "claims_checked": 54,
+  "findings": [
+    {
+      "tex_lines": "571-575",
+      "severity": "error",
+      "claim": "One qualitative detail from a worked $L = 3$ instance: at $x = (1.2, -0.4, 0.8)$ the score component $S_1$ is positive although $x_1 < 0$, because the neighbours pull the posterior mean of the middle frame positive. No per-frame marginal score can produce this; it is inter-frame evidence sharing in numbers.",
+      "problem": "The last sentence is false, and it contradicts this thesis's own ch05. The per-frame marginal of x_k is N(0, e^{-2t}*1 + Delta_t) = N(0,1) at every t, so the per-frame marginal score is exactly -x_k -- ch05-gaussian-matrix.tex line 803 says so verbatim ('the per-frame marginal score stays $-x_k$ at every $t$'). At x_1 = -0.4 that marginal score is -(-0.4) = +0.4 > 0, i.e. POSITIVE. So a positive S_1 when x_1 < 0 is precisely what a per-frame marginal score does produce (necessarily, since it always has the opposite sign to x_k); it carries no inter-frame information at all and cannot be the signature claimed. What is actually distinctive is the MAGNITUDE: e.g. L=3, alpha=0.8, t=0.05 gives exact S_1 = +3.915 against the marginal +0.400 (alpha=0.9, t=0.05: S_1 = +5.711). Secondary: the stated mechanism also fails for much of the chapter's own audit grid -- at alpha=0.8, t=0.05 the posterior mean is m_1 = -0.029 < 0 (not 'pulled positive') while S_1 is still +3.92, and for alpha=0.2 m_1 < 0 at every t in {0.05,0.3,1,3}; the instance's alpha and t are not stated, so only alpha near 0.9 supports the 'because' clause.",
+      "suggested_fix": "Replace the sign argument with the magnitude argument, and state alpha and t. E.g. 'at $x=(1.2,-0.4,0.8)$ with $\\alpha=0.9$, $t=0.05$ the middle score is $S_1=+5.71$, fourteen times the $-x_1=+0.40$ a per-frame marginal score would give: the neighbours, not the frame itself, set the size of the correction.'",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "737, 755",
+      "severity": "inconsistency",
+      "claim": "removed by the first hop: $85\\%$, $59\\%$, $33\\%$, $21\\%$ (table row, repeated in prose: 'That fraction falls with diffusion time ($85\\%, 59\\%, 33\\%, 21\\%$)')",
+      "problem": "The t = 0.3 entry should be 58%, not 59%. Exact closed-form values (tools/fig_ch06.py, L=40, alpha=0.8): r0 = 0.5665192369, r1 = 0.2351592105, so 1 - r1/r0 = 0.5849052 = 58.4905% -> 58%. The other three entries are computed from exact values and are right (84.925% -> 85%, 32.943% -> 33%, 21.336% -> 21%), so the row's convention is 'exact values, rounded to whole percent' -- and under that convention 58.49% cannot print as 59%. The competing convention (derive from the rounded cells shown above) is the one that would give 59% ((0.567-0.235)/0.567 = 58.55%), but it is ruled out by the t=3 column, where it gives (0.0045-0.0035)/0.0045 = 22.2% -> 22%, not the 21% printed. So no single convention yields all four printed numbers; 59% is the odd one out. (Most likely cause: fig_ch06.py prints this quantity as '0.585' to three decimals and 58.5% was then rounded up.)",
+      "suggested_fix": "Change 59% to 58% in the table row (line 737) and in the prose list (line 755): '($85\\%, 58\\%, 33\\%, 21\\%$)'.",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "734",
+      "severity": "rounding",
+      "claim": "banded answer, $b = 1$ ... $t = 0.3$: $0.302$",
+      "problem": "The exact value is 0.3014606, which rounds to 0.301 at three decimals, not 0.302. Every other cell of the table matches its exact value (r0: 0.814737, 0.566519, 0.194083, 0.004482; r1: 0.122825, 0.235159, 0.130146, 0.003525; r2: 0.019627, 0.106840, 0.089213, 0.002773; b1: 0.209650, ., 0.134609, 0.003525; b2: 0.031847, 0.134423, 0.092402, 0.002773), so this is a one-in-the-last-place slip. It is also inconsistent with the table's own derived row: the printed penalty 1.28x equals the exact 0.3014606/0.2351592 = 1.28194, whereas 0.302/0.235 = 1.2851 would print as 1.29x.",
+      "suggested_fix": "Change $0.302$ to $0.301$ in the b = 1 row, t = 0.3 column.",
+      "lean_name": ""
+    },
+    {
+      "tex_lines": "744-746",
+      "severity": "rounding",
+      "claim": "At $t = 0.05$ the isolated-frame score is wrong by $82\\%$ in relative RMS",
+      "problem": "The table three lines above gives 0.815 for this same quantity, i.e. 81.5%, and the exact closed-form value is 0.8147374 = 81.47%, which rounds to 81%. '82%' is a double rounding (0.81474 -> 0.815 -> 82%) and reads as inconsistent with the table on the same page. The dependent sentences are unaffected either way: (0.8147374 - 0.1228250)/0.8147374 = 84.9% -> '85%' and (0.8147374 - 0.0196270)/0.8147374 = 97.6% -> '98%' both stand.",
+      "suggested_fix": "Write 'wrong by $81.5\\%$ in relative RMS' (or '$0.815$ in relative RMS') to agree with Table~\\ref{tab:g-truncation}.",
+      "lean_name": ""
+    }
+  ],
+  "note": "Verified against the generator tools/fig_ch06.py, re-run with /usr/local/bin/python3.12 (L=40, alpha=0.8). Clean and confirmed correct: factor-graph counts (2L factor nodes = 1 + (L-1) + L; 3L-1 edges = 2(L-1) + (L+1); 3L-1 vs 3L nodes => tree); O(LK^2)/O(LK) and the O(1)-per-message Gaussian O(L)/O(L); the audit grid 5*4*4 = 80 configurations; the observation factor's natural parameters (lambda_ob = e^{-2t}/Delta_t, r_ob = e^{-t}x_k/Delta_t) and the pseudo-observation N(a_k; e^t x_k, Delta_t e^{2t}); both transition maps re-derived by hand -- forward lambda = bar_lambda/(alpha^2 + sigma^2 bar_lambda), r = alpha bar_r/(alpha^2 + sigma^2 bar_lambda); backward lambda = alpha^2 bar_lambda/(1 + sigma^2 bar_lambda), r = alpha bar_r/(1 + sigma^2 bar_lambda) -- both exactly right, including the asymmetric denominators; the trace identities and tr(Q Sigma Q) = tr(Q); 18 of the 20 table cells; the whole penalty row (1.70690, 1.28194, 1.03429, 1.00002); 'two hops remove 98%' (97.59%); 'accurate to half a percent' at t=3 (0.45%); and the figure caption -- r=0 estimator is exactly M=I (so S = -x) for every t and its error tends to 0.881 as t->0, r>=1 errors vanish at both ends (3.9e-6 at t=1e-6, 8.8e-6 at t=6), decay is geometric with per-hop ratio 0.160 / 0.463 / 0.697 at t = 0.05 / 0.3 / 1 (worsening with t), and the band curve lies above the window curve at every budget 0..6 at all three t. Unverifiable (data not in repo, not reported as findings): the audit-suite agreement tolerances 1.3e-15 / 3.9e-15 / 1.2e-14. No Lean witness written: all four findings are one-line divisions, shown above."
+}

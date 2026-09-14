@@ -1,0 +1,303 @@
+{
+  "module": "ThesisAudit.Ch07",
+  "build_ok": true,
+  "covers": "thesis/chapters/ch07-laplace.tex lines 1-746 (all display math; 32 items)",
+  "completed": true,
+  "items": [
+    {
+      "id": "eq:l-chain-prior",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "20-26",
+      "lean_name": "ch07_l_chain_prior_b, ch07_l_chain_prior_ivar, ch07_chain_var, ch07_l_chain_prior_unit_variance, ch07_chain_cov, ch07_l_chain_prior_cov",
+      "status": "defined",
+      "summary": "Laplace AR(1) chain: a_0~N(0,1), a_k = alpha a_{k-1} + eps_k, eps_k ~ Laplace(0,b), b = sqrt((1-alpha^2)/2).",
+      "note": "Definition, encoded as a def plus the three claims the surrounding prose (lines 27-32) attaches to it, all proved: Var(eps)=2b^2=1-alpha^2 (needs alpha^2<=1); the variance recursion v_k = alpha^2 v_{k-1} + (1-alpha^2) with v_0=1 has v_k=1 for all k (unit marginal variance); the covariance recursion c_{m+1}=alpha c_m with c_0=1 gives Cov(a_j,a_{j+m}) = alpha^m. All three check out."
+    },
+    {
+      "id": "eq:l-score-identity",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "49-52",
+      "lean_name": "ch07_l_score_identity_prior, ch07_l_score_identity_prior_log, ch07_l_score_identity_marginal, ch07_l_score_identity_gauss, ch07_l_score_identity_vp, ch07_l_score_identity_discrete, ch07_l_score_identity_discrete_log",
+      "status": "proved",
+      "summary": "Tweedie/score-posterior identity S_k(x,t) = (mu E[a_k|x] - x_k)/Delta_t with mu = e^{-t}.",
+      "note": "PROMOTED from instance_checked to a theorem about an ARBITRARY prior, which is exactly the chapter's claim that the score-posterior identity 'is indifferent to the prior'. ch07_l_score_identity_prior differentiates the marginal p(x) = int exp(-(x - mu a)^2/(2 Delta)) dnu(a) under the integral sign for ANY finite measure nu on R with a finite first moment, via hasDerivAt_integral_of_dominated_loc_of_deriv_le, dominating |d/dx K(x,a)| <= (|mu a| + |x0| + 1)/Delta on the unit ball around x0; that bound is nu-integrable precisely because nu has a first moment, and the first moment is exactly the condition under which E[a|x] exists at all, so the hypothesis is well-posedness and not a restriction on the prior family. ch07_l_score_identity_prior_log converts this to d/dx log p(x) = (mu E[a|x] - x)/Delta with E[a|x] = int a K dnu / int K dnu, i.e. eq:l-score-identity verbatim, for every such prior: no Gaussianity, no finite support, arbitrary mu and Delta > 0 (the chapter's mu = e^{-t}, Delta = Delta_t is an instance). The earlier special cases are kept because they exhibit the two regimes the text contrasts: the Gaussian prior (ch07_l_score_identity_gauss/_vp) where the posterior mean is linear and the score is -Q_t x, and an arbitrary finitely supported prior (ch07_l_score_identity_discrete) where the score is visibly a ratio of two different weighted sums and hence nonlinear."
+    },
+    {
+      "id": "eq:l-state-kurtosis",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "71-76",
+      "lean_name": "ch07_laplace_kurtosis, ch07_l_state_kurtosis_sum, ch07_l_state_kurtosis, ch07_l_state_kurtosis_num",
+      "status": "proved",
+      "summary": "kappa_4(a_k) = 3(1-alpha^2)^2 sum_{m<k} alpha^{4m} = 3 (1-alpha^2)/(1+alpha^2) (1-alpha^{4k}).",
+      "note": "Cumulants are not in mathlib, so the claim is checked as the arithmetic it reduces to once the two standard cumulant rules (additivity over independent summands, degree-4 homogeneity) are granted; those rules are stated in the file comment. Proved for all real alpha with alpha^2 != 1 and all k: the geometric-sum closed form is exactly right, since 3(1-alpha^2)^2 (1-alpha^{4k})/(1-alpha^4) = 3(1-alpha^2)/(1+alpha^2) (1-alpha^{4k}). The Laplace input kappa_4(eps) = 24b^4 - 3(2b^2)^2 = 3(2b^2)^2 = 3v^2 (line 61) is proved too, and the quoted numeric value at alpha=0.85, 3*0.2775/1.7225 = 0.4833..., is verified to be 0.48 to within 0.005."
+    },
+    {
+      "id": "eq:l-noised-kurtosis",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "90-93",
+      "lean_name": "ch07_l_noised_kurtosis",
+      "status": "proved",
+      "summary": "Boxed: kappa_4(x_{t,k}) = e^{-4t} kappa_4(a_k).",
+      "note": "Same cumulant-rule convention as eq:l-state-kurtosis. With x_{t,k} = e^{-t}a_k + sqrt(Delta_t) z_k independent and kappa_4(z)=0, the claim is (e^{-t})^4 kappa_4(a_k) + (sqrt(Delta_t))^4 * 0 = e^{-4t} kappa_4(a_k); proved for all real t via exp(-t)^4 = exp(-4t)."
+    },
+    {
+      "id": "eq:l-markov-score",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "128-135",
+      "lean_name": "ch07_l_markov_score_num, ch07_l_markov_score_den, ch07_l_markov_score_num_gen, ch07_l_markov_score_den_gen, ch07_l_markov_score_scale_inv, ch07_sum_pi_succ, ch07_preW, ch07_sufW, ch07_alphaMsg, ch07_betaMsg, ch07_preW_sum, ch07_sufW_sum, ch07_l_markov_score_num_chain, ch07_l_markov_score_den_chain, ch07_l_markov_score_chain, ch07_chain_joint_three, ch07_alphaMsg_one, ch07_betaMsg_one",
+      "status": "proved",
+      "summary": "Theorem 7.2: E[a_k|x] = int a_k alpha_k psi_ob beta_k / int alpha_k psi_ob beta_k.",
+      "note": "The continuous statement needs Fubini on a product of densities. Checked instead on a discrete chain of L=3 sites, first over a 2-letter alphabet and then (ch07_l_markov_score_num_gen / _den_gen) over an ARBITRARY finite alphabet A, with symbolic messages: both the numerator and the denominator of the message formula are shown equal to the corresponding sum against the full joint p0(a0) ob0(a0) M(a1|a0) ob1(a1) M(a2|a1) ob2(a2). So for a 3-site chain the message decomposition is exactly a Fubini rearrangement and nothing more, for every alphabet size. Only the chain length (3) is still special-cased. Also proved that the ratio is invariant under rescaling either message by a nonzero constant, which is what makes the proportionality in the messages harmless.\n\n[PROMOTED 2026-09-14] instance_checked -> proved. The chain length is no longer special-cased. ch07_l_markov_score_num_chain / _den_chain / ch07_l_markov_score_chain state eq:l-markov-score for a chain of m + 1 + n sites over an ARBITRARY finite alphabet with the marked site at position m -- every (length, marked site) pair arises that way -- and prove that summing any site function val against the FULL joint over all (Fin m -> A) x A x (Fin n -> A) configurations equals summing it against alpha_k * psi_ob * beta_k, hence that the two ratios agree. The joint is built from the chapter's own ingredients (ch07_preW / ch07_sufW: prior p0 at the far left end, one transition M(.|.) per bond, one potential per site, terminal backward message 1) and the messages from the recursions of prop:bp-convA (ch07_alphaMsg / ch07_betaMsg), neither of which includes the potential at its own site -- matching the alpha_k psi_ob^(k) beta_k of the display. The proof is the genuine Fubini rearrangement: ch07_sum_pi_succ splits a sum over configurations of n+1 sites at the first site (via the Fin.cons equivalence), and ch07_preW_sum / ch07_sufW_sum then identify each message with the sum of its block's joint weight over all configurations of that block, by induction on the block length. Sites are indexed outwards from the marked site (obL i / obR i are the potentials i+1 steps to the left / right); that is a relabelling of arbitrary per-site potentials, not a restriction. The definitions are checked against the retained L = 3 lemmas: ch07_chain_joint_three proves the m = n = 1 joint is literally p0(a0) ob0(a0) M(a1|a0) ob1(a1) M(a2|a1) ob2(a2), and ch07_alphaMsg_one / ch07_betaMsg_one that the two messages at m = n = 1 are the two message sums of ch07_l_markov_score_num_gen. STILL GRANTED: the statement is the discrete-alphabet one. The continuous version of the display (integrals over R) would need Fubini on a product of densities plus integrability of every block marginal; the chapter's own use of it is the grid chain of Section 7.4.2, which is finite."
+    },
+    {
+      "id": "noname-1",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "143-152",
+      "lean_name": "ch07_M, ch07_obs, ch07_laplacePdf, ch07_gauss, ch07_M_nonneg",
+      "status": "defined",
+      "summary": "M(a'|a) = (1/2b) exp(-|a'-alpha a|/b) and p(x'|a') = N(x'; mu a', Delta_t).",
+      "note": "Pure definitions, encoded as Lean defs with a nonnegativity sanity lemma (0 <= M for b > 0)."
+    },
+    {
+      "id": "noname-2",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "154-166",
+      "lean_name": "ch07_remark_change_of_var",
+      "status": "proved",
+      "summary": "I(y) := int M(a'|a) N(x'; mu a', Delta_t) da' = (1/(2b sqrt(2 pi Delta))) int exp[-|r|/b - (y - mu r)^2/(2 Delta)] dr with r = a'-alpha a, y = x'-mu alpha a.",
+      "note": "Proved as a genuine integral identity over R for all real b, Delta, mu, alpha, a, x': the integrand factorises pointwise as a constant times a function of a'-alpha a, and the translation invariance of Lebesgue integral (integral_sub_right_eq_self) supplies the change of variables. The stated substitution is exactly right."
+    },
+    {
+      "id": "noname-3",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "169-188",
+      "lean_name": "ch07_remark_square_pos, ch07_remark_square_neg, ch07_remark_Phi_arg_pos, ch07_remark_Phi_arg_neg, ch07_remark_prefactor, ch07_integral_Ioi_sub, ch07_sqrt_div_sq, ch07_gauss_halfline, ch07_gauss_halfline_Iic, ch07_remark_branch_pos, ch07_remark_branch_neg, ch07_remark_integrable, ch07_remark_I_closed_form_y, ch07_remark_I_closed_form",
+      "status": "proved",
+      "summary": "Boxed closed form I(y) = e^{Delta/(2 mu^2 b^2)}/(2 mu b) [ e^{-y/(mu b)} Phi(y/sqrt(Delta) - sqrt(Delta)/(mu b)) + e^{y/(mu b)} Phi(-y/sqrt(Delta) - sqrt(Delta)/(mu b)) ], mu > 0.",
+      "note": "CORRECT, but checked piecewise rather than as one integral identity (the half-line Gaussian mass in terms of Phi would need a substitution lemma this audit did not build). Every algebraic ingredient is proved exactly: (i) the r>0 completion of the square, -r/b - (y-mu r)^2/(2 Delta) = (Delta/(2(mu b)^2) - y/(mu b)) - (r - (y - Delta/(mu b))/mu)^2/(2 Delta/mu^2), giving the constant e^{Delta/(2 mu^2 b^2)}e^{-y/(mu b)}; (ii) the mirror r<0 completion giving e^{Delta/(2 mu^2 b^2)}e^{+y/(mu b)}; (iii) both Phi arguments, (mean)/sigma = y/sqrt(Delta) - sqrt(Delta)/(mu b) on the r>0 branch and -(mean)/sigma = -y/sqrt(Delta) - sqrt(Delta)/(mu b) on the r<0 branch, with sigma = sqrt(Delta)/mu; (iv) the prefactor, (1/(2b sqrt(2 pi Delta))) * sqrt(2 pi Delta/mu^2) = 1/(2 mu b). Assembling (i)-(iv) with the half-line Gaussian mass reproduces the boxed formula term by term. The mu > 0 side condition really is needed (it fixes sqrt(Delta/mu^2) = sqrt(Delta)/mu and the direction of the two Phi arguments).\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'instance_checked', but the word is misleading here and the scope is now stated explicitly: nothing was verified at any parameter values. The boxed closed form of I(y) is never written down as a Lean statement and is never evaluated numerically. Five algebraic INGREDIENTS are genuinely proved (both completions of the square, both Phi arguments, and the prefactor 1/(2 b sqrt(2 pi Delta)) * sqrt(2 pi Delta / mu^2) = 1/(2 mu b)); the final assembly -- the half-line Gaussian mass int_0^inf N(r; c, sigma^2) dr = Phi(c/sigma) and the summation of the two branches -- is done by hand. Read this as 'ingredients checked', not 'instance checked'.\n\n[PROMOTED 2026-09-14] instance_checked -> proved, and the fidelity note above is now discharged: the boxed formula IS written down as a Lean statement and IS derived, not assembled by hand. The missing step named in that note -- the half-line Gaussian mass -- is ch07_gauss_halfline: for sigma > 0, int_{r>0} exp(-(r-c)^2/(2 sigma^2)) dr = sigma sqrt(2 pi) Phi(c/sigma), proved by rescaling (integral_comp_mul_left_Ioi), translating (ch07_integral_Ioi_sub, proved from integral_sub_right_eq_self on indicators) and reflecting the standard density (integral_comp_neg_Iic), with ch07_gauss_halfline_Iic the mirror statement on the lower half-line. On top of it, ch07_remark_branch_pos / _neg evaluate each half-line branch in closed form (consuming the two completions of the square and the two Phi arguments already recorded), ch07_remark_integrable supplies the domination (-|r|/b <= 0, so the integrand is below its own Gaussian factor) needed to split the line at the kink via intervalIntegral.integral_Iic_add_Ioi, and ch07_remark_I_closed_form_y sums the two branches. ch07_remark_I_closed_form then states the boxed equation in the chapter's own terms: int M(a'|a) N(x'; mu a', Delta) da' = e^{Delta/(2 mu^2 b^2)}/(2 mu b) [ e^{-y/(mu b)} Phi(y/sqrt(Delta) - sqrt(Delta)/(mu b)) + e^{y/(mu b)} Phi(-y/sqrt(Delta) - sqrt(Delta)/(mu b)) ] with y = x' - mu alpha a, for ALL b > 0, mu > 0, Delta > 0 and all alpha, a, x'. The boxed formula is correct exactly as printed; mu > 0 is used and is stated in the text. Phi is this file's own definition (the integral of the standard normal density over Iic), mathlib having no Gaussian cdf."
+    },
+    {
+      "id": "noname-4",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "195-197",
+      "lean_name": "ch07_msg_shape",
+      "status": "defined",
+      "summary": "The post-update message shape e^{ca} Phi(da+e).",
+      "note": "Notation for the obstruction, not a claim; recorded as a Lean def over the file's Phi (defined as the integral of the standard normal density over Iic)."
+    },
+    {
+      "id": "noname-5",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "200-206",
+      "lean_name": "ch07_trunc_lower, ch07_trunc_upper",
+      "status": "defined",
+      "summary": "The two truncated integrals int_{-inf}^{alpha a'} and int_{alpha a'}^{inf} of e^{-q a^2 + l a} Phi(da+e) da.",
+      "note": "Definitions naming the integrals that the next propagation step requires; no identity is asserted about them, so nothing to prove. Encoded as set integrals over Iic (alpha a') and Ioi (alpha a')."
+    },
+    {
+      "id": "noname-6",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "215-219",
+      "lean_name": "ch07_A",
+      "status": "defined",
+      "summary": "Innovation coordinates r_0 = a_0, r_k = a_k - alpha a_{k-1}.",
+      "note": "Definition; encoded as the inverse recursion A 0 = r 0, A (k+1) = alpha A k + r (k+1), which is the same change of variables read forwards."
+    },
+    {
+      "id": "noname-7",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "221-226",
+      "lean_name": "ch07_innov_sum, ch07_B",
+      "status": "proved",
+      "summary": "a_k = sum_{j=0}^{k} alpha^{k-j} r_j, i.e. a = B r with B_{kj} = alpha^{k-j} 1_{k>=j}.",
+      "note": "Proved by induction on k for all real alpha and all innovation sequences r: the recursion A(k+1) = alpha A k + r(k+1) reproduces exactly sum_{j<=k+1} alpha^{k+1-j} r_j. B is recorded as the matching lower-triangular matrix."
+    },
+    {
+      "id": "noname-8",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "228-230",
+      "lean_name": "ch07_quadform",
+      "status": "defined",
+      "summary": "The quadratic form r^T B^T B r that the Gaussian likelihood contributes in innovation coordinates.",
+      "note": "A named expression, not an identity; encoded as a Lean def over Matrix (Fin L) (Fin L) R using the file's B."
+    },
+    {
+      "id": "noname-9",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "232-238",
+      "lean_name": "ch07_BtB_gen, ch07_BtB_rhs, ch07_BtB_two, ch07_BtB_three, ch07_BtB_four",
+      "status": "proved",
+      "summary": "(B^T B)_{ij} = alpha^{|i-j|} (1 - alpha^{2(L - max{i,j})})/(1 - alpha^2).",
+      "note": "PROMOTED from instance_checked (L = 2,3,4) to ch07_BtB_gen, proved for EVERY chain length L, every index pair and every alpha with alpha^2 != 1. The proof is the entrywise one: B_{ki}B_{kj} vanishes unless k >= max(i,j); on Ico (max i j) L the reindexing k = max + p turns the exponent (k-i)+(k-j) into (max - min) + 2p, and geom_sum_eq sums the remaining geometric series (alpha^2)^p, giving alpha^{|i-j|}(1 - alpha^{2(L-max)})/(1 - alpha^2). CORRECT, under the chapter's 0-based site indexing (a_0,...,a_{L-1}, as fixed by eq:l-chain-prior); worth noting for the author that with 1-based indexing the exponent would be 2(L - max + 1), so the formula is right only because indices start at 0 -- which is the chapter's convention. The L = 2,3,4 checks are retained as sanity instances."
+    },
+    {
+      "id": "eq:l-grid",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "252-256",
+      "lean_name": "ch07_h, ch07_g, ch07_l_grid_endpoints",
+      "status": "defined",
+      "summary": "g_i = -A + i h, h = 2A/(N_g - 1), i = 0..N_g-1.",
+      "note": "Definition; the sanity lemma proves the grid really covers [-A,A], i.e. g_0 = -A and g_{N-1} = +A for every N >= 2 (proved for all real A)."
+    },
+    {
+      "id": "eq:l-trap-weights",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "260-267",
+      "lean_name": "ch07_w, ch07_l_trap_weights_sum, ch07_l_trap_weights_sum3, ch07_l_trap_weights_sum4, ch07_l_trap_weights_sum5",
+      "status": "proved",
+      "summary": "Composite trapezoid weights w_i = h/2 at i in {0, N_g-1}, h otherwise.",
+      "note": "PROMOTED from instance_checked (N = 3,4,5) to ch07_l_trap_weights_sum, proved for EVERY N >= 2 and every A: the defining consistency check that the composite trapezoid weights integrate the constant 1 exactly, sum_i w_i = 2A, the length of the truncated interval. The proof writes w_i = h - (h/2)[i in {0, N-1}], so the sum is N h - 2(h/2) = (N-1)h, and (N-1)h = 2A by eq:l-grid. The halved endpoints are therefore exactly right: any other endpoint convention would misintegrate constants by O(h). N >= 2 is needed for the grid to exist at all (h = 2A/(N-1)). The N = 3,4,5 instances are retained."
+    },
+    {
+      "id": "eq:l-grid-operators",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "273-280",
+      "lean_name": "ch07_K, ch07_ell, ch07_K_eq_M, ch07_K_nonneg",
+      "status": "defined",
+      "summary": "K_{ij} = M(g_i | g_j) = (1/2b) e^{-|g_i - alpha g_j|/b}; (l_k)_i = N(x_k; mu g_i, Delta_t).",
+      "note": "Definition. The sanity lemma checks the index convention against the earlier kernel definition: ch07_K alpha b g i j = ch07_M alpha b (g j) (g i), i.e. the row index is the destination a' and the column index the source a, exactly as the equation writes M(g_i | g_j). Consistent."
+    },
+    {
+      "id": "eq:l-grid-fwd",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "284-293",
+      "lean_name": "ch07_l_grid_fwd, ch07_Kmat, ch07_l_grid_fwd_kernel, ch07_M_not_symm",
+      "status": "proved",
+      "summary": "f_0 propto p_0 (*) l_0; f_k propto l_k (*) K(w (*) f_{k-1}).",
+      "note": "Proved as the finite identity it is, for every N and every K, w, f, l over Fin N: (l_k (*) K(w (*) f_{k-1}))_i = l_k(i) sum_j w_j K_{ij} f_{k-1}(j) = l_k(i) sum_j w_j M(g_i|g_j) f_{k-1}(j), which is the trapezoidal quadrature of the sum-product forward message. The contraction is over K's SECOND index, which is correct.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch07_l_grid_fwd states 'ell i * (K.mulVec (fun j => w j * f j)) i = ell i * sum_j w j * K i j * f j' for arbitrary abstract K, w, f, ell, closed by unfolding Matrix.mulVec and dotProduct. K, w, f, ell are never instantiated at ch07_K, ch07_w, ch07_g or ch07_ell, and nothing connects the sum to the integral int M(a_k | a_{k-1}) f_{k-1} da_{k-1} it is supposed to approximate. The recorded claim that this is 'the trapezoidal quadrature of the sum-product forward message' is prose, not something the theorem establishes; what is recorded is an index convention.\n\n[DOWNGRADE REPAIRED 2026-09-14] defined -> proved, by doing exactly what the downgrade note asked: the sweep is now stated with K instantiated at the chapter's own grid kernel ch07_K (K_ij = M(g_i | g_j)), w at the trapezoid weights ch07_w and g at the grid ch07_g, and the result is compared against ch07_M. ch07_l_grid_forward_kernel proves that the forward sweep equals the weighted sum against ch07_M with a definite orientation: the forward sweep sums over the SOURCE state (sum_j w_j M(g_i | g_j) f_j, free index i the destination), the backward sweep over the DESTINATION state (sum_j w_j M(g_j | g_i) l_j beta_j, free index i the source), which is what the transpose in eq:l-grid-bwd does. The check now discriminates: ch07_M_not_symm exhibits alpha = 1/2, b = 1 where M(1|0) = e^{-1}/2 differs from M(0|1) = e^{-1/2}/2, so swapping those arguments -- equivalently dropping the transpose -- changes the recursion, and the mirrored lemma is no longer provable. NOT CLAIMED: these are exact finite identities about the discretised sweep. No quadrature error bound against the continuous recursion of prop:bp-convA is proved anywhere in this file; what connects the finite sum to an integral is the trapezoid rule itself (ch07_l_trap_weights_sum, proved to integrate constants exactly).",
+      "tex_lines_recorded": "284-288",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:l-grid-bwd",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "284-293",
+      "lean_name": "ch07_l_grid_bwd, ch07_Kmat, ch07_l_grid_bwd_kernel, ch07_M_not_symm",
+      "status": "proved",
+      "summary": "beta_{L-1} = 1; beta_k propto K^T (w (*) l_{k+1} (*) beta_{k+1}).",
+      "note": "Proved for every N and every K, w, l, beta over Fin N: (K^T (w (*) l (*) beta))_i = sum_j w_j K_{ji} l_j beta_j = sum_j w_j M(g_j | g_i) l_j beta_j, which is the quadrature of int M(a_{k+1}|a_k) l_{k+1} beta_{k+1} da_{k+1}. The transpose in the equation is the right one -- this was the substantive thing to check here.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. Same shape as eq:l-grid-fwd, and the earlier note's claim that 'the transpose in the equation is the right one -- this was the substantive thing to check' is not supported: K is an arbitrary matrix with no link to ch07_K (= M(g_i | g_j)), so the mirrored lemma with K i j in place of K j i -- the version with the transpose wrongly dropped -- is equally provable by the same one-line proof. A check that passes for both the correct and the incorrect form of the equation has no discriminating power. To be substantive it must be stated with K := ch07_K and compared against ch07_M.\n\n[DOWNGRADE REPAIRED 2026-09-14] defined -> proved, by doing exactly what the downgrade note asked: the sweep is now stated with K instantiated at the chapter's own grid kernel ch07_K (K_ij = M(g_i | g_j)), w at the trapezoid weights ch07_w and g at the grid ch07_g, and the result is compared against ch07_M. ch07_l_grid_backward_kernel proves that the backward sweep equals the weighted sum against ch07_M with a definite orientation: the forward sweep sums over the SOURCE state (sum_j w_j M(g_i | g_j) f_j, free index i the destination), the backward sweep over the DESTINATION state (sum_j w_j M(g_j | g_i) l_j beta_j, free index i the source), which is what the transpose in eq:l-grid-bwd does. The check now discriminates: ch07_M_not_symm exhibits alpha = 1/2, b = 1 where M(1|0) = e^{-1}/2 differs from M(0|1) = e^{-1/2}/2, so swapping those arguments -- equivalently dropping the transpose -- changes the recursion, and the mirrored lemma is no longer provable. NOT CLAIMED: these are exact finite identities about the discretised sweep. No quadrature error bound against the continuous recursion of prop:bp-convA is proved anywhere in this file; what connects the finite sum to an integral is the trapezoid rule itself (ch07_l_trap_weights_sum, proved to integrate constants exactly).",
+      "tex_lines_recorded": "290-293",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:l-grid-score",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "296-304",
+      "lean_name": "ch07_bel, ch07_mhat, ch07_shat, ch07_l_grid_score_scale_inv",
+      "status": "defined",
+      "summary": "bel_k = f_k (*) beta_k; mhat_k = sum w g bel / sum w bel; shat_k = (mu mhat_k - x_k)/Delta_t.",
+      "note": "Definition, plus the property the chapter relies on at lines 313-318: the reported mean (hence the score) is invariant under rescaling the belief by any nonzero constant, so the per-step renormalisations are free. Consistency also checked by hand: f_k carries l_k while beta_k does not, so bel_k = f_k beta_k counts the unary likelihood at site k exactly once. Correct."
+    },
+    {
+      "id": "eq:l-resolution",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "334-337",
+      "lean_name": "ch07_l_resolution, ch07_l_resolution_sigma, ch07_l_resolution_sigma_bounds, ch07_l_resolution_sigma_taylor, ch07_l_resolution_401, ch07_l_resolution_101, ch07_l_resolution_margin, ch07_l_resolution_smallest_reported_t",
+      "status": "proved",
+      "summary": "Resolution gate sqrt(2t) >~ 3h = 6A/(N_g - 1).",
+      "note": "PROMOTED: the asymptotic half of the claim is now an explicit theorem rather than a hand check. 3h = 6A/(N-1) was already proved for all A and N. New: ch07_l_resolution_sigma proves the likelihood standard deviation in closed form, sqrt(Delta_t)/mu_t = sqrt(e^{2t} - 1) for all t >= 0; ch07_l_resolution_sigma_bounds proves the two-sided bound sqrt(2t) <= sqrt(Delta_t)/mu_t <= sqrt(2t) e^t for all t >= 0 (from x + 1 <= e^x used at +2t and at -2t); and ch07_l_resolution_sigma_taylor turns the text's 'sqrt(2t) + O(t^{3/2})' into an explicit constant: for 0 <= t <= 1, 0 <= sqrt(Delta_t)/mu_t - sqrt(2t) <= 5 t^{3/2}. The lower bound also shows the gate as written is the CONSERVATIVE form of the test -- the true standard deviation is never below sqrt(2t) -- so a configuration that clears sqrt(2t) >= 3h clears the real resolution requirement a fortiori. ONE BOOKKEEPING INCONSISTENCY REMAINS, flagged rather than called a formula error: line 342 says the working configuration clears the gate 'with room to spare (3h = 0.12 against sqrt(2t) = 0.32 at the smallest reported t)', and lines 365-366 say the gate is 'satisfied for all t >= 0.05', but Table tab:l-closure (line 619) reports t = 0.02 and t = 0.032. At t = 0.02, sqrt(2t) = 0.2, not 0.32. Proved in ch07_l_resolution_smallest_reported_t: 3h = 0.12 < sqrt(2*0.02) < 0.201 < 0.316. The conclusion survives (the gate still clears at t = 0.02, with margin 1.67x rather than 2.6x); only the quoted number and the 't >= 0.05' framing are wrong for the table's actual smallest t. All three quoted numbers are otherwise verified: 3h = 0.12 exactly at N=401, A=8; t >= 0.1152 at N=101, A=8; and sqrt(2*0.05) in (0.316, 0.317)."
+    },
+    {
+      "id": "eq:bp-master-error",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "387-393",
+      "lean_name": "ch07_bp_master_error, ch07_bp_master_error_prefactor",
+      "status": "proved",
+      "summary": "shat - s_ref = (e^{-t}/Delta_t)(mhat - m_ref), and e^{-t}/Delta_t ~ 1/(2t) as t -> 0.",
+      "note": "The exact identity is proved for all t, all nonzero Delta and all means, directly from the definition of shat. The asymptotic claim is upgraded to an exact identity: e^{-t}/Delta_t = 1/(e^t - e^{-t}) = 1/(2 sinh t) for t != 0, proved in Lean, from which ~ 1/(2t) as t -> 0 is immediate (sinh t ~ t). Both halves of the equation are correct as stated."
+    },
+    {
+      "id": "eq:l-lmmse",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "414-422",
+      "lean_name": "ch07_l_lmmse, ch07_l_lmmse_normal_eq, ch07_lmmse_risk, ch07_l_lmmse_excess, ch07_l_lmmse_optimal, ch07_l_lmmse_identity, ch07_l_lmmse_scalar",
+      "status": "proved",
+      "summary": "Theorem 7.4: ahat_LMMSE = Cov(a,x) Cov(x)^{-1} x = e^{-t} Sigma_0 (e^{-2t} Sigma_0 + Delta_t I)^{-1} x.",
+      "note": "PROMOTED: the property that makes the stated estimator the LMMSE one is now proved in arbitrary dimensions, not just checked at Sigma_0 = I. ch07_l_lmmse_excess proves, for arbitrary n (state) and m (observation) and arbitrary second moments with Cov(x) symmetric, the exact excess-risk identity R(G) = R(G*) + tr[(G - G*) Cov(x) (G - G*)^T] for ANY G* solving the normal equations G* Cov(x) = Cov(a,x); ch07_l_lmmse_optimal concludes R(G*) <= R(G) for every linear map G whenever Cov(x) is positive semidefinite, since tr[D Cov(x) D^T] >= 0. Combined with ch07_l_lmmse_normal_eq (G = Cov(a,x)Cov(x)^{-1} solves the normal equations whenever Cov(x) is invertible, all n) and ch07_lmmse_covs (Cov(a,x) = e^{-t}Sigma_0 and Cov(x) = e^{-2t}Sigma_0 + Delta_t I, proved), both equalities of eq:l-lmmse hold in every dimension and for every Sigma_0. The risk is written in the second moments it depends on, R(G) = tr(Sigma_a) - tr(G Cov(a,x)^T) - tr(Cov(a,x) G^T) + tr(G Cov(x) G^T); that step is bilinearity of expectation and nothing more (the same convention as eq:lmmse-covs). At the chapter's normalisation Sigma_0 = I the gain collapses to e^{-t} I (proved for all n), because e^{-2t} + Delta_t = 1. Note the equation's matrices commute in this setting, so the absence of a transpose on Cov(a,x) is harmless -- it is symmetric here.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved', and a false description corrected. ch07_l_lmmse itself is proved by 'rw [hCax, hCxx]' -- substitution of its own hypotheses, no mathematical content -- so ch07_l_lmmse_identity / ch07_l_lmmse_scalar carry the only non-tautological content recorded here, and they are evaluated at Sigma_0 = I. Sigma_0 = I is NOT 'the chapter's own normalisation' as the earlier note said: the chapter fixes Cov(a_j, a_k) = alpha^{|j-k|}, so Sigma_0 is the AR(1) Toeplitz matrix with unit DIAGONAL, and Theorem 7.4 explicitly assumes alpha != 0. Sigma_0 = I is precisely the excluded alpha = 0 case, in which the sites are independent, the LMMSE estimator degenerates to ahat = e^{-t} x, and all cross-site smoothing -- the entire point of Chapter 7 -- disappears. The same wording problem affected ch07_l_score_identity_vp: its 'posterior mean e^{-t}x, score -x' is the scalar single-site marginal, whereas eq:l-score-identity's S_k(x,t) is the JOINT score of the correlated chain, which is not -x_k.\n\n[DOWNGRADE WITHDRAWN 2026-09-13] The fidelity finding above was written against a SUPERSEDED version of this record and is largely obsolete: the strengthening pass replaced the Sigma_0 = I specialisation with ch07_l_lmmse_excess / ch07_l_lmmse_optimal, which prove the excess-risk identity and the optimality of any solution of the normal equations in ARBITRARY dimension and for arbitrary second moments, so the estimator's defining property no longer rests on alpha = 0. Status restored to 'proved'. Two residual caveats stand: (a) the second equality of the display consumes ch07_lmmse_covs, whose first conjunct (Cov(a,x) = e^{-t} Sigma_0) is encoded with the literal zero matrix and therefore could not fail -- see that item, which is downgraded to instance_checked; and (b) the docstring on ch07_l_score_identity_vp still describes 'posterior mean e^{-t}x and score -x' as the chapter's normalisation, whereas that is the scalar single-site marginal, while eq:l-score-identity's S_k(x,t) is the JOINT score of the correlated chain and is not -x_k."
+    },
+    {
+      "id": "noname-10",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "444-446",
+      "lean_name": "ch07_fwd_msg",
+      "status": "defined",
+      "summary": "The Gaussian incoming forward message alpha_{i-1}(a_{i-1}) = N(a_{i-1}; m, v).",
+      "note": "Induction hypothesis of the Theorem 7.4 proof, recorded as a def over the file's Gaussian density."
+    },
+    {
+      "id": "noname-11",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "449-455",
+      "lean_name": "ch07_prop",
+      "status": "defined",
+      "summary": "a_i = alpha a_{i-1} + eps_i with E[eps_i] = 0, Var(eps_i) = q.",
+      "note": "Restatement of the propagation law with the only two moments the proof uses; recorded as a def. Consistent with eq:l-chain-prior, where q = 1 - alpha^2."
+    },
+    {
+      "id": "eq:lmmse-fwd-map",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "457-462",
+      "lean_name": "ch07_gauss_conv, ch07_lmmse_fwd_map",
+      "status": "proved",
+      "summary": "Forward moment map (m,v) |-> (alpha m, alpha^2 v + q).",
+      "note": "Proved as the Gaussian convolution it abbreviates, not merely as arithmetic on moments: for q, v > 0 and all real alpha, m, a, int exp(-(a - alpha u)^2/(2q)) exp(-(u-m)^2/(2v)) du = sqrt(pi/((alpha^2/q + 1/v)/2)) exp(-(a - alpha m)^2/(2(alpha^2 v + q))), i.e. the propagated message is Gaussian in a with mean alpha m and variance alpha^2 v + q exactly as claimed. The map depends on the innovation law only through (0,q), which is the point of the theorem."
+    },
+    {
+      "id": "eq:lmmse-bwd-map",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "472-478",
+      "lean_name": "ch07_lmmse_bwd_integral, ch07_lmmse_bwd_map",
+      "status": "proved",
+      "summary": "Backward moment map (m,v) |-> (m/alpha, (v+q)/alpha^2).",
+      "note": "Proved in two steps, both exact. (i) The backward transition integral: for q, v > 0, int N-kernel(a; alpha u, q) N-kernel(a; m, v) da is proportional to exp(-(m - alpha u)^2/(2(v+q))), from the same convolution lemma. (ii) Reading that as a density in the preceding state u: -(m - alpha u)^2/(2(v+q)) = -(u - m/alpha)^2/(2 ((v+q)/alpha^2)) for alpha != 0, so the mean is m/alpha and the variance (v+q)/alpha^2. The chapter's side condition alpha != 0 is exactly what step (ii) needs, and the text says so."
+    },
+    {
+      "id": "noname-12",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "489-493",
+      "lean_name": "ch07_gauss_cond_mean_gen, ch07_gauss_cond_mean_schur, ch07_gauss_cond_mean",
+      "status": "proved",
+      "summary": "For jointly Gaussian zero-mean (a,x): E[a|x] = Cov(a,x) Cov(x)^{-1} x.",
+      "note": "PROMOTED from a scalar instance to arbitrary dimensions (n for the state block, m for the observation block), in two exact matrix statements. (i) ch07_gauss_cond_mean_gen: for any symmetric precision block P, any G and any S, the joint exponent a^T P a - 2 a^T (P G) x + x^T S x equals (a - Gx)^T P (a - Gx) + x^T (S - G^T P G) x -- the completion of the square, so as a density in a the joint is Gaussian with mean Gx and covariance P^{-1}. Symmetry of P is used exactly once, to combine the two cross terms, and holds for the precision of any symmetric covariance. (ii) ch07_gauss_cond_mean_schur: for a joint covariance Sigma = [[S, C],[C^T, V]] with V and the Schur complement S - C V^{-1} C^T invertible, the blocks of the precision Sigma^{-1} satisfy K_11 (C V^{-1}) = -K_12 (via mathlib's invOf_fromBlocks22_eq), i.e. the G of (i) is exactly C V^{-1} = Cov(a,x)Cov(x)^{-1}. Together: E[a|x] = Cov(a,x)Cov(x)^{-1} x for jointly Gaussian zero-mean (a,x) in every dimension. What is still granted (as in the scalar version, and as in the thesis's own one-line proof) is the standard reading that the mean of a Gaussian is the point at which the completed square vanishes; the algebra, which is the part that could have been wrong, is now proved at arbitrary size."
+    },
+    {
+      "id": "noname-13",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "495-498",
+      "lean_name": "ch07_ou_obs, ch07_cov, ch07_cov_prod_cross, ch07_ou_noise_witness",
+      "status": "defined",
+      "summary": "x = e^{-t} a + sqrt(Delta_t) z with z independent of a.",
+      "note": "Definition of the OU channel in vector form; its consequences are eq:lmmse-covs, checked in the next item.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'defined'. Its lean_name pointed at ch07_lmmse_covs, which is the THEOREM already credited to the next item (eq:lmmse-covs), so the same Lean name was counted twice. There is no Lean def or any other object encoding the OU channel in vector form: no vector x, no z, and no independence statement appears in ThesisAudit/Ch07.lean. The display is not formalised.\n\n[FORMALISED 2026-09-14] skipped -> defined. The display now has a Lean encoding, which is what the previous downgrade said was missing. ch07_ou_obs is the channel in vector form, x = e^{-t} a + sqrt(Delta_t) z with a and z random vectors in R^n; the independence z _|_ a is encoded by carrying a and z on the two factors of a PRODUCT sample space X x Z whose weight factorises as pa(x) pz(w). That encoding is not decorative: ch07_cov_prod_cross derives Cov(a,z) = 0 from it (the double sum factorises, and the z-factor is E[z] = 0), which is the only consequence of z _|_ a the chapter's proof uses, and is exactly the conjunct that eq:lmmse-covs previously had to assert with a literal zero matrix. ch07_ou_noise_witness exhibits a fair sign flip as a centred unit-covariance noise, so the hypotheses are satisfiable. Status is 'defined' rather than 'proved' because the display itself is a definition; its consequences are the next item. Same convention as eq:lmmse-covs: the sample space is finite and weighted, so 'independence' is the factorisation of the joint weight over the two factors rather than a statement about product measures on R^n.",
+      "status_original": "defined"
+    },
+    {
+      "id": "eq:lmmse-covs",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "500-505",
+      "lean_name": "ch07_lmmse_covs, ch07_cov, ch07_ou_obs, ch07_cov_transpose, ch07_cov_prod_fst, ch07_cov_prod_snd, ch07_cov_prod_cross, ch07_cov_channel_right, ch07_cov_channel_both, ch07_lmmse_covs_channel, ch07_ou_noise_witness",
+      "status": "proved",
+      "summary": "Cov(a,x) = e^{-t} Sigma_0 and Cov(x) = e^{-2t} Sigma_0 + Delta_t I.",
+      "note": "Granted bilinearity of covariance and z independent of a with Cov(z) = I, both claims reduce to matrix arithmetic: the cross-covariance picks up e^{-t} Sigma_0 plus e^{-t} sqrt(Delta_t) times Cov(a,z) = 0; and Cov(x) = (e^{-t})^2 Sigma_0 + (sqrt(Delta_t))^2 I, where (e^{-t})^2 = e^{-2t} and (sqrt(Delta_t))^2 = Delta_t since Delta_t = 1 - e^{-2t} >= 0 for t >= 0. Both proved for all n and all t >= 0. Correct.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. Only the second conjunct carries content ((e^{-t})^2 = e^{-2t} and (sqrt(Delta_t))^2 = Delta_t, the latter genuinely using t >= 0). The first conjunct, Cov(a,x) = e^{-t} Sigma_0, is encoded as 'exp(-t) . S0 + sqrt(Delta_t) . (0 : Matrix ...) = exp(-t) . S0' -- the cross-covariance claim is written with the literal zero matrix, so the lemma asserts X + c.0 = X and could not fail.\n\n[DOWNGRADE REPAIRED 2026-09-14] instance_checked -> proved. The defect recorded above was real: the first conjunct was written as 'exp(-t) . S0 + sqrt(Delta_t) . (0 : Matrix ...) = exp(-t) . S0', which could not fail. It is now derived instead of asserted. ch07_lmmse_covs_channel proves BOTH conjuncts for the channel ch07_ou_obs of noname-13, in every dimension n and for every t >= 0: Cov(a,x) = e^{-t} Sigma_0 and Cov(x) = e^{-2t} Sigma_0 + Delta_t I, where Sigma_0 = Cov(a,a) is the state's own second moment and every covariance is the explicit weighted sum ch07_cov, never a literal zero. The inputs are bilinearity (ch07_cov_channel_right / _both, proved entrywise), the product-space reductions ch07_cov_prod_fst / _snd (which consume only that pa and pz are probability weights), and ch07_cov_prod_cross, which PROVES Cov(a,z) = 0 from independence plus E[z] = 0; Cov(z,a) = 0 follows by ch07_cov_transpose. The remaining hypotheses are the chapter's own: z centred with Cov(z) = I, and t >= 0 (used once, for sqrt(Delta_t)^2 = Delta_t). ch07_ou_noise_witness shows those hypotheses are satisfiable, so the theorem is not vacuous. The old ch07_lmmse_covs is kept only as the arithmetic it always was. Note this also removes caveat (a) attached to eq:l-lmmse above: the second equality of that display no longer rests on a cross-covariance that was encoded as zero by hand. CONVENTION, stated for the record: the sample space is finite and weighted (sums, not integrals), the same convention as ch07_l_excess_derived for eq:l-excess. Everything used here is bilinearity of the second moment and the factorisation of a product weight, so the argument is insensitive to that choice, but no continuous-measure version is in the file.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:l-excess",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "542-549",
+      "lean_name": "ch07_l_excess, ch07_l_excess_expect, ch07_l_excess_derived",
+      "status": "proved",
+      "summary": "Proposition 7.5: R(ahat) = R_MMSE + E||m(x) - ahat(x)||^2.",
+      "note": "Proved three ways of increasing strength. (i) Pointwise Pythagoras in R^n when the cross term vanishes. (ii) The same with an expectation over a finite sample space, cross term assumed zero. (iii) ch07_l_excess_derived: the cross term is DERIVED, not assumed -- on a finite product sample space with joint mass p(x,y), hypothesis 'for every observation x and coordinate i, sum_y p(x,y)(a_y,i - m_x,i) = 0' (exactly E[a - m(x)|x] = 0, the tower property the thesis proof cites) and ahat any function of x alone, the decomposition follows. So the proposition and its one-line proof are both correct."
+    },
+    {
+      "id": "eq:l-epspm",
+      "tex_file": "thesis/chapters/ch07-laplace.tex",
+      "tex_lines": "567-573",
+      "lean_name": "ch07_l_epspm, ch07_l_epspm_nonneg, ch07_l_epspm_eq_zero",
+      "status": "defined",
+      "summary": "eps_PM = sqrt((1/L) E||ahat_LMMSE - E[a|x]||^2), the normalised posterior-mean error.",
+      "note": "Definition. Two sanity lemmas proved: it is always nonnegative, and (for L > 0) it vanishes exactly when the two estimators agree coordinatewise, so it is a genuine metric on the discrepancy. The normalisation constant is consistent with the chapter's own E||a||^2 = L, which follows from the unit marginal variance proved for eq:l-chain-prior.\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'defined', definition narrowed. ch07_l_epspm d = sqrt((1/L) sum_i (d i)^2) is a per-realisation RMS of a single fixed discrepancy vector: the expectation over the data that the tex writes (eps_PM = sqrt((1/L) E||ahat_LMMSE - E[a|x]||^2)) is dropped, and neither ahat_LMMSE nor E[a|x] is referenced."
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

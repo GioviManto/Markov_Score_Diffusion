@@ -1,0 +1,377 @@
+{
+  "module": "ThesisAudit.Ch08a",
+  "build_ok": true,
+  "covers": [
+    "/Users/gloriabagnato/Code/Thesis/Diffusion/Markov_Score_Diffusion/thesis/chapters/ch08-em-parameters.tex (lines 1-600)"
+  ],
+  "completed": "2026-09-13T00:00:00Z",
+  "items": [
+    {
+      "id": "eq:em-chain",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "23-27",
+      "status": "defined",
+      "lean_name": "ch08a_em_chain_next / ch08a_em_chain",
+      "summary": "Clean AR(1) chain a_1~N(0,1), a_i = alpha a_{i-1} + eps_i with Var(eps)=1-alpha^2.",
+      "note": "Encoded as a def; the variance-matching claim implicit in Var(eps)=1-alpha^2 is proved (alpha^2*1+(1-alpha^2)=1), i.e. the chain is stationary with unit variance.\n\n[FIDELITY NOTE 2026-09-13] Status stays 'defined'; the note's proof claim is withdrawn. ch08a_em_chain is 'alpha^2 * 1 + (1 - alpha^2) = 1 := by ring', an arithmetic tautology over the reals with no random variable, no variance operator, no reference to ch08a_em_chain_next, and no use of the independence of eps_i from a_{i-1} -- which is exactly the modelling hypothesis that makes Var(a_i) = alpha^2 Var(a_{i-1}) + Var(eps_i) true in the first place. Read it as arithmetic consistency of the variance budget only, NOT as 'the chain is stationary with unit variance'."
+    },
+    {
+      "id": "eq:em-mixture-kernel",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "39-44",
+      "status": "defined",
+      "lean_name": "ch08a_em_mixture_kernel",
+      "summary": "C-component Gaussian-mixture transition kernel K_theta(a'|a)=sum_c pi_c N(a'-alpha a; nu_c, s_c^2).",
+      "note": "Definition. Sanity lemmas proved: ch08a_gauss_nonneg, ch08a_gauss_pos (s>0), ch08a_em_mixture_kernel_nonneg under pi_c>=0, and ch08a_em_mixture_kernel_one confirming the chapter's claim (line 69) that at C=1 the family collapses to a single Gaussian."
+    },
+    {
+      "id": "eq:em-parameter-space",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "48-53",
+      "status": "defined",
+      "lean_name": "ch08a_em_parameter_space",
+      "summary": "Parameter space Theta: pi_c>=0, sum pi_c=1, s_c^2>=s_min^2, nu_c real, alpha in (-1,1).",
+      "note": "Definition, encoded as a Set. Nonemptiness checked (ch08a_em_parameter_space_nonempty). The free-parameter count asserted in the same section, (C-1)+C+C+1 = 3C (line 84, inline), is also proved (ch08a_free_parameter_count). See item noname-inline-1 for a problem in the INLINE stationary-variance formula in the prose immediately following this display."
+    },
+    {
+      "id": "noname-inline-1",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "58-60",
+      "status": "discrepancy",
+      "lean_name": "ch08a_stationary_variance / ch08a_stationary_variance_not_second_moment",
+      "summary": "Prose claims the fitted chain's stationary variance is sum_c pi_c(nu_c^2+s_c^2)/(1-alpha^2).",
+      "note": "NOTE: this is INLINE math, not a display environment; reported here because the audit's purpose is catching algebra errors and this sits in the paragraph attached to eq:em-parameter-space. Claim as read (line 58-60): 'with (pi_c,nu_c,s_c) free the fitted chain's stationary variance is sum_c pi_c(nu_c^2+s_c^2)/(1-alpha^2)'. For a_i = alpha a_{i-1} + eps_i the stationary variance satisfies v = alpha^2 v + Var(eps), so v = Var(eps)/(1-alpha^2) with Var(eps) = sum_c pi_c(nu_c^2+s_c^2) - (sum_c pi_c nu_c)^2. The quoted expression is the innovation SECOND MOMENT over (1-alpha^2), which equals the stationary variance only when sum_c pi_c nu_c = 0 -- precisely the constraint the very next clause of the same sentence says the family does not impose. (Nor is it the stationary second moment, which is [E eps^2 + 2 alpha m^2/(1-alpha)]/(1-alpha^2).) Counterexample verified in Lean: C=1, pi=1, nu=1, s=1, alpha=0 gives quoted value (1*(1+1))/(1-0) = 2 but true stationary variance (1*(1+1)-(1*1)^2)/(1-0) = 1. Likely correct statement: '... stationary variance is [sum_c pi_c(nu_c^2+s_c^2) - (sum_c pi_c nu_c)^2]/(1-alpha^2)'. Severity: minor -- the conclusion drawn (that it need not equal one) is unaffected."
+    },
+    {
+      "id": "noname-1",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "91-93",
+      "status": "defined",
+      "lean_name": "ch08a_obs_seq",
+      "summary": "Notation: the observed noised sequence x=(x_1,...,x_N).",
+      "note": "Pure notation; encoded as the type Fin N -> R."
+    },
+    {
+      "id": "noname-2",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "95-97",
+      "status": "defined",
+      "lean_name": "ch08a_clean_seq",
+      "summary": "Notation: the latent clean trajectory a=(a_1,...,a_N).",
+      "note": "Pure notation; encoded as the type Fin N -> R."
+    },
+    {
+      "id": "noname-3",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "103-105",
+      "status": "proved",
+      "lean_name": "ch08a_labels_card",
+      "summary": "Notation c=(c_2,...,c_N): one mixture label per transition, so N-1 of them.",
+      "note": "The counting claim is proved: (Finset.Icc 2 N).card = N - 1 for every N."
+    },
+    {
+      "id": "eq:em-objective",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "110-119",
+      "status": "defined",
+      "lean_name": "ch08a_L / ch08a_em_objective",
+      "summary": "MLE objective: theta-hat in argmax L(theta), L(theta) := log p_theta(x).",
+      "note": "Definition of the objective; the argmax membership is recorded as a (trivial) proved lemma."
+    },
+    {
+      "id": "eq:em-marginalisation",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "122-129",
+      "status": "defined",
+      "lean_name": "ch08a_em_marginalisation / ch08a_em_marginalisation_pair",
+      "summary": "p_theta(x) = sum_c int p_theta(a,c,x) da.",
+      "note": "Proved in the finite-latent model (grid discretisation): marg P = sum over z, and for z=(a,c) this splits as sum_c sum_a P(a,c) (Fubini for finite sums). The continuum integral version is the same statement with the grid sum replaced by a Lebesgue integral.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. 'ch08a_marg P = sum z, P z := rfl' is the definition unfolded. Only the companion ch08a_em_marginalisation_pair (sum over pairs = sum_c sum_a) has content; that content is retained in the note but does not make the display itself a proved identity.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-marginal-likelihood",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "131-141",
+      "status": "proved",
+      "lean_name": "ch08a_em_marginal_likelihood",
+      "summary": "L(theta) = log[ sum_c int p_theta(a,c,x) da ].",
+      "note": "Proved: composition of eq:em-objective and eq:em-marginalisation in the finite-latent model."
+    },
+    {
+      "id": "noname-4",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "163-165",
+      "status": "defined",
+      "lean_name": "ch08a_z",
+      "summary": "Notation z=(a,c) collecting the latent variables.",
+      "note": "Pure notation; encoded as the pair constructor."
+    },
+    {
+      "id": "eq:em-q-def",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "167-172",
+      "status": "defined",
+      "lean_name": "ch08a_post / ch08a_em_q_def",
+      "summary": "E-step distribution q^(k)(a,c) := p_{theta^(k)}(a,c|x).",
+      "note": "Definition. Sanity lemmas proved: the posterior sums to one (ch08a_post_sum_one) and is strictly positive when P is (ch08a_post_pos)."
+    },
+    {
+      "id": "eq:em-Q-def",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "177-185",
+      "status": "defined",
+      "lean_name": "ch08a_Q",
+      "summary": "EM surrogate Q(theta|theta^(k)) := E_{q^(k)}[log p_theta(a,c,x)].",
+      "note": "Definition, as a q-weighted finite sum of log p_theta."
+    },
+    {
+      "id": "noname-5",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "194-198",
+      "status": "defined",
+      "lean_name": "ch08a_bayes",
+      "summary": "Bayes' rule p_theta(a,c|x) = p_theta(a,c,x)/p_theta(x).",
+      "note": "Proved (definitionally, by rfl, given the finite-latent definitions of joint and marginal).\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch08a_bayes is 'ch08a_post P z = P z / ch08a_marg P := rfl' where ch08a_post is DEFINED as that ratio: Bayes' rule cannot fail here by construction. Recorded as definitional.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-bayes-log",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "200-207",
+      "status": "proved",
+      "lean_name": "ch08a_em_bayes_log",
+      "summary": "log p_theta(x) = log p_theta(a,c,x) - log p_theta(a,c|x).",
+      "note": "Proved with explicit positivity hypotheses (0 < P z for all z, 0 < marginal), which is what makes the logarithms well defined."
+    },
+    {
+      "id": "eq:em-first-decomposition",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "210-231",
+      "status": "proved",
+      "lean_name": "ch08a_em_first_decomposition",
+      "summary": "L(theta) = E_q[log p_theta(a,c,x)] - E_q[log p_theta(a,c|x)] = Q - E_q[log p_theta(a,c|x)].",
+      "note": "Proved for any probability vector q (sum q = 1): taking the q-expectation of eq:em-bayes-log leaves the theta-independent left-hand side unchanged."
+    },
+    {
+      "id": "noname-6",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "235-239",
+      "status": "defined",
+      "lean_name": "ch08a_H",
+      "summary": "Entropy H(q) := -E_q[log q].",
+      "note": "Definition."
+    },
+    {
+      "id": "noname-7",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "241-247",
+      "status": "defined",
+      "lean_name": "ch08a_KL",
+      "summary": "KL(q||p) := E_q[log(q/p)].",
+      "note": "Definition. Auxiliary results proved: ch08a_kl_nonneg (Gibbs' inequality, via log t <= t-1) and ch08a_kl_self_zero."
+    },
+    {
+      "id": "eq:em-decomposition",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "249-264",
+      "status": "proved",
+      "lean_name": "ch08a_em_decomposition",
+      "summary": "Boxed identity L(theta) = Q(theta|theta^(k)) + H(q^(k)) + KL(q^(k) || p_theta(a,c|x)).",
+      "note": "Proved in full for any strictly positive probability vector q and strictly positive joint P. This is the central identity of the section and it is correct as stated."
+    },
+    {
+      "id": "eq:em-lower-bound",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "266-283",
+      "status": "proved",
+      "lean_name": "ch08a_em_lower_bound_eq / ch08a_em_lower_bound / ch08a_em_F_argmax_eq_Q_argmax",
+      "summary": "F(theta;q) = Q + H = L(theta) - KL(q||p_theta(a,c|x)) <= L(theta).",
+      "note": "Both the equality and the inequality are proved; the inequality needs Gibbs (ch08a_kl_nonneg), proved from Real.log_le_sub_one_of_pos. The chapter's follow-up claim that maximising F is equivalent to maximising Q is also proved (ch08a_em_F_argmax_eq_Q_argmax)."
+    },
+    {
+      "id": "noname-8",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "296-300",
+      "status": "defined",
+      "lean_name": "ch08a_q_at_current",
+      "summary": "At the current iterate, q^(k)(a,c) = p_{theta^(k)}(a,c|x).",
+      "note": "Restatement of eq:em-q-def; holds by definition (rfl)."
+    },
+    {
+      "id": "noname-9",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "302-309",
+      "status": "proved",
+      "lean_name": "ch08a_kl_self_zero",
+      "summary": "KL(q^(k) || p_{theta^(k)}(a,c|x)) = 0.",
+      "note": "Proved: KL(q||q)=0 for any strictly positive q."
+    },
+    {
+      "id": "eq:em-touching",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "312-317",
+      "status": "proved",
+      "lean_name": "ch08a_em_touching",
+      "summary": "The lower bound touches the likelihood at the current iterate: F(theta^(k);q^(k)) = L(theta^(k)).",
+      "note": "Proved by combining eq:em-lower-bound with KL(q||q)=0."
+    },
+    {
+      "id": "noname-10",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "319-327",
+      "status": "proved",
+      "lean_name": "ch08a_em_estep / ch08a_em_surrogate / ch08a_em_mstep / ch08a_em_diagram / ch08a_em_estep_is_distribution / ch08a_em_surrogate_factors_through_estep / ch08a_em_step_ascent / ch08a_em_step_ascent_of_mstep / ch08a_em_ascent_iterated",
+      "summary": "Schematic arrow diagram theta^(k) -> q^(k) -> Q -> theta^(k+1).",
+      "note": "Upgraded from skipped. The display itself asserts no identity -- it is a picture of the iteration -- so what is formalised is the content the picture and the surrounding 'therefore' carry, general in both the finite latent space Z and the parameter set Theta (no fixed dimension, no fixed C or N). (a) The three arrows are explicit maps: ch08a_em_estep (theta^(k) -> q^(k) = p_{theta^(k)}(.|x)), ch08a_em_surrogate (q^(k) -> Q(.|theta^(k))), ch08a_em_mstep (Q -> theta^(k+1), as the maximiser property). ch08a_em_diagram records the composite (rfl) and ch08a_em_estep_is_distribution checks the first arrow lands in the simplex: q^(k) is strictly positive and sums to one whenever the complete-data joint is positive (supporting lemma ch08a_marg_pos). (b) ch08a_em_surrogate_factors_through_estep proves the structural claim the picture makes: the surrogate sees the current iterate ONLY through q^(k) -- there is no direct theta^(k) -> Q arrow. (c) ch08a_em_step_ascent proves that going once round the loop cannot decrease the likelihood: for an arbitrary Fintype Z and arbitrary Theta, if p_{theta^(k)}(z,x) and p_{theta^(k+1)}(z,x) are strictly positive and Q(theta^(k+1)|theta^(k)) >= Q(theta^(k)|theta^(k)), then L(theta^(k)) <= L(theta^(k+1)); the proof combines ch08a_em_touching (F touches L at theta^(k)) with ch08a_em_lower_bound (F <= L everywhere). ch08a_em_step_ascent_of_mstep is the exact-M-step corollary and ch08a_em_ascent_iterated lifts it to Monotone (k |-> L(P (theta k))) for the whole EM sequence, general in the number of sweeps. Two things are NOT claimed: existence of an M-step maximiser is a hypothesis, not proved (the chapter's Theta is continuous, so existence needs compactness/continuity the chapter does not state); and the chapter's own explicit monotonicity displays (eq:em-monotone / eq:em-likelihood-monotone, around lines 1147-1162) lie outside this module's audited range 1-600 and are not audited here -- the ascent theorem is proved as the property this picture presupposes, not as a substitute for auditing those displays."
+    },
+    {
+      "id": "eq:em-complete-kernel",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "347-361",
+      "status": "proved",
+      "lean_name": "ch08a_ktilde / ch08a_em_complete_kernel",
+      "summary": "Label-augmented kernel Ktilde(a',c|a) = pi_c N(a'-alpha a; nu_c, s_c^2) and K(a'|a) = sum_c Ktilde(a',c|a).",
+      "note": "Ktilde is a def; the summation identity K = sum_c Ktilde is proved (rfl against the eq:em-mixture-kernel definition). Positivity of Ktilde under pi_c>0, s_c>0 also proved."
+    },
+    {
+      "id": "eq:em-log-mixture",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "365-378",
+      "status": "defined",
+      "lean_name": "ch08a_em_log_mixture",
+      "summary": "log K_theta(a_i|a_{i-1}) = log[ sum_c pi_c N(a_i - alpha a_{i-1}; nu_c, s_c^2) ] -- the log-sum coupling.",
+      "note": "Proved (rfl); the point of the display is that the logarithm sits outside the sum, which the statement records faithfully.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. 'log (ch08a_em_mixture_kernel ...) = log (sum c, p c * ch08a_gauss ...) := rfl' is pure unfolding of the audit's own definition.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-complete-factorisation",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "385-394",
+      "status": "defined",
+      "lean_name": "ch08a_joint",
+      "summary": "p_theta(a,c,x) = p(a_1) prod_{i=2}^N Ktilde(a_i,c_i|a_{i-1}) prod_{i=1}^N phi_i(a_i).",
+      "note": "A modelling assumption (the factorisation of the hidden Markov model), so encoded as the def of the complete-data joint. Index ranges are consistent with noname-3 (N-1 transition factors, N observation factors). Sanity lemma proved: ch08a_joint_pos, the joint is strictly positive when every factor is."
+    },
+    {
+      "id": "noname-11",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "396-398",
+      "status": "defined",
+      "lean_name": "ch08a_phi",
+      "summary": "phi_i(a_i) = p(x_i|a_i), the fixed OU observation factor.",
+      "note": "Definition; instantiated as the Gaussian in x_i - e^{-t} a_i with variance Delta_t, matching the OU channel of Section 8.1."
+    },
+    {
+      "id": "eq:em-complete-ll",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "400-413",
+      "status": "proved",
+      "lean_name": "ch08a_em_complete_ll",
+      "summary": "log p_theta(a,c,x) = log p(a_1) + sum_{i=2}^N log Ktilde + sum_{i=1}^N log phi_i.",
+      "note": "Proved from the factorisation via Real.log_mul / Real.log_prod, with the nonvanishing hypotheses made explicit. Confirms the chapter's claim that only the transition terms depend on theta."
+    },
+    {
+      "id": "eq:em-single-transition-log",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "418-439",
+      "status": "proved",
+      "lean_name": "ch08a_em_single_transition_log",
+      "summary": "log Ktilde = log pi_c - (1/2)log(2pi) - (1/2)log s_c^2 - (a_i - alpha a_{i-1} - nu_c)^2/(2 s_c^2).",
+      "note": "Proved in full generality from the explicit Gaussian density, under pi_c>0 and s_c>0. Both the constant (-1/2)log(2pi) and the (-1/2)log s_c^2 term come out exactly as stated; no sign or factor-of-two error."
+    },
+    {
+      "id": "eq:em-indicator-transition",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "441-457",
+      "status": "proved",
+      "lean_name": "ch08a_em_indicator_transition",
+      "summary": "Indicator form: log Ktilde = sum_c 1{c_i=c}[log pi_c - (1/2)log(2pi) - (1/2)log s_c^2 - (...)^2/(2 s_c^2)].",
+      "note": "Proved: the sum over c of the indicator times the bracket collapses to the c_i term, which is eq:em-single-transition-log."
+    },
+    {
+      "id": "eq:em-Q",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "460-484",
+      "status": "proved",
+      "lean_name": "ch08a_em_Q_full",
+      "summary": "Q(theta|theta^(k)) equals, up to an additive theta-independent constant, sum_{i=2}^N sum_c E[1{c_i=c}(log pi_c - (1/2)log s_c^2 - (...)^2/(2 s_c^2))].",
+      "note": "Now proved in full (upgraded from the per-transition version). ch08a_em_Q_full states: if the complete-data log-likelihood is a theta-independent part K plus the N-1 transition terms (eq:em-complete-ll), then for any posterior weight vector w summing to one, E_w[log p_theta(a,c,x)] = ( E_w[K] - card(Icc 2 N) * (1/2)log(2pi) ) + sum_{i=2}^{N} sum_c E_w[ 1{c_i=c}( log pi_c - (1/2)log s_c^2 - (a_i - alpha a_{i-1} - nu_c)^2/(2 s_c^2) ) ]. The first bracket is manifestly independent of theta, so the displayed '=^c' is exactly right, and the dropped constant per transition is exactly -(1/2)log(2pi) as the chapter says. Supporting lemmas: ch08a_em_Q_term, ch08a_Qsummand_sum, ch08a_sum_swap, ch08a_em_Q_expectation."
+    },
+    {
+      "id": "noname-12",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "499-503",
+      "status": "defined",
+      "lean_name": "ch08a_L_def",
+      "summary": "L(theta) = log p_theta(x), restated as the starting point of the Fisher derivation.",
+      "note": "Restatement of eq:em-objective; holds by definition (rfl)."
+    },
+    {
+      "id": "eq:em-fisher-step1",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "513-525",
+      "status": "proved",
+      "lean_name": "ch08a_em_fisher_step1",
+      "summary": "grad L = (1/p_theta(x)) grad p_theta(x) = (1/p_theta(x)) sum_c int grad_theta p_theta(a,c,x) da.",
+      "note": "Proved in the finite-latent model with a one-dimensional parameter, as a HasDerivAt statement: from HasDerivAt of each p_theta(z,x) in theta one gets HasDerivAt of log(sum_z p_theta(z,x)) with derivative (1/sum) * sum of derivatives. The chapter's regularity discussion (domination, interchange of grad with sum and integral) is exactly what the finite sum makes free; the continuum version needs that hypothesis."
+    },
+    {
+      "id": "noname-13",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "527-532",
+      "status": "proved",
+      "lean_name": "ch08a_score_identity",
+      "summary": "grad_theta p_theta(a,c,x) = p_theta(a,c,x) grad_theta log p_theta(a,c,x) (log-derivative trick).",
+      "note": "Proved: for f differentiable at theta with f(theta) != 0, log f has derivative f'/f(theta) and f' = f(theta) * (f'/f(theta))."
+    },
+    {
+      "id": "eq:em-fisher-general",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "534-557",
+      "status": "proved",
+      "lean_name": "ch08a_em_fisher_general",
+      "summary": "Fisher's identity: grad L = E_{a,c|x,theta}[ grad_theta log p_theta(a,c,x) ].",
+      "note": "Proved in the finite-latent model: the derivative of log(sum_z P_theta z) equals sum_z posterior(z) * (P'(z)/P_theta(z)), i.e. the posterior expectation of the complete-data score."
+    },
+    {
+      "id": "eq:em-fisher",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "562-574",
+      "status": "proved",
+      "lean_name": "ch08a_em_fisher_transitions / ch08a_em_fisher_chain (ch08a_em_fisher retained, but it is only the supporting calculus step)",
+      "summary": "grad L = E[ sum_{i=2}^N grad_theta log Ktilde(a_i,c_i|a_{i-1}) ]: only transition factors depend on theta.",
+      "note": "Proved as the differentiation step it rests on: if the complete-data log-likelihood is a theta-independent constant plus a finite sum of transition terms, its derivative is the sum of the transition derivatives (HasDerivAt.const_add + HasDerivAt.fun_sum). Combined with eq:em-fisher-general and eq:em-complete-ll this gives the display.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch08a_em_fisher is the generic calculus fact that the derivative of a constant plus a finite sum is the sum of the derivatives: 'HasDerivAt (fun t => K + sum i in s, T i t) (sum i in s, T' i) theta'. Nothing from the display appears in it -- no L / ch08a_L, no posterior expectation E_{a,c|x,theta} (no ch08a_post, no weights), no ch08a_ktilde, and an arbitrary Finset rather than the index range 2..N. That the theta-independent part really is log p(a_1) + sum log phi_i is ASSUMED by writing the integrand as 'K + sum T_i'. The combination with eq:em-fisher-general and eq:em-complete-ll that would give the display is never formalised anywhere in Ch08a.lean. (Contrast eq:em-fisher-Q / ch08a_em_fisher_Q, which really does exhibit both L and Q with the same derivative -- that one is faithful.)\n\n[CLOSED 2026-09-13, gap-closing pass] Upgraded instance_checked -> proved. Two new results carry the display; ch08a_em_fisher is kept but demoted in the record to the trivial differentiation step it always was. ch08a_em_fisher_transitions: for a finite latent space Z (Nonempty) and a real parameter, if the complete-data log-likelihood splits as log p_theta(z,x) = K(z) + sum_{i in u} log T_i(z,theta) with K independent of theta -- this is eq:em-complete-ll supplied as a hypothesis, not an assumption smuggled into the shape of the integrand -- with every T_i positive and differentiable at theta and p_theta(z,x) > 0, then HasDerivAt (fun t => ch08a_L (P t)) (sum_z ch08a_post (P theta) z * sum_{i in u} T'_i z / T_i z theta) theta. Both ch08a_L and ch08a_post occur, so the left-hand side is the likelihood and the right-hand side is a genuine posterior expectation. Proof: P is reconstructed as exp(K + sum log T_i) from the log-split and positivity, differentiated by HasDerivAt.exp / .log / .fun_sum, then fed to eq:em-fisher-general (ch08a_em_fisher_general). ch08a_em_fisher_chain instantiates this at the chapter's own joint: P t z = ch08a_joint N t p nu s p1 phi (Acfg z) (lab z) with alpha as the parameter, index set Finset.Icc 2 N (the N-1 transitions of noname-3), transition factors ch08a_ktilde; positivity from ch08a_joint_pos and ch08a_ktilde_pos, the log-split from ch08a_em_complete_ll. Its conclusion is the display itself: grad_alpha L = E_{a,c|x,theta}[ sum_{i=2}^{N} D_i / K̃_theta(a_i,c_i|a_{i-1}) ], i.e. the posterior expectation of the sum of transition scores, with the initial factor p(a_1) and the observation factors phi_i dropping out because they do not depend on alpha. NOT covered: the parameter is the single real coordinate alpha (the chapter's theta is (pi,nu,s,alpha); the other coordinates are not formalised); the latent space is the finite grid, so interchanging the derivative with the sum is free, exactly as already flagged for eq:em-fisher-step1; and D_i = grad_alpha K̃ is a hypothesis rather than computed in closed form -- the display leaves grad_theta log K̃ symbolic too, so this matches the claim but is not an independent check of that derivative. Verified with #print axioms: no sorryAx.",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:em-fisher-Q",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "576-584",
+      "status": "proved",
+      "lean_name": "ch08a_em_fisher_Q",
+      "summary": "grad_theta L(theta)|_{theta=theta^(k)} = grad_theta Q(theta|theta^(k))|_{theta=theta^(k)}.",
+      "note": "Proved: both Q(.|theta^(k)) and L are shown to have the SAME derivative value sum_z posterior(z)*(P'(z)/P(z)) at theta = theta^(k), which is the chapter's claim that one BP pass already supplies the exact likelihood gradient."
+    },
+    {
+      "id": "noname-14",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "588-592",
+      "status": "defined",
+      "lean_name": "ch08a_q_fixed",
+      "summary": "q^(k)(a,c) = p_{theta^(k)}(a,c|x), the posterior BP computes and which is then held fixed.",
+      "note": "Restatement of eq:em-q-def (rfl). The surrounding claim that BP is not differentiated through is a statement about the algorithm, not an identity."
+    },
+    {
+      "id": "prop:em-estep",
+      "tex_file": "ch08-em-parameters.tex",
+      "tex_lines": "335-342",
+      "status": "proved",
+      "lean_name": "ch08a_chainW / ch08a_chainW_eq_prod / ch08a_fwd / ch08a_bwd / ch08a_fwd_succ / ch08a_bwd_succ / ch08a_bwdg_succ_last / ch08a_fwd_exact / ch08a_estep_exact / ch08a_estep_exact_pair / ch08a_estep_single_site / ch08a_estep_pairwise / ch08a_estep_cut_consistency / ch08a_estep_single_site_post / ch08a_estep_pair_expectation / ch08a_estep_exact_mixture",
+      "summary": "Proposition (The E-step is exact): since the posterior factor graph is a tree, one forward and one backward sum-product sweep return the exact single-site and pairwise posterior marginals, so the E-step requires neither a variational approximation nor Monte Carlo sampling.",
+      "note": "[ADDED 2026-09-13 after fidelity review] A labelled result inside the audited range that appeared nowhere in the item list; it is the load-bearing justification for the whole E-step, and it was recorded as skipped.\n\n[CLOSED 2026-09-13, gap-closing pass] Upgraded skipped -> proved for the chain, in the audit's standing finite/grid latent model. Everything below is general in the chain length, in the site index and in the finite alphabet A carried by each site: no fixed L, no fixed C, no fixed site, no numerical instance anywhere. Ch06 was NOT imported (module ownership); the sum-product machinery needed was restated locally.\n(a) OBJECT MARGINALISED. ch08a_chainW is the joint weight of a complete configuration, defined with no reference to messages; ch08a_chainW_eq_prod certifies it equals the displayed factorisation phi_0(a_0) * prod_{j=1}^{n} psi_j(a_{j-1},a_j) phi_j(a_j), which also pins the indexing (site j of the tuple carries phi_j, and psi_{j+1} is the transition from site j to site j+1). So the sums below really are marginals of the chain joint, not of a message-shaped surrogate.\n(b) THE TWO SWEEPS. ch08a_fwd and ch08a_bwd are each defined by their own one-pass recursion, recorded as ch08a_fwd_succ (F_{i+1}(v) = (sum_u F_i(u) psi_{i+1}(u,v)) phi_{i+1}(v)) and ch08a_bwd_succ (B_i(v) = sum_w psi_{i+1}(v,w) phi_{i+1}(w) B_{i+1}(w)). ch08a_bwdg_succ_last is the associativity lemma that lets two sweeps running in opposite directions be combined.\n(c) EXACTNESS. ch08a_fwd_exact: the sum of the joint weight over all configurations with a given value at the last site is exactly F. ch08a_estep_exact (induction on the number of sites right of the cut, carrying a general terminal function): the sum of the joint weight over ALL configurations with a_i = v equals F_i(v) * B_i(v). ch08a_estep_exact_pair: the sum over all configurations with a_i = v AND a_{i+1} = w equals F_i(v) * psi_{i+1}(v,w) phi_{i+1}(w) * B_{i+1}(w). ch08a_estep_single_site / ch08a_estep_pairwise are the terminal-function-1 forms. These are exactly 'one forward and one backward sweep return the exact single-site and pairwise marginals'.\n(d) ONE PAIR OF SWEEPS SERVES EVERY SITE. ch08a_estep_cut_consistency: sum_v F_i(v) B_i(v) is the same number at every cut i, namely the total weight p_theta(x). ch08a_estep_single_site_post and ch08a_estep_pair_expectation are the normalised (posterior) statements; the latter says that for ANY function h of two adjacent site values the exact posterior expectation E_q[h(a_i,a_{i+1})] is read off from the messages at that one transition.\n(e) THE CHAPTER'S OWN MODEL. ch08a_estep_exact_mixture takes the alphabet to be (grid) x (Fin C), so the mixture label c_i sits inside the alphabet and the transition factor is literally ch08a_ktilde of eq:em-complete-kernel (it does not depend on c_{i-1}, which is why the label-augmented chain is still a chain). Its conclusion is the exact posterior expectation of ch08a_Qsummand -- the eq:em-Q integrand, label included -- at an arbitrary transition. That is precisely the quantity the M-step consumes, so 'the E-step requires neither a variational approximation nor Monte Carlo sampling' is established for what EM actually uses.\nWHAT IS NOT COVERED, stated plainly. (i) The alphabet is finite: the sweeps are sums, not integrals over functional messages, so the proposition's clause 'at the level of functional messages ... before the numerical grid discretisation is introduced' is proved only AFTER the grid discretisation. The continuum version is the same induction with Lebesgue integrals plus a Tonelli justification for each sweep; it is not formalised here. (ii) Only the CHAIN is proved, not a general tree: the chapter's premise 'the posterior factor graph is a tree' is used only through the chain, which is the graph actually at hand. (iii) No complexity claim is formalised (the proposition makes none). Verified with #print axioms: every theorem listed depends only on propext / Classical.choice / Quot.sound -- no sorryAx.",
+      "status_previous": "skipped"
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex.",
+  "gap_closing_pass": "2026-09-13: prop:em-estep (was skipped, no Lean content) proved for the chain at arbitrary length/site/alphabet in the finite-grid latent model, and eq:em-fisher (was instance_checked after the fidelity downgrade) proved as the display itself. No other labelled result in lines 1-600 is missing from this list: every \\label in the range was re-checked against the item ids, and only the chapter/section labels (ch:em-method, sec:em-model, sec:em-algorithm) are absent, which are not results. Module builds clean with no sorry, no axiom, no native_decide."
+}

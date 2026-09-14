@@ -1,0 +1,31 @@
+{
+  "chapter": "ch08-em-parameters.tex",
+  "claims_checked": 96,
+  "findings": [
+    {
+      "tex_lines": "57-62",
+      "severity": "error",
+      "claim": "with $(\\pi_c, \\nu_c, s_c)$ free the fitted chain's stationary variance is $\\sum_c \\pi_c(\\nu_c^2 + s_c^2)/(1-\\alpha^2)$, which equals one only under a variance-matching constraint this family deliberately does not impose, and its stationary mean is zero only if $\\sum_c \\pi_c \\nu_c = 0$, which it likewise does not impose",
+      "problem": "The inline formula silently assumes the innovation mean is zero, which the same sentence then says is NOT imposed. For a_i = alpha*a_{i-1} + eps_i with eps ~ sum_c pi_c N(nu_c, s_c^2): the innovation SECOND MOMENT is sum_c pi_c(nu_c^2+s_c^2), but its VARIANCE is sum_c pi_c(nu_c^2+s_c^2) - m^2 with m = sum_c pi_c nu_c. Hence the stationary variance is [sum_c pi_c(nu_c^2+s_c^2) - m^2]/(1-alpha^2). The printed expression is neither the stationary variance nor the stationary second moment when m != 0 (the stationary second moment is that variance plus mu^2 = m^2/(1-alpha)^2). Counterexample (Lean, stationary_variance_counterexample): pi=(1/2,1/2), nu=(1,1), s^2=(1,1), alpha=0 gives printed value 2 but true stationary variance 1, a factor-2 error, with m = 1 != 0.",
+      "lean_name": "ThesisAudit.ProseCh08.stationary_variance_counterexample",
+      "suggested_fix": "Write the stationary variance as $\\big[\\sum_c \\pi_c(\\nu_c^2 + s_c^2) - (\\sum_c \\pi_c\\nu_c)^2\\big]/(1-\\alpha^2)$, or say explicitly that $\\sum_c \\pi_c(\\nu_c^2+s_c^2)$ is the innovation second moment and the expression is the stationary variance only when the mean condition $\\sum_c\\pi_c\\nu_c=0$ holds."
+    },
+    {
+      "tex_lines": "1183-1187",
+      "severity": "rounding",
+      "claim": "increasing the inner budget from four to sixteen sweeps moves the fitted innovation excess kurtosis from $1.68$ to $2.14$, a $28\\%$ change relative to the former value",
+      "problem": "(2.14 - 1.68)/1.68 = 0.46/1.68 = 23/84 = 0.27380952..., i.e. 27.4%, which rounds to 27%, not 28%. A 28% change from 1.68 would land at 1.68*1.28 = 2.1504, and reaching 2.14 as a 28% rise would require a former value of 2.14/1.28 = 1.6719. No other reading gives 28% either: relative to the latter value it is 0.46/2.14 = 21.5%, relative to the true Laplace value 0.46/3.0 = 15.3%.",
+      "lean_name": "ThesisAudit.ProseCh08.inner_budget_relative_change",
+      "suggested_fix": "Change \"$28\\%$\" to \"$27\\%$\" (or state it as \"about a quarter\")."
+    },
+    {
+      "tex_lines": "1377",
+      "severity": "rounding",
+      "claim": "Table~\\ref{tab:em-recovery}, row $C=8$, $\\nseq=2048$: $\\widehat\\ivar = 0.2793$ with $|\\Delta\\ivar|/\\ivar = 0.7\\%$",
+      "problem": "Against the caption's true value $\\ivar = 0.2775$, |0.2793 - 0.2775|/0.2775 = 0.0018/0.2775 = 18/2775 = 0.0064865 = 0.649%, which rounds to 0.6%, not 0.7%. Recomputed from the frozen source (research/nongaussian-bp/outputs/frozen/exp_18/innovation_summary.csv, innovation_var = 0.2792983440826006) the exact figure is 0.64805%, again 0.6%. Every other cell of that column rounds correctly to one decimal under round-to-nearest (3.197->3.2, 2.503->2.5, 1.532->1.5, 1.770->1.8, 2.916->2.9), so this row is the only one out of step; it also slightly overstates the best variance recovery in the table, which the following paragraph leans on.",
+      "lean_name": "ThesisAudit.ProseCh08.recovery_var_relative_error",
+      "suggested_fix": "Change the last row's $|\\Delta\\ivar|/\\ivar$ entry from $0.7\\%$ to $0.6\\%$."
+    }
+  ],
+  "note": "Everything else in the chapter that a reader could recompute checks out. Verified against the frozen research outputs at /Users/gloriabagnato/Code/Thesis/Diffusion/research/nongaussian-bp/outputs/: (a) every cell of Table tab:em-grid reproduces exactly from frozen/exp_18/boundary.csv at n_grid=401 (max/median ratios 61.1, 433.6, 391.8, 1796.1 -> 61x, 434x, 392x, 1796x; they are computed from unrounded data, so quoting three or four digits is legitimate), the quadrature block reproduces at A=8 (3.8409e-3, 9.6078e-4, 2.4023e-4 and 1.6182e-2, 1.9005e-2, 1.9711e-2), and the stated 4.00x per halving is exact (3.9977, 3.9994); h = 2A/(N_g-1) gives 0.080/0.040/0.020 as tabulated. (b) All 36 cells of Table tab:em-recovery reproduce from frozen/exp_18/innovation_summary.csv except the one flagged above; iters=61 matches the caption's '61 EM iterations', alpha=0.85 and n_sites=32 match params.json, and ivar=0.2775 = 1-0.85^2. (c) The Fig. 8.3 caption's alpha interval [0.8517,0.8520] is exactly the range of the four C=4 final rho_hat values in exp_18/em_trace.csv (0.851716, 0.851826, 0.851897, 0.852001) from starts {-0.4, 0, 0.3, 0.6}, and all four traces have zero log-evidence decreases. (d) Inline algebra re-derived and correct: the free-parameter count (C-1)+C+C+1 = 3C; N-1 transition labels; the substitution collapsing S_c(alpha,nu_c^+) to G_c - 2 alpha P_c + alpha^2 W_c - R_c (nu_c^+)^2; dQ/dalpha = sum_c (P_c - alpha W_c - nu_c V_c)/s_c^2; the C=1, nu=0 reduction alpha^+ = P_1/W_1; s_min^2 = 1e-6 <-> sd 1e-3, genuinely far below the grid spacing h = 0.04; e^{-t}/Delta_t ~ 1/(2t) as t->0 with Delta_t = 1-e^{-2t}; kappa_4 attenuation e^{-4t} agrees with ch07 eq:l-noised-kurtosis and with Var(x)=1 under the variance-matched channel; 'below 0.1% relative error' matches the 0.04%/0.08% rows. Unverifiable (underlying runs not in the repo, not speculated on): the '~10^{-2} nats per edge' monotonicity break from mean-projection and the '10^{-3} level' fitted innovation mean (l.80-82) -- though the frozen innovation_mean column, -0.0012 to -0.0046, is consistent with the latter; the 1.68 and 2.14 endpoints themselves at C=8, N=256 (only the percentage is checkable); the macros \\gdboundmed=86 and \\gdboundhi=3,281 in Remark 8.3, which tools/make_grid_diagnostics.py recomputes from the kernel rather than reading the stored sweep (recomputing the same ratio from boundary.csv gives median 58, max 3894 -- a different population, not a contradiction, but worth a sentence if a reader is expected to reconcile it with the max/median row of Table 8.2). Lean witnesses for all three findings build cleanly (no sorry, no axiom) in ThesisAudit.ProseCh08."
+}

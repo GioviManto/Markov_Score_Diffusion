@@ -1,0 +1,39 @@
+{
+  "module": "ThesisAudit.Ch04",
+  "checked": 50,
+  "issues": [
+    {
+      "id": "eq:ring-gauge-score-a",
+      "lean_name": "ch04_ring_gauge_density",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "The tex display (ch04-ring.tex 233-238) is a density identity: 'P_t(z | psi) = P^{(0)}_t(U_psi z)'. The Lean theorem recorded as proving it is `theorem ch04_ring_gauge_density (L : N) (psi : R) (p0 : (Fin 2 x Fin L -> R) -> R) (z : Fin 2 x Fin L -> R) : |(ch04_ring_U L psi).det| = 1 AND p0 (ch04_ring_U L psi *v z) * |(ch04_ring_U L psi).det| = p0 (ch04_ring_U L psi *v z)`. The second conjunct is `a * 1 = a` for a COMPLETELY ARBITRARY function p0 -- it is true of any function whatsoever and carries no information about densities, change of variables, or the law of z; it is only cosmetically shaped like the thesis display. The real content proved is the side condition |det U_psi| = 1 (genuinely proved, via ch04_ring_U_orthogonal). No statement relating P_t(. | psi) to P^{(0)}_t appears anywhere in the module. The JSON note does say the change-of-variables formula 'is taken as given', but the `status` field reads 'proved' and the summary opens by quoting the display, so a reader scanning statuses will believe the density identity was verified.",
+      "suggested_status": "side-condition-only (|det U| = 1 proved; density identity assumed)"
+    },
+    {
+      "id": "eq:ring-conditional-noised-law",
+      "lean_name": "ch04_ring_walk_covariance / ch04_ring_condMean / ch04_ring_condLog",
+      "kind": "inflated",
+      "severity": "medium",
+      "detail": "Tex (340-348): 'x~ | A = alpha ~ N(e^{-t} 1 (x) alpha, C_t (x) I_2)' with C_t := e^{-2t} sigma^2 M + Delta_t I_L from eq:ring-Ct-def. What Lean contains: (a) `ch04_ring_walk_covariance : (sum r, [r<i]*[r<j]) = ch04_M L i j`, a combinatorial min(i,j) identity about the CLEAN walk; (b) `def ch04_ring_condMean t alpha := fun p => exp (-t) * alpha p.2` and `def ch04_ring_condLog P t alpha x := ch04_logGauss (ch04_kron2 P) (ch04_ring_condMean t alpha) x` -- both DEFINITIONS. So the mean e^{-t} alpha is asserted by definition, not derived, and the step the display actually makes -- pushing sigma^2 min(i,j) through the channel of eq:ring-channel to obtain e^{-2t} sigma^2 M + Delta_t I_L -- is nowhere formalised (the JSON note states it in prose: 'which after the channel gives e^{-2t} sigma^2 M + Delta_t I'). Compounding this: the precision used in every downstream score theorem is an ARBITRARY symmetric `P : Matrix (Fin L) (Fin L) R`, and no lemma ever connects P to `ch04_Ct` (not even that ch04_Ct is symmetric, that it is invertible for t > 0, that its inverse is symmetric, or that (C_t (x) I_2)^{-1} = C_t^{-1} (x) I_2). The generalisation to arbitrary symmetric P is sound and desirable, but it means the chapter's C_t plays no role in any 'proved' score item, which the status 'proved' on this item obscures.",
+      "suggested_status": "partially proved (min(i,j) covariance proved; mean and C_t assembly are definitions/assumed)"
+    },
+    {
+      "id": "eq:ring-recap-response",
+      "lean_name": "ch04_ring_recap_response (also ch04_ring_mean_covariance, ch04_ring_anchor_response)",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "The tex displays are full 2x2 matrix identities: eq:ring-mean-covariance-identity 'grad_h m(h) = grad_h^2 log Z(h) = Cov(A|h)', eq:ring-anchor-response 'd/dx~_j E[A|x~] = e^{-t} q_j Cov(A|x~)', and eq:ring-recap-response 'J_{kj}^{(0)} = -(C_t^{-1})_{kj} I_2 + e^{-2t} q_k q_j Cov(A|x~)'. Every Lean statement differentiates only in the FIRST natural parameter / the first plane coordinate of frame j: `ch04_ring_mean_covariance ... : HasDerivAt (fun s => ch04_ring_m g v s h1 i) (ch04_ring_cov g v h0 h1 i 0) h0` and `ch04_ring_recap_response ... (x (j, 0))` with the Kronecker delta appearing as `if i = 0 then 1 else 0` rather than `if i = i' then 1 else 0`. That is one column of each 2x2 Jacobian; the other column is asserted in the JSON note ('the second column is the identical computation with the roles of h_0 and h_1 exchanged') but never stated or proved, and the swap symmetry it appeals to is itself not formalised. The module's own header promises partial derivatives 'one coordinate at a time ... which is exactly what the chapter's displays assert componentwise' -- here half the components are missing. Contrast ch04_ring_rotation_in_score, which does cover both i via `fin_cases i`.",
+      "suggested_status": "proved for the first column of the 2x2 Jacobian only"
+    },
+    {
+      "id": "eq:ring-ito-energy",
+      "lean_name": "ch04_ring_ito_energy / ch04_ring_ito_energy_quadratic",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "Tex (78-83) is Ito's formula applied to V(R_u): 'dV(R_u) = [-V'(R_u)^2 + D_r V''(R_u)] du + sqrt(2 D_r) V'(R_u) dB_u'. Lean: `theorem ch04_ring_ito_energy (hD : 0 <= Dr) (V' V'' : R) : V' * (-V') + (ch04_ring_radial_diffusion Dr)^2/2 * V'' = -V'^2 + Dr * V''` -- a free-variable ring identity in two unconstrained reals V', V'', with no link to `ch04_ring_V` or its derivatives (V' and V'' are opaque scalars, not deriv/deriv^2 of ch04_ring_V, even though ch04_ring_V_hasDerivAt exists and could have supplied them). The diffusion half of the display, sqrt(2 D_r) V', has no Lean counterpart at all, although the JSON summary says 'this is exactly the displayed -V'^2 + D_r V'' AND sqrt(2D_r) V''. The note correctly says the Ito formula is not re-proved; the residual overstatement is the claim that the diffusion coefficient was checked.",
+      "suggested_status": "proved (drift algebra only; diffusion coefficient not stated, Ito formula assumed)"
+    }
+  ],
+  "note": "Coverage is complete: all 32 labelled displays (with eq:ring-rot-props split into four and eq:ring-gauge-score into two, giving 36 entries) plus the 14 unlabelled displays I counted in ch04-ring.tex lines 1-671 appear in the JSON, so no MISSING items. The mathematically substantive theorems check out against the tex with correct signs, factors and index ranges: ch04_ring_rotation_in_score (both plane coordinates, R_psi on the previous frame and R_psi^T on the next, the sigma^{-2}(... - 2 z_k) factor), ch04_ring_fisher_identity, ch04_ring_conditional_score, ch04_ring_recap_score, ch04_ring_anchor_posterior (the exponent split with g_t(alpha) identified explicitly), ch04_ring_polar_denoising_score, ch04_ring_gauge_score (honest chain rule for general U, transpose included), ch04_ring_Ct_posdef, ch04_ring_M_gram/M_singular, ch04_ring_traj_gauge, and the two halves of ch04_ring_chapter_message (ch04_ring_one_frame_blind is general in the observable g and in every parameter; ch04_ring_joint_score_identifies_rotation is genuine identifiability up to 2pi, strictly stronger than the chapter's prose, proved at general psi). Index conventions (zero-based min(i,j), range (L-1) vs range L in the two product formulas, U_psi = diag(I_2, R_{-psi}, ...)) all match the tex. No hypothesis I checked is unsatisfiable, and no fixed-n or fixed-parameter instance is passed off as general: the only fixed dimension is Fin 2, which is the plane of the model, as the JSON claims."
+}

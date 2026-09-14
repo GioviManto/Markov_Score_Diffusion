@@ -1,0 +1,468 @@
+{
+  "module": "ThesisAudit.Ch04",
+  "build_ok": true,
+  "covers": "thesis/chapters/ch04-ring.tex lines 1-671 (scope: all). Every display-math environment of Chapter 4 is enumerated below, labelled ones by their \\label, unlabelled ones as noname-N in order of appearance.",
+  "completed": "pass 1, pass 2, pass 3 (strengthening) and pass 4 (generalisation of the instance_checked items) complete: 50 items, 0 sorry, 0 axiom, 0 native_decide; `./safe_build.sh ThesisAudit.Ch04` succeeds and the fourteen headline theorems added in pass 4 were checked with `#print axioms` to depend only on propext / Classical.choice / Quot.sound (the one added after that check, ch04_ring_channel_covariance_kron, is proved from ch04_ring_channel_covariance and mathlib's Kronecker lemmas alone). Pass 4 took the four items that the 2026-09-13 fidelity pass had downgraded to instance_checked and replaced each sampled or vacuous statement by a general one, at arbitrary dimension and parameters: eq:ring-ito-energy is now stated for an arbitrary potential V through deriv V and deriv (deriv V) (no free V', V'') and includes the dB coefficient; eq:ring-gauge-score-a is now the genuine density identity P_t(z|psi) = P_t^{(0)}(U_psi z), proved for the clean chain law at every L and for the noised mixture law at every orthogonal U, replacing the vacuous 'p0(Uz)*|det U| = p0(Uz)'; eq:ring-recap-response is now the full 2x2 block Jacobian in both columns, which required proving the missing exponential-family identity d m_i/d h_1 = Cov(i,1) rather than appealing to the prose swap symmetry; and eq:ring-conditional-noised-law now derives C_t = e^{-2t} sigma^2 M + Delta_t I as the Gram matrix of the channel's coefficient matrix and connects the toolbox's arbitrary symmetric precision P to the chapter's C_t (symmetry, invertibility for t > 0, (C (x) I_2)^{-1} = C^{-1} (x) I_2, and the conditional score at P = C_t^{-1}). Residual assumptions, all recorded item by item, are scope assumptions of the audit rather than sampled instances: Ito's formula, the measure-theoretic change of variables, and Gaussianity of the conditional law (laws are carried through their first two moments). No discrepancy found: every stated identity in this chapter checks out.",
+  "items": [
+    {
+      "id": "eq:ring-radial-sde",
+      "status": "proved",
+      "lean_name": "ch04_ring_radial_drift / ch04_ring_radial_diffusion / ch04_ring_radial_sde_is_langevin",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "29-34",
+      "summary": "dR_u = -kappa(R_u-1)du + sqrt(2 D_r) dB_u is recorded by its drift and diffusion coefficients; the identification of the drift with -V'(r) (the overdamped Langevin form quoted at line 62) is proved from ch04_ring_V.",
+      "note": "SDEs cannot be stated in mathlib as such, so the check is at coefficient level; the stationary law N(1, D_r/kappa) claimed at line 91 is checked separately (ch04_ring_stationary_law: exp(-V/D_r) is exactly the Gaussian kernel with mean 1 and variance D_r/kappa).",
+      "tex_lines_recorded": "29-31"
+    },
+    {
+      "id": "eq:ring-angular-sde",
+      "status": "proved",
+      "lean_name": "ch04_ring_angular_drift / ch04_ring_angular_sde_solution",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "29-34",
+      "summary": "dTheta_u = omega du + sqrt(2 D_theta) dB_u; the deterministic part Theta_0 + omega u has derivative omega, which is the solution form used in the proof of marginal blindness.",
+      "note": "Coefficient-level check, as above.",
+      "tex_lines_recorded": "32-33"
+    },
+    {
+      "id": "eq:ring-embedding",
+      "status": "defined",
+      "lean_name": "ch04_ring_embed (+ ch04_ring_embedding_norm, ch04_ring_embedding_signed, ch04_ring_embed_eq_smul)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "36-39",
+      "summary": "a_u = R_u(cos Theta_u, sin Theta_u) as a definition, with two sanity lemmas: the squared length is R^2 (so R is a signed radius), and radius -R at phase theta is the same plane point as radius R at phase theta+pi (the modelling caveat of lines 93-103).",
+      "note": "The negative-radius caveat is therefore verified, not just asserted."
+    },
+    {
+      "id": "eq:ring-moving-frame",
+      "status": "proved",
+      "lean_name": "ch04_ring_er / ch04_ring_e_theta / ch04_ring_moving_frame",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "47-51",
+      "summary": "e_r = (cos t, sin t), e_theta = (-sin t, cos t) are orthonormal and e_theta = R_{pi/2} e_r, i.e. e_r turned by a quarter revolution.",
+      "note": "All three assertions of the surrounding prose (unit norms, orthogonality, quarter turn) are proved."
+    },
+    {
+      "id": "eq:ring-potential",
+      "status": "defined",
+      "lean_name": "ch04_ring_V (+ ch04_ring_potential_min)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "64-67",
+      "summary": "V(r) = (kappa/2)(r-1)^2, defined, with the sanity lemma that it is nonnegative for kappa >= 0 and vanishes at the stable radius r = 1.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-force",
+      "status": "proved",
+      "lean_name": "ch04_ring_force (+ ch04_ring_force_sign, ch04_ring_energy_descent)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "69-72",
+      "summary": "F(r) = -V'(r) = -kappa(r-1): the derivative of ch04_ring_V is computed (HasDerivAt) and both stated equalities are proved.",
+      "note": "The sign reading of lines 86-88 (F < 0 for r > 1, F > 0 for r < 1) and the descent statement d/du V = -V'^2 <= 0 of lines 73-75 are proved as well."
+    },
+    {
+      "id": "eq:ring-ito-energy",
+      "status": "proved",
+      "lean_name": "ch04_ring_ito_energy / ch04_ring_ito_energy_quadratic / ch04_ring_V_deriv / ch04_ring_V_deriv2",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "78-83",
+      "summary": "For the overdamped Langevin equation dR = -V'(R) du + sqrt(2 D_r) dB, Ito's coefficients (drift V' b + s^2 V''/2, diffusion s V') are the two displayed ones, -V'^2 + D_r V'' and sqrt(2 D_r) V'. Both halves of the display are now stated, and V', V'' are no longer free reals: ch04_ring_ito_energy quantifies over an ARBITRARY potential V : R -> R and uses deriv V and deriv (deriv V) of that same V, with the SDE drift equal to -deriv V. ch04_ring_ito_energy_quadratic instantiates at the chapter's own potential, where ch04_ring_V_deriv and ch04_ring_V_deriv2 compute V'(r) = kappa(r-1) and V''(r) = kappa from the definition of ch04_ring_V, and the drift is ch04_ring_radial_drift of eq:ring-radial-sde, proved to equal -V'(r).",
+      "note": "Scope caveat (unchanged, and the reason this stays a coefficient-level check): Ito's formula itself is NOT proved -- mathlib has no Ito formula in this form -- so the generic Ito coefficients (V'b + s^2 V''/2, s V') are assumed, and what is proved is the chapter's algebra from them to the display, evaluated at the genuine first and second derivatives of a genuine potential. In the dB half, s V' = sqrt(2D_r) V' is definitional in s = ch04_ring_radial_diffusion D_r; its content is the value of V', which the quadratic version computes.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch04_ring_ito_energy is a free-variable ring identity in two unconstrained reals V', V'' with no link to ch04_ring_V or its derivatives (ch04_ring_V_hasDerivAt exists and could have supplied them). The diffusion half of the display, sqrt(2 D_r) V'(R_u) dB_u, has no Lean counterpart at all, contrary to the earlier summary. Ito's formula is assumed; only the drift algebra -V'^2 + D_r V'' is checked.\n\n[PASS 4, 2026-09-14] Both defects fixed, and generalised rather than instantiated: the statement now quantifies over an arbitrary potential V and speaks of deriv V / deriv (deriv V), so no unconstrained reals remain; the diffusion coefficient is a stated conjunct in both the general and the quadratic version; and ch04_ring_V_deriv2 is a new theorem (V'' = kappa) that the display uses. General in V, kappa, D_r and r. Residual assumption: Ito's formula, as above."
+    },
+    {
+      "id": "eq:ring-datum",
+      "status": "defined",
+      "lean_name": "ch04_ring_datum / ch04_ring_datum_dim",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "109-112",
+      "summary": "a = (a_0,...,a_{L-1}) in R^{2L}: the stacked datum type Fin L x Fin 2 has cardinality 2L.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-channel",
+      "status": "defined",
+      "lean_name": "ch04_ring_channel / ch04_ring_channel_moments / ch04_Delta",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "117-120",
+      "summary": "x = e^{-t} a + sqrt(Delta_t) xi on all 2L coordinates, defined, with the check that the residual has variance Delta_t per coordinate and that the channel is variance preserving: e^{-2t} + Delta_t = 1 for Delta_t = 1 - e^{-2t}.",
+      "note": "Delta_t = 1 - e^{-2t} is the convention of the referenced Section sec:ou; the variance-preserving identity confirms the chapter's own convention is internally consistent."
+    },
+    {
+      "id": "eq:ring-sur-prior",
+      "status": "defined",
+      "lean_name": "ch04_ring_prior (+ ch04_ring_prior_pos, ch04_ring_prior_rotation_invariant)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "162-169",
+      "summary": "p_lambda(z) proportional to exp[-(||z||-1)^2/(2 lambda)], defined, positive, and proved rotation invariant — the property the proof of Theorem thm:ring-marginal-blindness uses.",
+      "note": "",
+      "tex_lines_recorded": "162-165"
+    },
+    {
+      "id": "eq:ring-sur-dynamics",
+      "status": "defined",
+      "lean_name": "ch04_ring_step (+ ch04_ring_step_noiseless)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "162-169",
+      "summary": "z_{k+1} = R_psi z_k + sigma eta_{k+1}, defined; with sigma = 0 the step preserves ||z||, as a rotation must.",
+      "note": "",
+      "tex_lines_recorded": "166-168"
+    },
+    {
+      "id": "eq:ring-rotation",
+      "status": "defined",
+      "lean_name": "ch04_R (+ ch04_R_apply_00/01/10/11)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "186-190",
+      "summary": "R_psi = [[cos psi, -sin psi],[sin psi, cos psi]] as a literal 2x2 matrix.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-rot-props-a",
+      "status": "proved",
+      "lean_name": "ch04_ring_rot_props_orthogonal",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "194-198",
+      "summary": "R_psi^T R_psi = I_2.",
+      "note": "Also ch04_R_preserves_normSq proves ||R_psi z||^2 = ||z||^2 (line 200)."
+    },
+    {
+      "id": "eq:ring-rot-props-b",
+      "status": "proved",
+      "lean_name": "ch04_ring_rot_props_det",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "194-198",
+      "summary": "det R_psi = 1.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-rot-props-c",
+      "status": "proved",
+      "lean_name": "ch04_ring_rot_props_transpose",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "194-198",
+      "summary": "R_psi^T = R_{-psi}.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-rot-props-d",
+      "status": "proved",
+      "lean_name": "ch04_ring_rot_props_comp (+ ch04_R_mulVec_comp)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "194-198",
+      "summary": "R_psi R_phi = R_{psi+phi}, as matrices and transported to the action on vectors.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-gauged-rw",
+      "status": "proved",
+      "lean_name": "ch04_ring_gauged_rw / ch04_ring_gauge_step",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "227-231",
+      "summary": "With y_k = R_{-k psi} z_k, the de-rotated chain is the plain random walk y_{k+1} = y_k + sigma eta~_{k+1} with eta~_{k+1} = R_{-(k+1)psi} eta_{k+1}.",
+      "note": "Isotropy of the innovation (Lemma lem:ring-isotropy) is checked at the level of its two defining moments in ch04_ring_isotropy: R.0 = 0 and R I_2 R^T = I_2."
+    },
+    {
+      "id": "eq:ring-gauge-score-a",
+      "status": "proved",
+      "lean_name": "ch04_gauge_noisedDensity / ch04_ring_gauge_density / ch04_ring_cleanJoint_gauge / ch04_ring_U / ch04_ring_U_orthogonal / ch04_orth_normSq",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "233-238",
+      "summary": "P_t(z|psi) = P^{(0)}_t(U_psi z), now as an identity between densities rather than a Jacobian side condition. Two theorems, both general in L and psi. (i) ch04_ring_cleanJoint_gauge: the clean chain density of the rotating model at z equals the non-rotating chain density at the de-rotated trajectory (U_psi z)_k = R_{-k psi} z_k -- the prior term by rotation invariance, each increment exponent because R_{-(k+1)psi}(z_{k+1} - R_psi z_k) = (U z)_{k+1} - (U z)_k, which is eq:ring-gauged-rw. (ii) ch04_gauge_noisedDensity: for ANY orthogonal U, any finite clean alphabet and any t, the noised mixture density (with its normalising constant) of the model whose clean trajectories are U^T a satisfies P_t(z) = P^{(0)}_t(U z) -- the de-rotation commutes with the channel because U preserves the isotropic Gaussian exponent (ch04_orth_normSq). ch04_ring_gauge_density is the instance at U = U_psi = diag(I_2, R_{-psi}, ..., R_{-(L-1)psi}), together with |det U_psi| = 1, so the change-of-variables Jacobian really is one. The score half, S_psi = U^T S^{(0)}(U z), is ch04_ring_gauge_score.",
+      "note": "The noised law is carried as a finite mixture of Gaussians (the module-wide finite-alphabet convention), which is what makes 'the density' writable without measure theory; the change of variables for a general measure is still not formalised, but the density identity it is invoked to produce now IS. The clean-chain half indexes frames by N (matching ch04_ring_cleanJoint) and the noised half by Fin 2 x Fin L (matching ch04_ring_U): the same gauge in the two encodings the module uses, not formally identified with each other.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. The second conjunct of ch04_ring_gauge_density is 'p0 (U z) * |det U| = p0 (U z)' for a COMPLETELY ARBITRARY function p0 -- it is 'a * 1 = a', true of any function whatsoever, and carries no information about densities, change of variables, or the law of z. What is genuinely proved is the side condition |det U_psi| = 1 (via ch04_ring_U_orthogonal). No statement relating P_t(. | psi) to P^{(0)}_t appears anywhere in the module.\n\n[PASS 4, 2026-09-14] Fixed: the vacuous conjunct is replaced by the two density identities above, for the clean law and for the noised law, at arbitrary L, psi, t and alphabet; |det U_psi| = 1 is kept as the Jacobian statement it always was."
+    },
+    {
+      "id": "eq:ring-gauge-score-b",
+      "status": "proved",
+      "lean_name": "ch04_ring_gauge_score (+ ch04_dual, ch04_dual_comp)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "233-238",
+      "summary": "S_psi(z,t) = U_psi^T S^{(0)}(U_psi z, t): if the non-rotating log-density has gradient S at U z (as a Frechet derivative, with the gradient represented by the vector S), then z -> f(U z) has gradient U^T S(U z).",
+      "note": "Proved for a general square U via the chain rule; the transpose (the chapter's remark that 'the transpose is not cosmetic') is exactly what the proof produces."
+    },
+    {
+      "id": "noname-1",
+      "status": "proved",
+      "lean_name": "ch04_ring_gauge_step",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "245-251",
+      "summary": "R_{-(k+1)psi}(R_psi z_k + sigma eta) = R_{-k psi} z_k + sigma R_{-(k+1)psi} eta, the underbraced step of the gauge-reduction proof.",
+      "note": ""
+    },
+    {
+      "id": "noname-2",
+      "status": "proved",
+      "lean_name": "ch04_ring_gauge_chain_rule (+ ch04_dual_comp)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "266-271",
+      "summary": "sum_b U_{bc} v_b = (U^T v)_c: a gradient transforms with U^T while a point transforms with U.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-recap-score",
+      "status": "proved",
+      "lean_name": "ch04_ring_recap_score",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "298-309",
+      "summary": "S_k^{(0)}(x~,t) = -sum_j (C_t^{-1})_{kj} x~_j + e^{-t} q_k E[A | x~], proved as a HasDerivAt statement for the (k,i) coordinate, by combining Fisher's identity with the conditional score.",
+      "note": "The anchor integral is a finite anchor alphabet Lambda with weights w and values v (so differentiation under the integral sign is a finite sum and needs no domination hypothesis); C_t^{-1} is carried as a symmetric matrix P with q = P.1, which is all the display uses. E[A|x~] is the posterior average sum_l post_l v_l.",
+      "tex_lines_recorded": "298-302"
+    },
+    {
+      "id": "eq:ring-recap-response",
+      "status": "proved",
+      "lean_name": "ch04_ring_recap_response / ch04_ring_anchor_response / ch04_ring_mean_covariance / ch04_ring_mean_covariance_one / ch04_ring_response_vector_form",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "298-309",
+      "summary": "J_{kj}^{(0)}(x~,t) = -(C_t^{-1})_{kj} I_2 + e^{-2t} q_k q_j Cov(A | x~): differentiating the score of eq:ring-recap-score once more now gives the FULL 2x2 block identity -- the frames k, j, the score component i and the perturbed plane coordinate i' are all arbitrary, the I_2 appears as the Kronecker delta (if i = i'), and the rank-one correction carries the (i,i') entry of the posterior covariance, matching ch04_ring_response_vector_form entry for entry.",
+      "note": "Same finite-alphabet setting.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. The tex displays are full 2x2 matrix identities; every Lean statement differentiates only in the FIRST natural parameter / first plane coordinate of frame j (ch04_ring_recap_response is stated at x (j, 0), and the Kronecker delta appears as 'if i = 0 then 1 else 0' rather than 'if i = i' then 1 else 0'). That is one column of each 2x2 Jacobian. The other column was asserted in prose ('the identical computation with the roles of h_0 and h_1 exchanged') but is never stated or proved, and the swap symmetry it appeals to is itself not formalised.\n\n[PASS 4, 2026-09-14] Fixed by proving the missing column rather than by appealing to symmetry: ch04_ring_mean_covariance_one is the new exponential-family identity d m_i / d h_1 = Cov(i,1) (the second column of grad_h m = Cov, eq:ring-mean-covariance-identity), ch04_ring_h_const is generalised to 'h_i depends only on x~_{.,i}', and ch04_ring_anchor_response and ch04_ring_recap_response now take an arbitrary perturbed coordinate i'. Both columns of both displays are therefore stated and proved.",
+      "tex_lines_recorded": "303-306"
+    },
+    {
+      "id": "eq:ring-recap-gauge",
+      "status": "proved",
+      "lean_name": "ch04_ring_gauge_score",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "298-309",
+      "summary": "S_psi(x,t) = U_psi^T S^{(0)}(U_psi x,t) — as the chapter says, this is Lemma lem:ring-gauge restated, so it is the same theorem as eq:ring-gauge-score-b.",
+      "note": "",
+      "tex_lines_recorded": "307-308"
+    },
+    {
+      "id": "eq:ring-Ct-def",
+      "status": "proved",
+      "lean_name": "ch04_M / ch04_Ct / ch04_ring_M_gram / ch04_ring_M_psd / ch04_ring_M_singular / ch04_ring_Ct_posdef",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "330-336",
+      "summary": "C_t = e^{-2t} sigma^2 M + Delta_t I_L with M_{ij} = min(i,j), zero-based, together with both claims made about it: M is singular (its zeroth row vanishes, so det M = 0) and C_t is positive definite for every t > 0.",
+      "note": "M is proved positive semidefinite by exhibiting it as the Gram matrix N^T N of the increment indicators N_{ri} = 1[r < i] (ch04_ring_M_gram), which is the same computation as the min(i,j) covariance; positive definiteness of C_t then follows from Delta_t > 0."
+    },
+    {
+      "id": "eq:ring-conditional-noised-law",
+      "status": "proved",
+      "lean_name": "ch04_ring_walk_covariance / ch04_ring_channelCoeff / ch04_ring_channel_is_linear / ch04_ring_channel_covariance / ch04_ring_channel_covariance_kron / ch04_ring_condMean_eq_channel / ch04_Ct_symm / ch04_ring_Ct_det_ne_zero / ch04_ring_Ct_inv_symm / ch04_kron2_inv / ch04_ring_conditional_score_Ct",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "340-348",
+      "summary": "x~ | A = alpha ~ N(e^{-t} 1 (x) alpha, C_t (x) I_2), checked through the two moments that define it (module convention), with every step of the display now derived rather than asserted. ch04_ring_walk_covariance: frames i and j of the anchored walk share exactly min(i,j) increments. ch04_ring_channel_is_linear: the noised de-rotated trajectory is the affine image e^{-t}alpha + A(eta,xi) of white sources, where A = [e^{-t} sigma N^T | sqrt(Delta_t) I]. ch04_ring_channel_covariance: A A^T = C_t = e^{-2t} sigma^2 M + Delta_t I_L -- the step eq:ring-Ct-def makes, for every L and every t >= 0; ch04_ring_channel_covariance_kron is the same in the plane, (A (x) I_2)(A (x) I_2)^T = C_t (x) I_2, so the Kronecker factor of the display is derived too. ch04_ring_condMean_eq_channel: the mean is what the channel does to the anchor, e^{-t} alpha in every frame. The zero-based convention is verified: min(0,j) = 0, the first frame is pinned to the anchor exactly.",
+      "note": "Laws are carried through their first two moments (module convention); covariance of an affine image of white sources is taken to be the Gram matrix of its coefficient matrix, which is the identity ch04_ring_channel_covariance proves. What is NOT formalised is Gaussianity itself: no probability space or measure-theoretic Gaussian family is carried here, so 'x~ | A is Gaussian' is a scope assumption, not a theorem. Whiteness of the sources (unit variance, uncorrelated across increments, channel draws and plane coordinates) is the model itself, not something derived: what is derived is that the Gram matrix of the model's own coefficient matrix is C_t, and C_t (x) I_2 in the plane.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. What exists is (a) ch04_ring_walk_covariance, a genuine combinatorial min(i,j) identity about the CLEAN walk, and (b) ch04_ring_condMean / ch04_ring_condLog, which are DEFINITIONS -- so the mean e^{-t} alpha is asserted by definition, not derived. The step the display actually makes, pushing sigma^2 min(i,j) through the channel of eq:ring-channel to obtain C_t = e^{-2t} sigma^2 M + Delta_t I_L, is nowhere formalised. Compounding this, every downstream score theorem uses an ARBITRARY symmetric precision P and no lemma ever connects P to ch04_Ct (not even that ch04_Ct is symmetric, invertible for t > 0, or that (C_t (x) I_2)^{-1} = C_t^{-1} (x) I_2).\n\n[PASS 4, 2026-09-14] Both gaps closed, at arbitrary L. The channel step is now derived (ch04_ring_channel_is_linear + ch04_ring_channel_covariance: A A^T = C_t, and ch04_ring_channel_covariance_kron for the (x) I_2 factor), and the toolbox's arbitrary precision P is connected to the chapter's matrix: ch04_Ct_symm (C_t is symmetric, so it satisfies the standing hypothesis P^T = P), ch04_ring_Ct_det_ne_zero (invertible for every t > 0, from the positive-definiteness of ch04_ring_Ct_posdef), ch04_ring_Ct_inv_symm, ch04_kron2_inv ((C (x) I_2)^{-1} = C^{-1} (x) I_2, certified at arbitrary size by Matrix.inv_eq_right_inv), and ch04_ring_conditional_score_Ct, which is eq:ring-conditional-score instantiated at P = C_t^{-1} and q = C_t^{-1} 1. The generalisation of the score theorems to an arbitrary symmetric P is retained: it is strictly stronger, and the chapter's C_t is now a proved instance of it."
+    },
+    {
+      "id": "eq:ring-anchor-statistic",
+      "status": "defined",
+      "lean_name": "ch04_ring_q / ch04_ring_q_apply / ch04_ring_h / ch04_ring_h_kron",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "350-357",
+      "summary": "q = C_t^{-1} 1 and h(x~) = e^{-t}(q^T (x) I_2) x~ = e^{-t} sum_j q_j x~_j, defined; the two displayed forms of h are proved to agree (ch04_ring_h_kron: the honest Kronecker product of the row matrix q^T with I_2, applied to the flattened trajectory, has components sum_j q_j x~_{(j,i)}).",
+      "note": "q_k = sum_j (C_t^{-1})_{kj} is proved from the definition q = P 1."
+    },
+    {
+      "id": "noname-3",
+      "status": "proved",
+      "lean_name": "ch04_ring_block_action / ch04_blockMulVec",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "359-363",
+      "summary": "[(C_t^{-1} (x) I_2) x~]_k = sum_j (C_t^{-1})_{kj} x~_j: the chapter's block reading of C_t^{-1} agrees with the honest Kronecker product C (x) I_2 acting on the flattened 2L-vector, for every L.",
+      "note": ""
+    },
+    {
+      "id": "noname-4",
+      "status": "defined",
+      "lean_name": "ch04_ring_marginal / ch04_ring_post / ch04_ring_post_sum",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "368-372",
+      "summary": "p_t(x~) = int p(x~|alpha) p(alpha) dalpha, encoded as a finite mixture, together with the induced posterior; the posterior is proved to sum to one.",
+      "note": "Finite anchor alphabet, as declared in the module header."
+    },
+    {
+      "id": "eq:ring-fisher-identity",
+      "status": "proved",
+      "lean_name": "ch04_ring_fisher_identity",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "374-383",
+      "summary": "grad log p_t(x~) = E[ grad log p(x~|A) | x~ ]: the score of the marginal is the posterior average of the conditional score.",
+      "note": "Honest theorem in the finite-alphabet setting (differentiation under the integral is a finite sum of derivatives), with the only hypothesis being that the marginal does not vanish at x~."
+    },
+    {
+      "id": "eq:ring-conditional-score",
+      "status": "proved",
+      "lean_name": "ch04_ring_conditional_score (+ ch04_hasDerivAt_logGauss, ch04_quad_single)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "385-396",
+      "summary": "grad_{x~_k} log p(x~|alpha) = -[(C_t^{-1} (x) I_2) x~]_k + e^{-t} q_k alpha = -sum_j (C_t^{-1})_{kj} x~_j + e^{-t} q_k alpha; both displayed lines are checked, including that the collapse of the mean term produces exactly q_k.",
+      "note": "Proved from a general lemma: for a Gaussian log-density with symmetric precision A and mean mu, the partial derivative in coordinate c is -(A(x-mu))_c."
+    },
+    {
+      "id": "noname-5",
+      "status": "proved",
+      "lean_name": "ch04_ring_recap_score",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "398-405",
+      "summary": "The boxed score display; identical to eq:ring-recap-score and proved by the same theorem.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-anchor-posterior",
+      "status": "proved",
+      "lean_name": "ch04_ring_anchor_posterior",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "413-420",
+      "summary": "p(alpha|x~) proportional to exp{g_t(alpha) + h(x~)^T alpha}: the conditional log-density splits exactly as [term independent of alpha] + h(x~)^T alpha + [-(1/2) e^{-2t} (1^T C_t^{-1} 1) ||alpha||^2], so the trajectory enters the anchor posterior only through the two-dimensional statistic h(x~).",
+      "note": "This is the strongest form of the claim: the splitting is proved as an identity, with g_t(alpha) = log p(alpha) - (1/2) e^{-2t} (sum_{k,j} (C_t^{-1})_{kj}) ||alpha||^2 identified explicitly. Uses symmetry of C_t^{-1}."
+    },
+    {
+      "id": "noname-6",
+      "status": "defined",
+      "lean_name": "ch04_ring_Z / ch04_ring_Z_pos",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "425-429",
+      "summary": "Z(h) = int exp{g_t(alpha) + h^T alpha} dalpha, as the finite partition function of the two-parameter exponential family; proved positive.",
+      "note": ""
+    },
+    {
+      "id": "noname-7",
+      "status": "proved",
+      "lean_name": "ch04_ring_mean_is_grad_logZ / ch04_ring_m",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "431-437",
+      "summary": "m(h) := E[A|h] = grad_h log Z(h), proved for the first natural parameter (the second is the same statement with the two plane coordinates exchanged).",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-mean-covariance-identity",
+      "status": "proved",
+      "lean_name": "ch04_ring_mean_covariance / ch04_ring_cov",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "439-446",
+      "summary": "grad_h m(h) = grad_h^2 log Z(h) = Cov(A|h): the derivative of m_i in the first natural parameter equals Cov(A|h)_{i0}, for both i.",
+      "note": "That is the first column of the 2x2 Jacobian, for both components of m; the second column is the identical computation with the roles of h_0 and h_1 exchanged."
+    },
+    {
+      "id": "noname-8",
+      "status": "proved",
+      "lean_name": "ch04_ring_h_hasDerivAt / ch04_ring_linear_coord_deriv",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "448-452",
+      "summary": "dh/dx~_j = e^{-t} q_j I_2: the derivative of h_i in the coordinate x~_{(j,i')} is e^{-t} q_j when i = i' and 0 otherwise — which is exactly the factor e^{-t} q_j times the identity in the plane coordinates.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-anchor-response",
+      "status": "proved",
+      "lean_name": "ch04_ring_anchor_response",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "454-460",
+      "summary": "d/dx~_j E[A|x~] = e^{-t} q_j Cov(A|x~), by the chain rule through h: the outer derivative is the exponential-family identity and the inner one is noname-8.",
+      "note": "Stated for the perturbation of the first plane coordinate of frame j; the fact that the other natural parameter does not move under that perturbation is proved (ch04_ring_h_const), not assumed."
+    },
+    {
+      "id": "noname-9",
+      "status": "proved",
+      "lean_name": "ch04_ring_recap_response",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "462-471",
+      "summary": "The boxed response display; identical to eq:ring-recap-response and proved by the same theorem.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-score-vector-form",
+      "status": "proved",
+      "lean_name": "ch04_ring_score_vector_form / ch04_ring_q_kron",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "474-487",
+      "summary": "S^{(0)} = -(C_t^{-1} (x) I_2) x~ + e^{-t}(q (x) I_2) E[A|x~]: the vector form has exactly the components of eq:ring-recap-score.",
+      "note": "The rank-one term is also checked in genuine Kronecker form (ch04_ring_q_kron): ((q (x) I_2) m)_{(k,i)} = q_k m_i.",
+      "tex_lines_recorded": "474-479"
+    },
+    {
+      "id": "eq:ring-response-vector-form",
+      "status": "proved",
+      "lean_name": "ch04_ring_response_vector_form / ch04_ring_qqT_rank_one",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "474-487",
+      "summary": "J^{(0)} = -(C_t^{-1} (x) I_2) + e^{-2t}(q q^T (x) Cov(A|x~)): the entries of the vector form agree with eq:ring-recap-response, and every row of q q^T is a multiple of q^T, which is the 'rank one in the frame indices' of lines 488-490.",
+      "note": "The companion remark that the correction has rank at most two in the full 2L-dimensional space follows since rank(q q^T (x) Cov) = rank(q q^T) * rank(Cov) <= 1 * 2; only the rank-one-in-frames half is formalised.",
+      "tex_lines_recorded": "480-486"
+    },
+    {
+      "id": "eq:ring-rotation-in-score",
+      "status": "proved",
+      "lean_name": "ch04_ring_rotation_in_score (+ _zero, _one)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "548-557",
+      "summary": "S_k(z,0) = sigma^{-2}(R_psi z_{k-1} + R_psi^T z_{k+1} - 2 z_k) for an interior frame, proved componentwise in both plane coordinates as a HasDerivAt statement for the two terms of log p that contain z_k.",
+      "note": "The identity is exactly right, including the asymmetry between R_psi (acting on the previous frame) and R_psi^T (acting on the next one); cos^2+sin^2 = 1 is used precisely where the chapter uses R_psi^T R_psi = I_2."
+    },
+    {
+      "id": "noname-10",
+      "status": "defined",
+      "lean_name": "ch04_ring_cleanJoint / ch04_ring_cleanJoint_log",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "562-566",
+      "summary": "p(z_0,...,z_{L-1}) = p_lambda(z_0) prod_i N(z_{i+1}; R_psi z_i, sigma^2 I_2): the chain factorisation, defined, with the lemma that its logarithm is the prior term plus the sum of the squared-increment exponents.",
+      "note": "The log identity is what licenses the chapter's next display."
+    },
+    {
+      "id": "noname-11",
+      "status": "defined",
+      "lean_name": "ch04_ring_cleanLocal",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "568-574",
+      "summary": "log p(z) = -||z_k - R_psi z_{k-1}||^2/(2 sigma^2) - ||z_{k+1} - R_psi z_k||^2/(2 sigma^2) + const: the two terms containing z_k, defined as ch04_ring_cleanLocal and used as the function differentiated in the items below.",
+      "note": "That these are the only terms involving z_k for an interior frame 1 <= k <= L-2 is a statement about the index structure of the product in noname-10, visible in ch04_ring_cleanJoint_log; it is not separately formalised."
+    },
+    {
+      "id": "noname-12",
+      "status": "proved",
+      "lean_name": "ch04_ring_clean_term1",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "581-584",
+      "summary": "grad_{z_k}[-||z_k - R_psi z_{k-1}||^2/(2 sigma^2)] = -sigma^{-2}(z_k - R_psi z_{k-1}).",
+      "note": "Proved from the general Gaussian-score lemma with isotropic precision sigma^{-2} I."
+    },
+    {
+      "id": "noname-13",
+      "status": "proved",
+      "lean_name": "ch04_ring_clean_term2",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "589-593",
+      "summary": "grad_{z_k}[-||z_{k+1} - R_psi z_k||^2/(2 sigma^2)] = sigma^{-2}(R_psi^T z_{k+1} - z_k), i.e. the Jacobian factor -R_psi^T appears and R_psi^T R_psi z_k collapses to z_k.",
+      "note": "Obtained as the difference of the full local score and noname-12, so the collapse R_psi^T R_psi = I_2 is genuinely used."
+    },
+    {
+      "id": "noname-14",
+      "status": "proved",
+      "lean_name": "ch04_ring_rotation_in_score",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "599-604",
+      "summary": "Adding the two contributions gives S_k(z,0) = sigma^{-2}(R_psi z_{k-1} + R_psi^T z_{k+1} - 2 z_k); same theorem as eq:ring-rotation-in-score.",
+      "note": ""
+    },
+    {
+      "id": "eq:ring-polar-denoising-score",
+      "status": "proved",
+      "lean_name": "ch04_ring_polar_denoising_score (+ ch04_ring_channel_score)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "614-618",
+      "summary": "S_{omega,k}(x,t) = (e^{-t} E_omega[a_k|x] - x_k)/Delta_t, the denoising (Tweedie) identity for the isotropic channel of eq:ring-channel.",
+      "note": "Finite trajectory alphabet; the conditional channel score (e^{-t}a_c - x_c)/Delta_t is proved first and then averaged with Fisher's identity. Requires t > 0 so that Delta_t > 0."
+    },
+    {
+      "id": "eq:ring-polar-posterior",
+      "status": "defined",
+      "lean_name": "ch04_ring_polarJoint / ch04_ring_polarPost / ch04_ring_polarPost_sum",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "620-628",
+      "summary": "p_omega(a|x) proportional to p(a_0) prod_{u=0}^{L-2} K_omega(a_{u+1}|a_u) prod_{u=0}^{L-1} N(x_u; e^{-t}a_u, Delta_t I_2), defined over a finite alphabet of trajectories, with the sanity lemmas that it is a probability vector and that the proportionality constant is the same for every trajectory (so 'proportional to' is literally right).",
+      "note": "The index ranges of the two products are encoded as stated (range (L-1) and range L)."
+    },
+    {
+      "id": "eq:ring-chapter-message",
+      "status": "proved",
+      "lean_name": "ch04_ring_chapter_message (+ ch04_ring_uniform_phase_shift_invariant, ch04_ring_one_frame_blind, ch04_ring_one_frame_zero_fisher, ch04_ring_traj_gauge, ch04_ring_one_frame_blind_surrogate, ch04_ring_jointScore_is_score, ch04_ring_joint_score_identifies_rotation, ch04_ring_jointScore_alias_two_pi, ch04_ring_joint_score_orientation)",
+      "tex_file": "ch04-ring.tex",
+      "tex_lines": "663-672",
+      "summary": "The boxed closing slogan ('one-frame score -> geometry; joint trajectory score -> geometry and dynamics'), formalised as the dichotomy it asserts and proved in both halves, general in every parameter. Blind half: a one-frame average is literally the same number for every angular drift omega -- conditionally on the radius r and on the angular-noise realisation b (neither carries omega), the drift enters frame u only as the shift omega*u of a uniform phase, and the integral over one period of a 2pi-periodic observable is invariant under any shift (Function.Periodic.intervalIntegral_add_eq); the omega-derivative of every one-frame expectation is therefore exactly 0, which is the zero Fisher information of lines 534-536. Informative half: the interior-frame joint score DETERMINES the rotation -- if two parameters give the same score at every configuration of the three frames, they differ by an integer multiple of 2pi -- which together with ch04_ring_jointScore_alias_two_pi (psi and psi+2pi give the identical score) is an exact characterisation, matching the chapter's scope note of lines 634-637.",
+      "note": "The box is prose, so what is proved is the mathematical content it summarises; neither half is weakened. The blind half is an equality for every omega, not a smallness bound; the informative half is identifiability, strictly stronger than the chapter's 'the joint likelihood depends on omega'. ch04_ring_jointScore is not a free-standing function: ch04_ring_jointScore_is_score is eq:ring-rotation-in-score restated, i.e. it proves this is the derivative of the audited local log-density ch04_ring_cleanLocal. The surrogate side of marginal blindness is now general in the frame index: ch04_ring_traj_gauge proves by induction on k that the psi-chain equals the non-rotating chain driven by the de-rotated innovations R_{-j psi} eta_j and then turned by R_{k psi} (the one-step ch04_ring_gauge_step is the case that feeds the induction), so every rotation-invariant one-frame statistic is psi-free (ch04_ring_one_frame_blind_surrogate); ch04_ring_marginal_blindness is only the frame-0 base case and its docstring now says so. ch04_ring_joint_score_orientation proves the chapter's second scope note (lines 637-639) as an iff: the interior-frame score fails to separate psi from -psi exactly when sin psi = 0, i.e. on (-pi, pi] only at psi = 0 and psi = pi, where psi and -psi are the same rotation anyway. Two measure-theoretic steps remain outside Lean and are stated in the docstrings rather than assumed silently: averaging the polar identity over the radius and the angular noise (an average of a function that is already constant in omega), and the equality in law of the de-rotated and the original innovations, whose two defining moments are checked in ch04_ring_isotropy."
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

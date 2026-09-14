@@ -1,0 +1,39 @@
+{
+  "module": "ThesisAudit.Ch01",
+  "checked": 5,
+  "issues": [
+    {
+      "id": "eq:em-cumulant-damping",
+      "lean_name": "ch09_em_cumulant_damping",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "The kappa4 half of this 'proved' item is a restatement of its own hypothesis. Tex (ch09-em-kernel.tex lines 139-144): 'kappa_2(X_t) = kappa_2(A) for all t, kappa_4(X_t) = e^{-4t} kappa_4(A)' for the OU channel X_t = e^{-t}A + sqrt(Delta_t)eps. Lean: 'theorem ch09_em_cumulant_damping (t k2A k4A k2X k4X s2 : R) (hs2 : s2 = 1 - Real.exp (-(2*t))) (h2A : k2A = 1) (h2 : k2X = Real.exp (-t)^2 * k2A + s2 * 1) (h4 : k4X = Real.exp (-t)^4 * k4A + s2^2 * 0) : k2X = k2A /\\ k4X = Real.exp (-(4*t)) * k4A'. Hypothesis h4 literally IS the conclusion modulo '+ s2^2 * 0' and exp(-t)^4 = exp(-4t); every piece of real content (kappa_n additivity over independent summands, homogeneity kappa_n(cY)=c^n kappa_n(Y), Gaussian kappa_4 = 0 -- written in as the literal '* 0') is assumed, so nothing about the OU channel is verified. No probability appears anywhere in ThesisAudit/Ch09.lean: there is no random variable, no independence, no cumulant definition. The supporting lemma ch09_em_kappa4_additive is a pure 'ring' identity over six free reals (c s a2 a4 z2 z4) that likewise assumes the fourth-moment expansion E X^4 = c^4 E A^4 + 6 c^2 s^2 E A^2 E Z^2 + s^4 E Z^4 rather than deriving it, so it is an identity about the agent's own symbols, never connected to the thesis's objects. The kappa_2 half is genuine (if slight) arithmetic: e^{-2t}*1 + (1-e^{-2t}) = 1. The JSON note does say the cumulant calculus 'enters as hypotheses', but the status 'proved' plus 'Both stated identities are correct' overstates what was checked.",
+      "suggested_status": "assumption_checked (kappa_2 arithmetic only; kappa_4 claim assumed, not proved)"
+    },
+    {
+      "id": "eq:em-fixedpoint",
+      "lean_name": "ch09_em_fixedpoint_littleO",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "Undisclosed drop from the multivariate Jacobian to a one-dimensional derivative. Tex (lines 29-36): 'theta^{(k+1)} - theta* = J(theta*)(theta^{(k)} - theta*) + O(||theta^{(k)} - theta*||^2), J = dM/dtheta |_{theta*}' -- a Jacobian MATRIX on a parameter vector, and the chapter's entire argument is spectral (it speaks of 'the spectrum of J', 'a coordinate aligned with an eigenvector of J with eigenvalue lambda', and of two different coordinates, alpha and the innovation shape, contracting at different rates). Lean: 'theorem ch09_em_fixedpoint_littleO (M : R -> R) (thetas J : R) (hfix : M thetas = thetas) (hd : HasDerivAt M J thetas) : (fun theta => M theta - thetas - J * (theta - thetas)) =o[nhds thetas] (fun theta => theta - thetas)'. M : R -> R and J : R -- the statement is the scalar case, in which 'Jacobian', 'eigenvalue' and '||.||' all degenerate and the two-rate phenomenon the chapter exists to explain cannot even be stated. The JSON summary nevertheless says 'with J the Jacobian of M at theta*', implying a matrix, and never mentions the dimension. (The separate o(.) vs O(||.||^2) weakening IS disclosed in the note and is not the complaint here.)",
+      "suggested_status": "proved (scalar case d=1 only); multivariate Jacobian form not formalised"
+    },
+    {
+      "id": "module-attribution",
+      "lean_name": "ch09_em_fixedpoint_littleO, ch09_em_missing_info, ch09_em_settle_count, ch09_em_cumulant_damping",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "Record/module mismatch that lets an unattested module inherit another module's build attestation. Ch01.json declares 'module': 'ThesisAudit.Ch01' and 'build_ok': true, and 'covers': ['ch01-introduction.tex','ch09-em-kernel.tex']. But all four 'proved' items name theorems that do not exist in formal/ThesisAudit/Ch01.lean; they live in formal/ThesisAudit/Ch09.lean (grep confirms: Ch09.lean:19, :51, :63, :95). Ch01.lean contains only the eq:intro-score material. There is no Ch09.json in AUDIT_RESULTS (Ch01-Ch08b, Ch10 exist; Ch09 is the only gap), and every other result file's lean_names do live in its own module. So the only build_ok:true a reader can associate with Chapter 9's four proofs is the one asserting that ThesisAudit.Ch01 builds -- which says nothing about ThesisAudit.Ch09. Ch09.lean does appear to have elaborated (a populated .lake/build/lib/lean/ThesisAudit/Ch09.ilean exists), so this is a bookkeeping defect rather than a hidden build failure, but as filed the record misstates which module was checked.",
+      "suggested_status": "split into AUDIT_RESULTS/Ch09.json with its own module/build_ok, or correct the module field"
+    },
+    {
+      "id": "eq:em-missing-info, eq:em-settle, eq:em-cumulant-damping",
+      "lean_name": "ch09_em_missing_info, ch09_em_settle_count, ch09_em_cumulant_damping",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "Three of the four ch09 tex_lines pointers do not point at the equations they claim. Actual display locations in ch09-em-kernel.tex: eq:em-missing-info is the equation environment at lines 47-54 (JSON says 42-49, which is the prose defining I_com/I_obs); eq:em-settle is at lines 83-92 (JSON says 61-70, the scope-condition paragraph); eq:em-cumulant-damping is at lines 139-144 (JSON says 108-112, the '\\subsection{The channel enters the identity twice}' heading and opening sentence). Only eq:em-fixedpoint (29-36) is right. The equations are unambiguously identified by \\label so nothing is mis-formalised, but the pointers suggest the record was written against a different revision of the chapter, which weakens re-checking and should be regenerated rather than trusted.",
+      "suggested_status": "unchanged; correct the tex_lines fields"
+    }
+  ],
+  "note": "Chapter 1 itself is clean: ch01-introduction.tex contains exactly one display equation (eq:intro-score, lines 16-19), it is present in the JSON, and 'defined' is the right status for a definition. Nothing is missing from the ch01 range. The Ch01.lean material behind it is stronger than needed and honestly described: ch01_intro_score_multi is the gradient on EuclideanSpace R (Fin n) for arbitrary n (matching the thesis's joint score on R^L, not a 1D derivative), ch01_gaussian_score proves score = -A(x-mu) for every n, every self-adjoint A and every C > 0, ch01_precisionCLM_selfAdjoint exhibits the self-adjointness hypothesis as non-vacuous for every symmetric matrix in every dimension, and the note explicitly scopes out the two things not proved (positive-definiteness of A is not assumed and not needed; that (2*pi)^(-n/2) normalises is not proved and not used). ch01_intro_score_multi_spec is near-rfl but is an encoding-pinning lemma and is presented as such. eq:em-missing-info (ch09_em_missing_info) is faithful and general: I_com^{-1} I_mis = 1 - I_com^{-1} I_obs for arbitrary n-by-n real matrices with I_com invertible, exactly the tex's second equality, with the Dempster-Laird-Rubin identification of J honestly left uncited-as-proved. eq:em-settle is likewise fine: lam^(log tau / log lam) = tau and the ratio factorisation are the exact identities the two 'approximately' signs abbreviate, and the note says so."
+}

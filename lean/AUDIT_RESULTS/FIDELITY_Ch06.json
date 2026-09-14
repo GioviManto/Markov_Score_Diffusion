@@ -1,0 +1,39 @@
+{
+  "module": "ThesisAudit.Ch06",
+  "checked": 37,
+  "issues": [
+    {
+      "id": "noname-17",
+      "lean_name": "ch06_bp_score",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "Tex (lines 524-532) states the chapter's punchline: 'Substitution into the score-posterior identity gives  S_k(x,t) = (e^{-t} r_k^post / lambda_k^post - x_k)/Delta_t'. The Lean theorem recorded as 'proved' for it is `theorem ch06_bp_score (t xk lam r m : R) (hm : m = r / lam) : (Real.exp (-t) * m - xk) / ch06_Delta t = (Real.exp (-t) * r / lam - xk) / ch06_Delta t := by rw [hm]; ring`. This is congruence applied to the hypothesis `m = r/lam` -- substituting equals for equals -- and it is true for any t, xk, lam, r whatsoever (Delta_t = 0 included). Nothing in the statement mentions the score, the posterior, the Tweedie/score-posterior identity eq:tweedie-joint, or the belief parameters; `grep tweedie` over the whole module finds only a docstring comment, so eq:tweedie-joint is never formalised here and the substitution is never connected to it. The JSON summary ('S_k(x,t) = ...') asserts an identity about an object the Lean statement does not contain. Nothing about the chapter's final score formula is verified.",
+      "suggested_status": "defined (or assumed): record that eq:tweedie-joint is imported from ch02 as an unformalised premise, and that the Lean content is only the substitution step."
+    },
+    {
+      "id": "eq:bp-error-numerator",
+      "lean_name": "ch06_bp_error_numerator",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "Tex (lines 666-677) is a two-step chain: E||(M-Q_t)x||^2 = tr[(M-Q_t)^T(M-Q_t)Sigma_t] = tr[(M-Q_t)Sigma_t(M-Q_t)^T]. The named theorem proves only the second step: `theorem ch06_bp_error_numerator (M Q Sg : Matrix n n R) : trace ((M - Q)^T * (M - Q) * Sg) = trace ((M - Q) * Sg * (M - Q)^T)` -- pure trace cyclicity, with `Sg` an arbitrary matrix never tied to a covariance. The first (substantive) equality, which is where the expectation and the law x ~ N(0, Sigma_t) enter, appears in no Lean statement in the module: `ch06_normSq_as_quad` and `ch06_bp_quadratic_trace` exist separately but are never composed into it, and `ch06_bp_quadratic_trace` models E as an unnormalised finite sample sum with Sigma defined as sum_i x_i x_i^T. The JSON note does disclose the assembly, so this is a labelling overstatement rather than a hidden one, but the summary claims as proved an equality no theorem states.",
+      "suggested_status": "proved (trace-cyclicity half only) -- keep, but restate the summary as the second equality, and mark the E[.] -> tr(. Sigma) step as assembled from ch06_normSq_as_quad + ch06_bp_quadratic_trace under a finite-sample expectation model."
+    },
+    {
+      "id": "eq:bp-time",
+      "lean_name": "ch06_bp_time",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "The JSON note describes the Lean incorrectly: it says 'ch06_bp_ops L K = 2(L-1)K^2 multiply-adds (2(L-1) transition messages, K^2 each, exactly the chapter's counting), and ch06_bp_time proves ch06_bp_ops L K <= 2*(L*K^2), i.e. the O(LK^2) bound with constant 2'. The actual definitions are `ch06_msgEntryOps K = 2*K + (K-1)`, `ch06_msgOps K = K * ch06_msgEntryOps K` (= 3K^2 - K, not K^2) and `ch06_bp_ops L K = 2*(L-1)*ch06_msgOps K` (= 2(L-1)(3K^2-K)); the theorem is `exists C, 0 < C and forall L K, ch06_bp_ops L K <= C*(L*K^2)` discharged with `refine <6, ...>` -- constant 6, not 2. The proved asymptotic claim still matches the tex's boxed time = O(LK^2), so the mathematics is fine; the audit record misstates both the cost model and the constant a reader would check against.",
+      "suggested_status": "instance_checked (unchanged) with the note corrected to the real model (3K^2-K per message entry-block, constant 6)."
+    },
+    {
+      "id": "noname-8",
+      "lean_name": "ch06_bp_gaussian_linear",
+      "kind": "unfaithful",
+      "severity": "low",
+      "detail": "The JSON note says noname-8 is 'modelled as the K = 2 specialisation of the same operation-count model, with ch06_bp_gaussian_linear proving ops <= 8L and memory <= 4L'. The Lean is not a K=2 specialisation of ch06_bp_ops at all: `def ch06_gaussSweepOps (c L : N) := 2*(L-1)*c` takes the per-update cost `c` as a free parameter, and `theorem ch06_bp_gaussian_linear (c : N) : exists C, 0 < C and forall L, ch06_gaussSweepOps c L <= C*L and ch06_gaussSweepMem L <= C*L` is discharged with C = 2*c + 4 -- so the bound is (2c+4)L, not 8L/4L, and the O(1)-per-update premise of thm:bp-closure is a parameter of the model rather than anything derived. (The two-scalar-message premise itself is genuinely proved, by ch06_bp_forward_closure_iterated / ch06_bp_backward_closure_iterated.) Same class of defect as eq:bp-time: the statement is honest, the audit's description of it is not.",
+      "suggested_status": "instance_checked (unchanged) with the note corrected: per-update cost c is a free parameter, constant is 2c+4."
+    }
+  ],
+  "note": "No display equation in ch06 lines 1-779 is missing from the JSON: every labelled equation (eq:bp-posterior ... eq:bp-relerr) and every unlabelled display in the two toolboxes and Section 6.4 has an entry (noname-1..20). The Gaussian-closure core is the strongest part and I could not break it: I re-derived both closures by hand and the Lean matches the tex exactly -- forward lambda_{->k+1} = lambdabar/(alpha^2 + s*lambdabar) from the integrand exp(-(w-alpha*u)^2/(2s)) (transition Gaussian in the OUTPUT variable), backward lambda_{<-k-1} = alpha^2*lambdabar/(1 + s*lambdabar) from exp(-(u-alpha*b)^2/(2s)) (transition Gaussian in the INTEGRATION variable); the apparent asymmetry is genuine and each orientation is assigned to the right display. ch06_msgBwd's hop indexing (ch06_msgBwd L j = mu_{<-(L-1-j)}) unwinds correctly against eq:bp-bwd, psi_tr^{(k-1)} -> ch06_psiTr (L-2-j), psi_ob^{(k)} -> psi_ob (L-1-j). ch06_ob_as_gauss_in_a is an exact identity, not merely proportionality. The Section 6.4 matrix items (error vector, trace cyclicity, denominator under Q^T=Q and Q*Sigma=1, eq:bp-relerr) are faithful. Separately, several verdicts UNDER-state what the module proves -- a deflation, not an inflation, so not filed as issues: eq:bp-combine / eq:bp-combine-proof / noname-16 are recorded 'instance_checked' at (L,k)=(3,1) with the note claiming 'only the identification of the summed left block with the recursively computed forward message is instance-level', but ch06_bp_fwd_partial, ch06_bp_bwd_partial and ch06_bp_combine_general (lines 419, 483, 605) prove exactly that identification and the whole combination rule for EVERY L and every k < L; likewise eq:bp-fwd-partial / eq:bp-bwd-partial / noname-2 / noname-4 are recorded instance_checked though ch06_fwdPartial_succ / ch06_bwdPartial_succ are general, and eq:bp-time / eq:bp-space are general in L and K. Those four/six entries could honestly be upgraded to 'proved'."
+}

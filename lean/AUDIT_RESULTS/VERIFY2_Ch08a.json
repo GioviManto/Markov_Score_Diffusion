@@ -1,0 +1,54 @@
+{
+  "module": "Ch08a",
+  "checked": 6,
+  "verdicts": [
+    {
+      "id": "prop:em-estep",
+      "lean_name": "ch08a_chainW / ch08a_chainW_eq_prod / ch08a_fwd / ch08a_bwdg / ch08a_bwd / ch08a_fwd_exact / ch08a_estep_exact / ch08a_estep_exact_pair / ch08a_estep_single_site / ch08a_estep_pairwise / ch08a_estep_cut_consistency / ch08a_estep_single_site_post / ch08a_estep_pair_expectation / ch08a_estep_exact_mixture",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "NOT vacuous and NOT by construction; this survives the adversarial reading. (1) The object marginalised is independent of the messages: ch08a_chainW (Ch08a.lean:694-698) is a recursion in the configuration alone, with no F/B occurring in it, and ch08a_chainW_eq_prod (:727-750) certifies it equals the displayed factorisation phi_0(a_0) * prod_{j<n} psi_{j+1}(a_j,a_{j+1}) phi_{j+1}(a_{j+1}) -- so the LHS of the exactness theorems is a genuine marginal, not a message-shaped surrogate. (2) ch08a_fwd (:753) and ch08a_bwdg/ch08a_bwd (:770,:784) are each defined by their own one-pass recursion, with no reference to chainW; the exactness statements therefore connect two independently defined objects and cannot hold by rfl. (3) ch08a_estep_exact (:860-865) reads 'sum over a : Fin (i+m+1) -> A of [a_i = v] * (chainW (i+m) a * g (a_last)) = fwd i v * bwdg g m i v', proved by induction on m with a general terminal function g; ch08a_estep_exact_pair (:967-975) is the adjacent-pair analogue. Both are universally quantified over m, i, v (w), g, over the finite alphabet A, and over phi/psi -- no fixed chain length, no fixed site, no fixed C, no fixed alphabet, no numerical instance. So the 'inflation' failure mode is absent. (4) The normalised (posterior) forms exist: ch08a_estep_single_site_post (:1138) and ch08a_estep_pair_expectation (:1162), the latter giving the exact posterior expectation of ANY h(a_i,a_{i+1}) from the messages at one transition, which is what 'the E-step needs no variational approximation and no Monte Carlo' actually means operationally. ch08a_estep_cut_consistency (:1113) gives the one normaliser at every cut. (5) ch08a_estep_exact_mixture (:1240-1258) instantiates A = A0 x Fin C so the label sits in the alphabet and psi is literally ch08a_ktilde of eq:em-complete-kernel; its conclusion is the exact posterior expectation of ch08a_Qsummand, the eq:em-Q integrand -- the quantity the M-step consumes. It is a direct application of ch08a_estep_pair_expectation, i.e. an instantiation, not an independent theorem, but that is honest. No sorry, no axiom, no native_decide in the file; every lean_name listed in the item exists exactly once. TWO SCOPE RESTRICTIONS, both already stated in the item note, which a reader must not lose: (a) tex 335-336 says 'Since the posterior factor graph is a TREE'; the Lean proves only the CHAIN (Fin (n+1) sites, one psi per edge). Reasonable -- the chain is the graph at hand -- but the general-tree statement is not formalised. (b) tex 338-342 says the marginals are exact 'at the level of FUNCTIONAL messages ... before the numerical grid discretisation is introduced'; every Lean sweep is a Finset.sum over a [Fintype A] alphabet, so what is proved is the post-discretisation statement, which is precisely the case the proposition distinguishes itself from. The induction is the same one and the module header (:8-18) declares the finite-latent convention globally, so 'proved' is defensible, but the item's one-line summary still reads as the full tree + functional-message claim while the qualification lives only in the long note. RECOMMENDATION (wording, not status): fold 'for the finite-alphabet chain' into the summary line so the scope survives a scan of id/status/summary."
+    },
+    {
+      "id": "eq:em-fisher",
+      "lean_name": "ch08a_em_fisher_transitions / ch08a_em_fisher_chain",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "proved",
+      "detail": "The upgrade is real and repairs exactly what the earlier downgrade complained about. ch08a_em_fisher_transitions (Ch08a.lean:1281-1296) concludes 'HasDerivAt (fun t => ch08a_L (P t)) (sum_z ch08a_post (P theta) z * sum_{i in u} T' i z / T i z theta) theta': ch08a_L (= log of the marginal) and ch08a_post (the posterior weights) both occur, so this is grad L = E_{z|x}[sum_i grad log T_i] and not a bare calculus step. The theta-independence of the non-transition factors enters as the hypothesis hlog (log (P t z) = K z + sum_i log (T i z t), K free of t) -- i.e. eq:em-complete-ll supplied as a hypothesis rather than smuggled into the shape of the integrand, which was the precise objection to the old ch08a_em_fisher. Proof route checked: P reconstructed as exp(K + sum log T_i) via Real.exp_log, differentiated, then fed to ch08a_em_fisher_general (:617-633), which is itself sound. ch08a_em_fisher_chain (:1310-1330) instantiates at the chapter's own joint ch08a_joint with index set Finset.Icc 2 N (the N-1 transitions) and transition factors ch08a_ktilde; positivity from ch08a_joint_pos / ch08a_ktilde_pos and the log-split from ch08a_em_complete_ll, so nothing is assumed that the chapter does not assume. Hypotheses are satisfiable (Gaussian kernel), so no vacuity. Two limits, both disclosed in the note and neither misleading: the chain instantiation differentiates in the single coordinate alpha rather than the full theta = (pi,nu,s,alpha) -- though ch08a_em_fisher_transitions is parameter-agnostic, so any coordinate whose K-part is constant is covered by the same instantiation -- and D_i = grad_alpha Ktilde is a hypothesis rather than computed in closed form, matching the display, which leaves grad_theta log Ktilde symbolic too."
+    },
+    {
+      "id": "eq:em-chain",
+      "lean_name": "ch08a_em_chain_next / ch08a_em_chain",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "defined",
+      "detail": "Spot-checked downgrade, honest. ch08a_em_chain is 'alpha^2 * 1 + (1 - alpha^2) = 1 := by ring'; the note now withdraws the stationarity claim and the status is 'defined'. Nothing overstated."
+    },
+    {
+      "id": "eq:em-marginalisation",
+      "lean_name": "ch08a_em_marginalisation / ch08a_em_marginalisation_pair",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "defined",
+      "detail": "Spot-checked downgrade, honest. The headline identity is 'ch08a_marg P = sum z, P z := rfl' (definitional); only the companion pair-splitting lemma has content, and the note says exactly that."
+    },
+    {
+      "id": "noname-5",
+      "lean_name": "ch08a_bayes",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "defined",
+      "detail": "Spot-checked downgrade, honest. ch08a_post is defined as the ratio, so ch08a_bayes is rfl and cannot fail; recorded as definitional."
+    },
+    {
+      "id": "eq:em-log-mixture",
+      "lean_name": "ch08a_em_log_mixture",
+      "ok": true,
+      "kind": "ok",
+      "suggested_status": "defined",
+      "detail": "Spot-checked downgrade, honest. Pure unfolding of ch08a_em_mixture_kernel by rfl; status 'defined' is right."
+    }
+  ]
+}

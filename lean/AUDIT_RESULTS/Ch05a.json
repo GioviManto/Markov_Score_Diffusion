@@ -1,0 +1,621 @@
+{
+  "module": "ThesisAudit.Ch05a",
+  "build_ok": true,
+  "covers": [
+    "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex"
+  ],
+  "completed": "2026-09-13T00:00:00+01:00",
+  "items": [
+    {
+      "id": "eq:g-channel",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "15-19",
+      "status": "defined",
+      "lean_name": "ch05a_g_channel",
+      "summary": "x_k = e^{-t} a_k + sqrt(Delta_t) xi_k: the variance-preserving OU channel on one frame.",
+      "note": "Definition of the forward channel; encoded as a Lean def with a sanity lemma that it is the identity at t=0 (Delta_0=0)."
+    },
+    {
+      "id": "eq:g-object",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "21-27",
+      "status": "defined",
+      "lean_name": "ch05a_g_score",
+      "summary": "score s(x,t) = grad_x log P_t(x), with P_t the Gaussian-smoothed marginal.",
+      "note": "Definition of the object of study; encoded in one dimension as deriv of log P, with a sanity lemma giving s = P'/P."
+    },
+    {
+      "id": "eq:g-recursion",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "38-46",
+      "status": "defined",
+      "lean_name": "ch05a_ar1",
+      "summary": "AR(1) recursion a_{k+1} = alpha a_k + eta_k with sigma_eta^2 = 1-alpha^2.",
+      "note": "Definition of the chain; ch05a_g_recursion confirms the defining relation holds definitionally."
+    },
+    {
+      "id": "noname-1",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "48-54",
+      "status": "proved",
+      "lean_name": "ch05a_standing_assumptions",
+      "summary": "Standing assumptions a_0 ~ N(0,1), a_0 independent of the innovations, |alpha| < 1.",
+      "note": "A list of standing hypotheses has no truth value on its own, so what is proved is that they are jointly realisable, for every chain length L and every alpha with |alpha| < 1: ch05a_epsLaw is the explicit product measure on R^L whose coordinates are independent (ProbabilityTheory.iIndepFun for the product measure), whose 0th marginal is exactly gaussianReal 0 1 (= a_0 ~ N(0,1)) and whose every later marginal is exactly gaussianReal 0 sigma_eta^2 (= eta_k iid N(0,sigma_eta^2)); and ch05a_sigEta2_pos proves |alpha| < 1 => sigma_eta^2 = 1-alpha^2 > 0, so the prescribed variance is a legitimate one. Previously skipped as 'not an identity'."
+    },
+    {
+      "id": "noname-2",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "60-62",
+      "status": "proved",
+      "lean_name": "ch05a_noname2",
+      "summary": "a_1 = alpha a_0 + eta_0.",
+      "note": ""
+    },
+    {
+      "id": "noname-3",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "64-69",
+      "status": "proved",
+      "lean_name": "ch05a_noname3",
+      "summary": "a_2 = alpha^2 a_0 + alpha eta_0 + eta_1.",
+      "note": ""
+    },
+    {
+      "id": "noname-4",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "71-75",
+      "status": "proved",
+      "lean_name": "ch05a_noname4",
+      "summary": "a_3 = alpha^3 a_0 + alpha^2 eta_0 + alpha eta_1 + eta_2.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-unroll",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "77-85",
+      "status": "proved",
+      "lean_name": "ch05a_g_unroll",
+      "summary": "a_k = alpha^k a_0 + sum_{j=0}^{k-1} alpha^{k-1-j} eta_j.",
+      "note": "Proved by induction for all k from the recursion; the natural-number subtraction k-1-j is handled by omega side conditions."
+    },
+    {
+      "id": "noname-5",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "93-107",
+      "status": "proved",
+      "lean_name": "ch05a_noname5",
+      "summary": "The induction step alpha(alpha^k a_0 + sum) + eta_k = alpha^{k+1} a_0 + sum_{j<=k} alpha^{k-j} eta_j.",
+      "note": ""
+    },
+    {
+      "id": "noname-6",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "112-116",
+      "status": "defined",
+      "lean_name": "ch05a_eps",
+      "summary": "epsilon = (a_0, eta_0, ..., eta_{L-2})^T, the vector of independent atoms.",
+      "note": "Definition."
+    },
+    {
+      "id": "eq:g-linear-map",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "120-127",
+      "status": "proved",
+      "lean_name": "ch05a_g_linear_map",
+      "summary": "a = G_alpha epsilon for a deterministic lower-triangular G_alpha.",
+      "note": "General L, no longer L = 4. (G_alpha)_{ij} = alpha^{i-j} for j <= i and 0 otherwise; ch05a_G_lower_triangular gives lower-triangularity for every n, and ch05a_g_linear_map proves sum_j (G_alpha)_{ij} eps_j = a_i for every n and every row i : Fin n. The proof truncates the row sum to j <= i (Finset.sum_subset), peels off the a_0 term with Finset.sum_range_succ' and closes against the unrolled representation ch05a_g_unroll."
+    },
+    {
+      "id": "noname-7",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "134-140",
+      "status": "proved",
+      "lean_name": "ch05a_noname7",
+      "summary": "Var(a_{k+1}) = alpha^2 Var(a_k) + sigma_eta^2 = 1 when Var(a_k)=1.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-stationary-marginal",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "142-146",
+      "status": "proved",
+      "lean_name": "ch05a_g_stationary_marginal",
+      "summary": "a_k ~ N(0,1) for every k.",
+      "note": "Encoded as the variance recursion v_0 = 1, v_{k+1} = alpha^2 v_k + sigma_eta^2; proved v_k = 1 for all k by induction."
+    },
+    {
+      "id": "eq:g-memory",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "150-154",
+      "status": "proved",
+      "lean_name": "ch05a_g_memory",
+      "summary": "E[a_k | a_0] = alpha^k a_0.",
+      "note": "Encoded as the conditional-mean recursion m_{k+1} = alpha m_k (innovations are centred); proved by induction.\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'proved', scope narrowed. ch05a_condmean is the audit's own recursion (0 |-> a0, k+1 |-> alpha * condmean k) and ch05a_g_memory proves only that its closed form is alpha^k a_0. The probabilistic content of the display -- that the conditional mean obeys m_{k+1} = alpha m_k BECAUSE every innovation has zero mean -- is put in by hand in the definition and is never connected to ch05a_ar1."
+    },
+    {
+      "id": "noname-8",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "156-159",
+      "status": "proved",
+      "lean_name": "ch05a_noname8",
+      "summary": "|alpha|^k -> 0 as k -> infinity when |alpha| < 1.",
+      "note": ""
+    },
+    {
+      "id": "noname-9",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "162-166",
+      "status": "proved",
+      "lean_name": "ch05a_noname9",
+      "summary": "a_k = alpha^{k-j} a_j + sum_{r=j}^{k-1} alpha^{k-1-r} eta_r for j <= k.",
+      "note": ""
+    },
+    {
+      "id": "noname-10",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "168-172",
+      "status": "proved",
+      "lean_name": "ch05a_noname10",
+      "summary": "Cov(a_j,a_k) = alpha^{k-j} Var(a_j) = alpha^{k-j}.",
+      "note": "Covariance computed from the unrolled representation as a dot product over independent atoms (ch05a_gcov); both equalities proved."
+    },
+    {
+      "id": "eq:g-ar1-covariance",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "174-179",
+      "status": "proved",
+      "lean_name": "ch05a_g_ar1_covariance",
+      "summary": "Cov(a_j,a_k) = alpha^{|k-j|}.",
+      "note": "Follows from ch05a_g_cov_lag with lag Nat.dist j k, under alpha^2 != 1."
+    },
+    {
+      "id": "eq:g-var-sum",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "190-197",
+      "status": "proved",
+      "lean_name": "ch05a_g_var_sum",
+      "summary": "Var(a_k) = alpha^{2k} Var(a_0) + sigma_eta^2 sum_{j<k} alpha^{2(k-1-j)} = alpha^{2k} + sigma_eta^2 sum_{i<k} (alpha^2)^i.",
+      "note": "The reindexing i = k-1-j is exactly Finset.sum_range_reflect.\n\n[FIDELITY NOTE 2026-09-13] Status kept as 'proved', claim narrowed. The tex is a two-step chain; ch05a_g_var_sum states only the SECOND equality, the reindexing i = k-1-j (Finset.sum_range_reflect). The first, probabilistic step 'Var(a_k) = alpha^{2k} Var(a_0) + sigma_eta^2 sum ...' (variances of independent terms add) is not in the statement at all: nothing in the theorem mentions ch05a_var or ch05a_gcov or any variance. Read the item as an identity between the two displayed right-hand expressions, not as a variance computation."
+    },
+    {
+      "id": "eq:g-geom",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "200-204",
+      "status": "proved",
+      "lean_name": "ch05a_g_geom",
+      "summary": "sum_{i=0}^{k-1} (alpha^2)^i = (1-alpha^{2k})/(1-alpha^2).",
+      "note": "Requires alpha^2 != 1, as the text states."
+    },
+    {
+      "id": "eq:g-var-one",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "206-212",
+      "status": "proved",
+      "lean_name": "ch05a_g_var_one",
+      "summary": "alpha^{2k} + (1-alpha^2)(1-alpha^{2k})/(1-alpha^2) = 1.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-split",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "216-222",
+      "status": "proved",
+      "lean_name": "ch05a_g_split",
+      "summary": "a_{k+d} = alpha^d a_k + sum_{j=k}^{k+d-1} alpha^{k+d-1-j} eta_j.",
+      "note": "Proved by induction on d for all k, d."
+    },
+    {
+      "id": "eq:g-cov-lag",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "225-232",
+      "status": "proved",
+      "lean_name": "ch05a_g_cov_lag",
+      "summary": "Cov(a_k,a_{k+d}) = alpha^d Var(a_k) = alpha^d, i.e. (Sigma_0)_{ij} = alpha^{|i-j|}.",
+      "note": "Proved for all k,d from the atom-coefficient representation, using sum_range_reflect and the geometric sum; the entrywise form is ch05a_noname24."
+    },
+    {
+      "id": "eq:g-P0",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "235-241",
+      "status": "proved",
+      "lean_name": "ch05a_g_P0_general_inv",
+      "summary": "N(a_0;0,1) prod_k N(a_{k+1}; alpha a_k, sigma_eta^2) = N(a; 0, Sigma_0).",
+      "note": "General L >= 2, no longer L = 2; normalisation included. The engine is the bidiagonal factorisation Sigma_0 = G D G^T and Q_0 = B^T D^{-1} B with B = I - alpha S the differencing matrix and D = diag(1, sigma_eta^2, ...): it gives the exponent (ch05a_g_quadform_general: a^T Q_0 a = a_0^2 + (1/sigma_eta^2) sum (a_{k+1}-alpha a_k)^2) and the normalisation (ch05a_Sig0_det: det Sigma_0 = (sigma_eta^2)^{L-1}) at once. ch05a_g_P0_general states it with Q_0; ch05a_g_P0_general_inv rewrites Q_0 as (Sigma_0)^{-1} via ch05a_g_Q0_general so the right-hand side is literally N(a; 0, Sigma_0). Hypotheses: L >= 2 (the displayed product over k = 0..L-2 is empty at L = 1) and sigma_eta^2 > 0, which is the chapter's standing |alpha| < 1."
+    },
+    {
+      "id": "eq:g-Sig0-matrix",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "244-255",
+      "status": "defined",
+      "lean_name": "ch05a_Sig0",
+      "summary": "The explicit dense symmetric Toeplitz display of Sigma_0.",
+      "note": "Sigma_0 defined entrywise as alpha^{Nat.dist i j}; ch05a_g_Sig0_matrix checks the displayed literal matrix at L = 4 with symbolic alpha."
+    },
+    {
+      "id": "eq:g-Q0-K2",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "287-294",
+      "status": "proved",
+      "lean_name": "ch05a_g_Q0_K2",
+      "summary": "At L=2, Sigma_0^{-1} = (1-alpha^2)^{-1} [[1,-alpha],[-alpha,1]].",
+      "note": "Proved as a matrix inverse (Matrix.inv_eq_right_inv) with symbolic alpha under 1-alpha^2 != 0.",
+      "tex_lines_recorded": "286-293"
+    },
+    {
+      "id": "eq:g-Q0-K3",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "299-312",
+      "status": "proved",
+      "lean_name": "ch05a_g_Q0_K3",
+      "summary": "At L=3, Sigma_0^{-1} = (1-alpha^2)^{-1} [[1,-a,0],[-a,1+a^2,-a],[0,-a,1]].",
+      "note": "Proved as a matrix inverse with symbolic alpha; confirms both the exactly-zero corner and the extra alpha^2 on the interior diagonal.",
+      "tex_lines_recorded": "298-311"
+    },
+    {
+      "id": "eq:g-Q0",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "321-335",
+      "status": "proved",
+      "lean_name": "ch05a_g_Q0_general",
+      "summary": "Q_0 = Sigma_0^{-1} is tridiagonal with 1/s at the ends, (1+a^2)/s inside and -a/s off-diagonal.",
+      "note": "General L >= 2, no longer L = 2,3,4,5. Proved as a genuine matrix inverse: ch05a_Sig0_factor gives Sigma_0 = G D G^T, ch05a_Q0_factor gives Q_0 = B^T D^{-1} B, and ch05a_B_mul_G / ch05a_G_mul_B prove B = G^{-1} for every n; multiplying out gives Q_0 Sigma_0 = I and hence (Sigma_0)^{-1} = Q_0 by Matrix.inv_eq_left_inv. The displayed entries (1/sigma_eta^2 at the ends, (1+alpha^2)/sigma_eta^2 inside, -alpha/sigma_eta^2 off-diagonal, exact 0 at distance >= 2) are the definition of ch05a_Q0 and were already proved entrywise for all n. L >= 2 is needed and is not a trivialisation: at L = 1 the displayed matrix is (1/sigma_eta^2), which is not the inverse of Sigma_0 = (1).",
+      "tex_lines_recorded": "320-334"
+    },
+    {
+      "id": "noname-11",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "336-349",
+      "status": "defined",
+      "lean_name": "ch05a_Q0",
+      "summary": "Entrywise description of Q_0 (diagonal cases and off-diagonal -alpha/sigma_eta^2, zero beyond).",
+      "note": "This display is the definition of Q_0; the individual entry claims are proved for all n in ch05a_g_precision_interior, ch05a_g_precision_offdiag, ch05a_g_precision_distant_zero, ch05a_noname17, ch05a_noname19."
+    },
+    {
+      "id": "eq:g-gaussian-precision",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "356-364",
+      "status": "defined",
+      "lean_name": "ch05a_mvgauss",
+      "summary": "P_0(a) = (2 pi)^{-L/2} |Sigma_0|^{-1/2} exp(-a^T Q_0 a / 2).",
+      "note": "Definition of the centred Gaussian density in precision form; sanity lemma ch05a_g_gaussian_precision_pos shows it is strictly positive when det Sigma_0 > 0.",
+      "tex_lines_recorded": "355-362"
+    },
+    {
+      "id": "eq:g-read-precision",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "366-374",
+      "status": "proved",
+      "lean_name": "ch05a_g_read_precision",
+      "summary": "-2 log P_0(a) = a^T Q_0 a + L log(2 pi) + log|Sigma_0| = a^T Q_0 a + const.",
+      "note": "Proved for all L from the density definition via log_mul / log_rpow / log_exp.",
+      "tex_lines_recorded": "365-373"
+    },
+    {
+      "id": "noname-12",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "380-385",
+      "status": "defined",
+      "lean_name": "ch05a_P0_factorised",
+      "summary": "P_0(a) = p(a_0) prod_k p(a_{k+1} | a_k).",
+      "note": "Definition of the Markov factorisation; ch05a_P0_factorised_pos gives positivity."
+    },
+    {
+      "id": "noname-13",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "387-392",
+      "status": "defined",
+      "lean_name": "ch05a_gauss",
+      "summary": "a_0 ~ N(0,1) and a_{k+1}|a_k ~ N(alpha a_k, sigma_eta^2).",
+      "note": "The transition and prior laws; encoded as the one-dimensional Gaussian density ch05a_gauss used inside ch05a_P0_factorised."
+    },
+    {
+      "id": "eq:g-precision-expand-1",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "395-417",
+      "status": "proved",
+      "lean_name": "ch05a_g_precision_expand_1",
+      "summary": "-2 log P_0(a) = a_0^2 + (1/sigma_eta^2) sum_{k=0}^{L-2} (a_{k+1} - alpha a_k)^2 + const.",
+      "note": "Proved for all chain lengths, with the constant computed explicitly as (m+1) log(2 pi) + m log sigma_eta^2 where m = L-1.",
+      "tex_lines_recorded": "394-403"
+    },
+    {
+      "id": "eq:g-precision-expand-2",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "395-417",
+      "status": "proved",
+      "lean_name": "ch05a_g_precision_expand_2",
+      "summary": "Expanding the square: (a_{k+1}-alpha a_k)^2 = a_{k+1}^2 - 2 alpha a_k a_{k+1} + alpha^2 a_k^2 inside the sum.",
+      "note": "",
+      "tex_lines_recorded": "404-415"
+    },
+    {
+      "id": "eq:g-general-quadratic-form",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "419-427",
+      "status": "proved",
+      "lean_name": "ch05a_g_general_quadratic_form",
+      "summary": "a^T Q a = sum_m Q_mm a_m^2 + 2 sum_{m<n} Q_mn a_m a_n for symmetric Q.",
+      "note": "General L, no longer L = 3,4, with a fully symbolic symmetric Q. Proof is the entrywise argument: expand a . (Q a) as a double sum, split each row into its diagonal term and Finset.univ.erase i, split the erased part into the i < j and j < i halves, and fold the second half onto the first with Finset.sum_comm' plus the symmetry hypothesis.",
+      "tex_lines_recorded": "418-426"
+    },
+    {
+      "id": "noname-14",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "431-434",
+      "status": "proved",
+      "lean_name": "ch05a_noname14",
+      "summary": "The only products of distinct coordinates are -(2 alpha/sigma_eta^2) sum_k a_k a_{k+1}.",
+      "note": "Proved for all chain lengths as a Finset identity."
+    },
+    {
+      "id": "eq:g-precision-offdiag",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "438-450",
+      "status": "proved",
+      "lean_name": "ch05a_g_precision_offdiag",
+      "summary": "(Q_0)_{k,k+1} = (Q_0)_{k+1,k} = -alpha/sigma_eta^2.",
+      "note": "Proved for all n and all index pairs at distance 1 (so both orders).",
+      "tex_lines_recorded": "437-444"
+    },
+    {
+      "id": "eq:g-precision-distant-zero",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "438-450",
+      "status": "proved",
+      "lean_name": "ch05a_g_precision_distant_zero",
+      "summary": "(Q_0)_{ij} = 0 whenever |i-j| >= 2.",
+      "note": "Proved for all n.",
+      "tex_lines_recorded": "445-448"
+    },
+    {
+      "id": "noname-15",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "456-461",
+      "status": "proved",
+      "lean_name": "ch05a_noname15",
+      "summary": "The two transition factors containing a_m, expanded.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-precision-interior",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "464-471",
+      "status": "proved",
+      "lean_name": "ch05a_g_precision_interior",
+      "summary": "(Q_0)_{mm} = (1+alpha^2)/sigma_eta^2 for 1 <= m <= L-2.",
+      "note": "Proved for all n for every interior index.",
+      "tex_lines_recorded": "463-470"
+    },
+    {
+      "id": "noname-16",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "475-484",
+      "status": "proved",
+      "lean_name": "ch05a_noname16",
+      "summary": "a_0^2 + (alpha^2/s) a_0^2 = ((s+alpha^2)/s) a_0^2 = (1/s) a_0^2, using s = 1-alpha^2.",
+      "note": "Both equalities proved; the second is exactly where sigma_eta^2 + alpha^2 = 1 is used."
+    },
+    {
+      "id": "noname-17",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "487-491",
+      "status": "proved",
+      "lean_name": "ch05a_noname17",
+      "summary": "(Q_0)_{00} = 1/sigma_eta^2.",
+      "note": ""
+    },
+    {
+      "id": "noname-18",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "493-496",
+      "status": "proved",
+      "lean_name": "ch05a_noname18",
+      "summary": "The last transition factor (1/s)(a_{L-1} - alpha a_{L-2})^2, expanded.",
+      "note": ""
+    },
+    {
+      "id": "noname-19",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "498-502",
+      "status": "proved",
+      "lean_name": "ch05a_noname19",
+      "summary": "(Q_0)_{L-1,L-1} = 1/sigma_eta^2.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-precision-ci",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "514-521",
+      "status": "proved",
+      "lean_name": "ch05a_g_precision_ci",
+      "summary": "(Q_0)_{ij} = 0 iff a_i and a_j are conditionally independent given the rest.",
+      "note": "Encoded as the factorisation criterion for the conditional density: with all other coordinates fixed, the Gaussian kernel exp(-(1/2)(q11 x^2 + 2 q12 x y + q22 y^2 + b1 x + b2 y)) satisfies f(x,y) f(0,0) = f(x,0) f(0,y) for all x,y iff q12 = 0. Both directions proved.",
+      "tex_lines_recorded": "513-520"
+    },
+    {
+      "id": "noname-20",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "527-534",
+      "status": "proved",
+      "lean_name": "ch05a_noname20",
+      "summary": "-log P(a) = -log p(a_0) - sum_k log p(a_{k+1}|a_k) for any first-order Markov density.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-markov-hessian-sparsity",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "537-543",
+      "status": "proved",
+      "lean_name": "ch05a_g_markov_hessian_sparsity_general (general form; supersedes the vacuous ch05a_g_markov_hessian_sparsity), ch05a_g_markov_hessian_sparsity_dist, ch05a_chain_separable",
+      "summary": "d^2[-log P]/da_i da_j = 0 for |i-j| >= 2.",
+      "note": "General L and general potentials, no longer the two-function instance. For an arbitrary first-order Markov negative log-density -log P(a) = f_0(a_0) + sum_k f_k(a_k, a_{k+1}) (arbitrary f_0 and f_k, no smoothness assumed) and any i, j with |i-j| >= 2 in either order, the mixed second partial vanishes identically. The mechanism is proved, not assumed: ch05a_chain_separable shows that no summand contains both coordinates, so as a function of (a_i, a_j) the density splits additively as g(a_i) + h(a_j), and an additively separable function has zero mixed derivative. Coordinates are perturbed with Function.update, and the j < i case is reduced to the i < j one by Function.update_comm.\n\n[FIDELITY NOTE 2026-09-13] The cited witness was corrected. The original lean_name ch05a_g_markov_hessian_sparsity is vacuous: 'deriv (fun z => deriv (fun x => g x + h z) x0) z0 = 0' assumes the additive separability g(x) + h(z) that is the whole content of the thesis claim, and the inner derivative is literally independent of z, so the conclusion holds by deriv_const. The faithful general statement does exist in the file -- ch05a_g_markov_hessian_sparsity_general (hij : i + 2 <= j), proved for all m via ch05a_chain_separable -- and the record now points at the general form (ch05a_g_markov_hessian_sparsity_dist). Status 'proved' therefore stands on the general theorem, not the trivial one.",
+      "tex_lines_recorded": "536-542"
+    },
+    {
+      "id": "eq:g-gaussian-cond-precision",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "550-556",
+      "status": "instance_checked",
+      "lean_name": "ch05a_g_gaussian_cond_precision",
+      "summary": "E[a_k | a_{\\k}] = -(Q_kk)^{-1} sum_{l != k} Q_kl a_l.",
+      "note": "Encoded as: for Q_kk > 0, that value minimises the quadratic form in coordinate k (completing the square); proved for all n via the identity q x^2 + 2xS - (q(-S/q)^2 + 2(-S/q)S) = q(x + S/q)^2.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch05a_g_gaussian_cond_precision proves that -(Q k k)^{-1} S minimises Q k k * x^2 + 2 x S, where S = sum_{l != k} Q k l * a l, under 0 < Q k k. Two gaps: the objective is written by hand rather than obtained as the k-section of a . Q.mulVec a, and NO symmetry hypothesis is imposed on Q -- for non-symmetric Q the k-section of a^T Q a is Q_kk x^2 + x sum_{l != k} (Q_kl + Q_lk) a_l, so the displayed minimiser is the thesis's only when Q = Q^T. (Contrast ch05a_g_general_quadratic_form_three/four, which do carry explicit symmetry hypotheses.) As stated it is the true but content-free fact that x = -S/q minimises q x^2 + 2 x S for q > 0, with Q supplying two scalars.",
+      "tex_lines_recorded": "549-555",
+      "status_original": "proved"
+    },
+    {
+      "id": "eq:g-cond-mean",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "559-573",
+      "status": "proved",
+      "lean_name": "ch05a_g_cond_mean",
+      "summary": "For an interior frame, E[a_k | rest] = alpha/(1+alpha^2) (a_{k-1} + a_{k+1}).",
+      "note": "Proved: -(s/(1+a^2))((-a/s)x + (-a/s)y) = (a/(1+a^2))(x+y) for s != 0, 1+a^2 != 0.",
+      "tex_lines_recorded": "558-572"
+    },
+    {
+      "id": "eq:g-channel-vec",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "595-601",
+      "status": "defined",
+      "lean_name": "ch05a_g_channel_vec",
+      "summary": "x = e^{-t} a + sqrt(Delta_t) xi, xi ~ N(0,I_L), xi independent of a.",
+      "note": "Definition (stacked form of eq:g-channel).",
+      "tex_lines_recorded": "594-600"
+    },
+    {
+      "id": "eq:g-Sigt",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "608-619",
+      "status": "proved",
+      "lean_name": "ch05a_g_Sigt_cov",
+      "summary": "P_t(x) = N(x; 0, Sigma_t) with Sigma_t = e^{-2t} Sigma_0 + Delta_t I_L.",
+      "note": "Covariance computed for all n from bilinearity, using only Cov(a_i,a_j)=S_ij, Cov(xi_i,xi_j)=delta_ij and Cov(a,xi)=0: Cov(c a_i + s xi_i, c a_j + s xi_j) = c^2 S_ij + s^2 delta_ij. With c = e^{-t}, s = sqrt(Delta_t) this is ch05a_noname23.",
+      "tex_lines_recorded": "607-618"
+    },
+    {
+      "id": "noname-21",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "624-631",
+      "status": "proved",
+      "lean_name": "ch05a_noname21",
+      "summary": "E[x] = e^{-t} E[a] + sqrt(Delta_t) E[xi] = 0.",
+      "note": ""
+    },
+    {
+      "id": "noname-22",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "633-648",
+      "status": "proved",
+      "lean_name": "ch05a_noname22",
+      "summary": "Cov(c a + s xi) = c^2 Cov(a) + s^2 Cov(xi) + c s (Cov(a,xi) + Cov(xi,a)).",
+      "note": "Proved for all n as a bilinearity identity, including the cross terms the text then kills by independence."
+    },
+    {
+      "id": "noname-23",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "652-657",
+      "status": "proved",
+      "lean_name": "ch05a_noname23",
+      "summary": "Cov(x) = e^{-2t} Sigma_0 + Delta_t I_L.",
+      "note": "Proved for all n and all t >= 0; uses (e^{-t})^2 = e^{-2t} and (sqrt(Delta_t))^2 = Delta_t (Delta_t >= 0 for t >= 0)."
+    },
+    {
+      "id": "noname-24",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "661-663",
+      "status": "proved",
+      "lean_name": "ch05a_noname24",
+      "summary": "(Sigma_0)_{ij} = alpha^{|i-j|}.",
+      "note": ""
+    },
+    {
+      "id": "eq:g-Sigt-entrywise",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "666-673",
+      "status": "proved",
+      "lean_name": "ch05a_g_Sigt_entrywise",
+      "summary": "(Sigma_t)_{ij} = e^{-2t} alpha^{|i-j|} + Delta_t delta_{ij}.",
+      "note": "Proved for all n.",
+      "tex_lines_recorded": "665-672"
+    },
+    {
+      "id": "noname-25",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "677-684",
+      "status": "proved",
+      "lean_name": "ch05a_noname25",
+      "summary": "(Sigma_t)_{ii} = e^{-2t} + Delta_t = 1: the channel is variance preserving.",
+      "note": "Proved for all n and all t."
+    },
+    {
+      "id": "eq:g-Sigt-offdiag",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "691-697",
+      "status": "proved",
+      "lean_name": "ch05a_g_Sigt_offdiag",
+      "summary": "(Sigma_t)_{ij} = e^{-2t} alpha^{|i-j|} for i != j.",
+      "note": "Proved for all n.",
+      "tex_lines_recorded": "690-696"
+    },
+    {
+      "id": "eq:g-noisy-correlation",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "700-705",
+      "status": "proved",
+      "lean_name": "ch05a_g_noisy_correlation",
+      "summary": "Corr(x_i,x_j) = e^{-2t} alpha^{|i-j|}.",
+      "note": "Proved for all n for i != j, as Sigma_t,ij / sqrt(Sigma_t,ii Sigma_t,jj) with unit variances. Note the display omits the i != j qualifier that the preceding sentence and eq:g-Sigt-offdiag carry; at i = j it would read Corr = e^{-2t} instead of 1. Reading it as inheriting i != j from the sentence 'these entries are also the correlations', the formula is correct.",
+      "tex_lines_recorded": "699-704"
+    },
+    {
+      "id": "eq:g-Sigt-matrix",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "710-732",
+      "status": "proved",
+      "lean_name": "ch05a_g_Sigt_matrix_general",
+      "summary": "Explicit symmetric Toeplitz display of Sigma_t: unit diagonal, e^{-2t} alpha^{|i-j|} off-diagonal.",
+      "note": "General L, no longer L = 4: (Sigma_t)_{ij} = 1 if i = j and e^{-2t} alpha^{|i-j|} otherwise, for every n and all alpha, t. This is exactly the displayed symmetric Toeplitz matrix (unit diagonal, geometrically decaying bands scaled by e^{-2t}); it combines the all-n lemmas ch05a_noname25 (unit diagonal) and ch05a_g_Sigt_offdiag.",
+      "tex_lines_recorded": "709-731"
+    },
+    {
+      "id": "eq:g-Sigt-limits",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "738-746",
+      "status": "proved",
+      "lean_name": "ch05a_g_Sigt_limit_zero / ch05a_g_Sigt_limit_infty",
+      "summary": "Sigma_t|_{t=0} = Sigma_0 and Sigma_t -> I_L as t -> infinity.",
+      "note": "Both proved for all n; the limit is proved entrywise as a Filter.Tendsto statement to the identity matrix entry.",
+      "tex_lines_recorded": "737-745"
+    },
+    {
+      "id": "eq:g-Qt-def",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "753-756",
+      "status": "defined",
+      "lean_name": "ch05a_Qt",
+      "summary": "Q_t := Sigma_t^{-1}.",
+      "note": "Definition.",
+      "tex_lines_recorded": "752-755"
+    },
+    {
+      "id": "noname-26",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "757-759",
+      "status": "proved",
+      "lean_name": "ch05a_noname26",
+      "summary": "At t = 0, Q_t = Q_0.",
+      "note": "Proved for all n as Q_t(0) = Sigma_0^{-1}; combined with the L=3 inversion, ch05a_noname26_three gives Q_t(0) = Q_0 literally at L = 3."
+    },
+    {
+      "id": "eq:g-locality-loss-summary",
+      "tex_file": "Diffusion/Markov_Score_Diffusion/thesis/chapters/ch05-gaussian-matrix.tex",
+      "tex_lines": "769-781",
+      "status": "proved",
+      "lean_name": "ch05a_g_locality_loss_summary_general",
+      "summary": "Q_0 is local and tridiagonal, but after diffusion and marginalisation Q_t is generally nonlocal and dense.",
+      "note": "General L >= 3, no longer the single instance L = 3, alpha = 1/2, e^{-2t} = 1/2. Both halves of the boxed display are stated together for every L >= 3, every alpha with 0 < |alpha| < 1 and every t > 0: (i) (Sigma_0)^{-1} = Q_0 and every entry of Q_0 at distance >= 2 is exactly zero (local and tridiagonal); (ii) Sigma_t is invertible (ch05a_Sigt_det_ne_zero) and Q_t = Sigma_t^{-1} has a nonzero entry at distance >= 2, located in the first column. The mechanism is a Green's-function identity: if the first column of a right inverse of Sigma_t were supported on rows 0 and 1, rows 1 and 2 of Sigma_t Q = I would force Sigma_t,10 Sigma_t,21 = Sigma_t,11 Sigma_t,20, i.e. e^{-2t} alpha^2 (e^{-2t} - 1) = 0, impossible for alpha != 0 and t > 0. SCOPE CAVEAT, stated so the status is not read as more than it is: what is proved at general L is the loss of locality (at least one exact zero of Q_0 at distance >= 2 becomes nonzero in Q_t), not the literal reading of the word 'dense' as 'every entry of Q_t is nonzero'. Full density is verified only at the L = 3 instance (ch05a_g_locality_loss_summary), where the exact inverse is computed and its (0,2) entry is -1/14 != 0.",
+      "tex_lines_recorded": "768-780"
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex."
+}

@@ -1,0 +1,31 @@
+{
+  "module": "ThesisAudit.Ch09",
+  "checked": 4,
+  "issues": [
+    {
+      "id": "eq:em-cumulant-damping",
+      "lean_name": "ch09_em_cumulant_damping",
+      "kind": "vacuous",
+      "severity": "medium",
+      "detail": "The kappa_4 half of the theorem assumes its own conclusion. Lean: hypothesis h4 : k4X = Real.exp (-t) ^ 4 * k4A + s2 ^ 2 * 0, conclusion (second conjunct) k4X = Real.exp (-(4 * t)) * k4A. Since s2 ^ 2 * 0 is literally 0 and Real.exp (-t) ^ 4 = Real.exp (-(4*t)), the conclusion IS h4 verbatim modulo one exponent identity; the proof is `rw [h4, e4]; ring`. The tex display eq:em-cumulant-damping asserts exactly 'kappa_4(X_t) = e^{-4t} kappa_4(A)', i.e. the headline damping claim of Section 'Which coordinate should be slower, and why' is proved by hypothesis. Note also that the Lean file contains no random variable, no independence, no Gaussian and no cumulant: t, k2A, k4A, k2X, k4X, s2 are six bare reals. The JSON summary nevertheless reads 'Proved for the channel X_t = e^{-t}A + sqrt(1-e^{-2t})Z, Z standard Gaussian independent of A', which a reader will take to mean the channel was modelled. The note's clause 'the standard cumulant calculus ... enters as hypotheses' is a partial disclosure but does not say that conclusion two is hypothesis h4 restated. The kappa_2 conjunct is NOT vacuous (the cancellation e^{-2t}*1 + (1 - e^{-2t}) = 1 is real content) and its dependence on kappa_2(A) = 1 is disclosed correctly.",
+      "suggested_status": "instance_checked (algebraic consequence of assumed cumulant transformation laws; kappa_4 conjunct is the hypothesis restated)"
+    },
+    {
+      "id": "eq:em-fixedpoint",
+      "lean_name": "ch09_em_fixedpoint_littleO",
+      "kind": "unfaithful",
+      "severity": "medium",
+      "detail": "Stated only in one dimension, and the restriction is nowhere disclosed. Lean: `theorem ch09_em_fixedpoint_littleO (M : R -> R) (Ts J : R) (hfix : M Ts = Ts) (hd : HasDerivAt M J Ts)` -- M is a scalar map and J is a scalar derivative. The tex quantifies over a parameter VECTOR and a Jacobian MATRIX: 'theta^{(k+1)} - theta* = J(theta*)(theta^{(k)} - theta*) + O(||theta^{(k)} - theta*||^2), J = dM/dtheta|_{theta*}' -- note the norm bars -- and the very next sentence reads 'EM converges linearly ... at a rate set by the SPECTRUM of J', with Section 'From eigenvalues to iteration counts' invoking eq:em-fixedpoint for 'a coordinate aligned with an eigenvector of J with eigenvalue lambda' and the chapter's thesis being lambda_{kappa_4} > lambda_alpha. A scalar J has one eigenvalue, so the specialisation removes precisely the content the chapter uses the display for. This is not a forced limitation: Mathlib's hasFDerivAt_iff_isLittleO gives the same one-line proof in any normed space, and the sibling item ch09_em_missing_info in the same file IS proved for arbitrary n-by-n matrices, as is eq:intro-score in the same JSON file (whose note makes a point of having been lifted from 1D to general dimension). The JSON summary writes the claim in its vector form ('J(theta*)(theta^(k) - theta*)') and neither summary nor note mentions that only the scalar case was proved.",
+      "suggested_status": "proved (one-dimensional specialisation only; vector/matrix case not formalised)"
+    },
+    {
+      "id": "eq:em-fixedpoint",
+      "lean_name": "ch09_em_fixedpoint_quadratic_instance",
+      "kind": "inflated",
+      "severity": "low",
+      "detail": "The display's remainder order O(||theta - theta*||^2) is not proved; only the weaker Peano form o(||theta - theta*||) is (ch09_em_fixedpoint_littleO). The note discloses this honestly ('The stated O(quadratic) remainder additionally needs C^2 regularity'), but then offers ch09_em_fixedpoint_quadratic_instance as the compensating evidence -- 'it is verified exactly on a generic quadratic map ... (remainder = |c||theta-theta*|^2)'. That theorem states |(Ts + J*(T-Ts) + c*(T-Ts)^2) - Ts - J*(T-Ts)| = |c| * |T - Ts| ^ 2 and is closed by `ring` plus abs_mul: for a map DEFINED to be exactly quadratic, the linearisation remainder is the quadratic term by construction, for every c, and this carries no information about the EM map M or about any hypothesis under which M is C^2. Calling it 'verified exactly' overstates what a reader is being shown.",
+      "suggested_status": "keep as proved, but relabel the quadratic theorem as illustrative rather than as verification of the O(.^2) remainder"
+    }
+  ],
+  "note": "Items checked: eq:em-fixedpoint, eq:em-missing-info, eq:em-settle, eq:em-cumulant-damping -- all four recorded 'proved'. Two are clean. ch09_em_missing_info is faithful and properly general: arbitrary n, [Invertible Icom], h : Icom = Iobs + Imis |- Icom^{-1} * Imis = 1 - Icom^{-1} * Iobs, matching the tex display, with the note correctly flagging that the Dempster-Laird-Rubin identification of J with I_com^{-1} I_mis is cited, not re-proved. eq:em-settle is faithful in both halves: ch09_em_settle_count (lam ^ (log tau / log lam) = tau for 0 < lam != 1, tau > 0) is the exact fact behind the tex's 'k(tau,lambda) ~ log tau / log lambda', and ch09_em_settle_ratio's three nonzero-log hypotheses are exactly what the division needs, not extra strength. MISSING: no display equation in ch09-em-kernel.tex is absent -- the file has exactly four equation environments and all four are recorded. Two coverage remarks that I did NOT raise as issues because they fall outside the display-equation rubric: (i) the chapter's central scope condition, the ECM Jacobian 'G^r + (I - G^r) J' at line 68, is inline math and has no JSON entry, though it is a checkable algebraic claim (I verified it is the standard Meng-Rubin form and correct as written, including the r -> infinity limit); (ii) the table arithmetic of tab:em-rates and tab:em-channel-cost is unaudited but I recomputed it and it is right (211, 1256, 5.9, log-ratio 8.0 all reproduce from the quoted lambda and tau to rounding; the cost ratios 2.0/2.0/2.2/2.5/3.0 and the 'fourfold' vs '2.6-fold' claims all reproduce). FILE LOCATION: there is no AUDIT_RESULTS/Ch09.json; the ch09 verdicts live inside Ch01.json, whose 'covers' field lists ch09-em-kernel.tex, and AUDIT_REPORT.md lines 149-152 disclose the quirk, so this is bookkeeping rather than a concealment."
+}

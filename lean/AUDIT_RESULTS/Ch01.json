@@ -1,0 +1,131 @@
+{
+  "module": "ThesisAudit.Ch01",
+  "build_ok": true,
+  "completed": "2026-09-13T04:30:00Z",
+  "covers": [
+    "ch01-introduction.tex",
+    "ch09-em-kernel.tex"
+  ],
+  "items": [
+    {
+      "id": "eq:intro-score",
+      "tex_file": "thesis/chapters/ch01-introduction.tex",
+      "tex_lines": "16-19",
+      "status": "defined",
+      "lean_name": "ch01_intro_score_multi",
+      "summary": "Defines the score function s(x,t) = grad_x log p_t(x).",
+      "note": "Definition, not a claim -- but now encoded in a general dimension instead of only in one. ch01_intro_score_multi is the gradient of log p_t on EuclideanSpace R (Fin n) for an arbitrary n, which is the form the thesis actually uses: x is the whole noised sequence (\"the joint score of the whole noisy sequence\"), so grad_x is a genuine gradient on R^L and not the 1D derivative the first pass encoded. ch01_intro_score_multi_spec pins the encoding down (g is the score at x exactly when the Frechet derivative of log p_t at x is the linear form v -> <g,v>, ruling out an off-by-a-transpose reading) and ch01_intro_score_multi_eq reads the score off any HasGradientAt witness. The 1D ch01_intro_score and its n=1 Gaussian check ch01_intro_score_gaussian are retained as the n=1 special case. The Gaussian sanity check is no longer an n=1 instance: ch01_gaussian_score proves, for every dimension n, every self-adjoint A and every C > 0, that p(y) = C*exp(-(1/2)<y-mu, A(y-mu)>) has score -A(x-mu) -- the classical -Sigma^{-1}(x-mu) with A = Sigma^{-1}, as used in the Gaussian chapters; it rests on ch01_gradient_quadratic, which computes the gradient of the quadratic form <y-mu, A(y-mu)> as 2A(x-mu) in general n via Frechet differentiation of the inner product plus self-adjointness, not by expanding coordinates at fixed n. ch01_intro_score_gaussian_multi specialises to the standard Gaussian on R^n (score -x) and ch01_intro_score_gaussian_multi_normalised writes the constant as (2*pi)^(-n/2). The self-adjointness hypothesis is shown to be non-vacuous in every dimension: ch01_precisionCLM builds the operator of an arbitrary real matrix S, ch01_precisionCLM_selfAdjoint proves it self-adjoint whenever S is symmetric (entrywise, via Finset.sum_comm), and ch01_gaussian_score_precision_matrix gives the score componentwise as -(sum_j S_ij (x_j - mu_j)). Two scope notes, so nothing is over-claimed: (i) positive-definiteness of A is not assumed, because the gradient identity does not need it -- the theorem is therefore strictly more general than the Gaussian case, not weaker; (ii) that (2*pi)^(-n/2) actually normalises the density is NOT proved here and is not used anywhere -- the score identity holds for any positive constant, which is why it is stated with an arbitrary C > 0.",
+      "module": "ThesisAudit.Ch01"
+    },
+    {
+      "id": "eq:em-fixedpoint",
+      "tex_file": "thesis/chapters/ch09-em-kernel.tex",
+      "tex_lines": "29-36",
+      "status": "proved",
+      "lean_name": "ch09_em_fixedpoint_bigO_sq_of_contDiffAt",
+      "summary": "First-order expansion of the EM map at a fixed point: theta^(k+1) - theta* = J(theta*)(theta^(k) - theta*) + O(||theta^(k)-theta*||^2), with J the Jacobian of M at theta*.",
+      "note": "Proved: for M differentiable at a fixed point theta* with derivative J, M(theta) - theta* - J(theta-theta*) = o(theta - theta*) (Peano form; the J = dM/dtheta definition enters as the HasDerivAt hypothesis). The stated O(quadratic) remainder additionally needs C^2 regularity, which is standard for the EM map; it is verified exactly on a generic quadratic map in ch09_em_fixedpoint_quadratic_instance (remainder = |c||theta-theta*|^2). No error in the formula.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. ch09_em_fixedpoint_littleO is stated for M : R -> R and J : R, i.e. the scalar case d = 1, whereas the display quantifies over a parameter VECTOR with a Jacobian MATRIX (note the norm bars in O(||theta - theta*||^2)) and the chapter's argument is spectral throughout: 'the spectrum of J', 'a coordinate aligned with an eigenvector of J with eigenvalue lambda', and the two-rate claim lambda_{kappa_4} > lambda_alpha. A scalar J has one eigenvalue, so the specialisation removes exactly the content the chapter uses the display for. This was not forced by the budget: Mathlib's hasFDerivAt_iff_isLittleO gives the same one-line proof in any normed space, and the sibling ch09_em_missing_info in the same file IS proved for arbitrary n-by-n matrices. Separately, the remainder is proved only in the Peano form o(||.||), not the stated O(||.||^2); ch09_em_fixedpoint_quadratic_instance is illustrative (for a map DEFINED to be exactly quadratic the linearisation remainder is the quadratic term by construction) and is not verification of the O(||.||^2) claim.\n\n[GENERALISED 2026-09-14] Restored to 'proved'. The display is now proved in the generality the chapter uses it. The new theorems live in ThesisAudit/Ch01.lean (the module this JSON owns); ThesisAudit/Ch09.lean was not touched, and its instance-level theorems remain there. (i) Dimension and Jacobian: ch09_em_fixedpoint_littleO_vec states the linearisation on EuclideanSpace R (Fin d) for an ARBITRARY d with J an arbitrary continuous linear map, and ch09_em_fixedpoint_littleO_matrix presents the same J as an arbitrary d-by-d matrix via ch09_matrixCLM (ch09_matrixCLM_apply reads it off entrywise, (J v)_i = sum_j J_ij v_j). (ii) The spectral content the downgrade said was removed: ch09_em_linear_error_eigen proves that the linearised error recursion e_{k+1} = J e_k started at an eigenvector v (J v = lambda v) satisfies e_k = lambda^k v exactly, and ch09_em_linear_error_eigen_norm that ||e_k|| = |lambda|^k ||v||, in arbitrary dimension. This is the chapter's 'a coordinate aligned with an eigenvector of J with eigenvalue lambda has its error contract as lambda^k', which is invisible at d = 1. (iii) The stated O(||.||^2) remainder, not only the Peano o(||.||): ch09_em_fixedpoint_remainder_sq proves the explicit non-asymptotic bound ||M(theta) - theta* - J (theta - theta*)|| <= K ||theta - theta*||^2 on a ball, from a Lipschitz bound ||M'(x) - J|| <= K ||x - theta*|| on the derivative; and ch09_em_fixedpoint_bigO_sq_of_contDiffAt DERIVES that hypothesis from ContDiffAt R 2 M theta* alone (bounding the second derivative on a compact ball via exists_isMaxOn and applying the mean value inequality to fderiv M), concluding (fun theta => M theta - theta* - (fderiv R M theta*) (theta - theta*)) =O[nhds theta*] (fun theta => ||theta - theta*||^2) -- the display verbatim, with J literally the Frechet derivative of M at the fixed point and no hypothesis beyond C^2 regularity and M theta* = theta*. ch09_em_fixedpoint_bigO_sq is the same conclusion from the explicit Lipschitz constant. The illustrative ch09_em_fixedpoint_quadratic_instance is superseded and is no longer relied on. Scope, not overclaimed: the identification of J with I_com^{-1} I_mis is Dempster-Laird-Rubin and is the separate item eq:em-missing-info; and the prose inference drawn after the display -- that the NONLINEAR iteration converges locally at a rate set by the spectrum of J -- is formalised only at the level of the linearised recursion (ch09_em_linear_error_eigen), not as a local-attractivity (Ostrowski) theorem; mathlib has no such theorem and the display itself does not assert it.",
+      "status_original": "proved",
+      "module": "ThesisAudit.Ch01",
+      "lean_names": [
+        "ch09_em_fixedpoint_bigO_sq_of_contDiffAt",
+        "ch09_em_fixedpoint_bigO_sq",
+        "ch09_em_fixedpoint_remainder_sq",
+        "ch09_em_fixedpoint_littleO_vec",
+        "ch09_em_fixedpoint_littleO_matrix",
+        "ch09_em_linear_error_eigen",
+        "ch09_em_linear_error_eigen_norm",
+        "ch09_matrixCLM",
+        "ch09_matrixCLM_apply"
+      ],
+      "module_previous": "ThesisAudit.Ch09",
+      "status_history": [
+        "proved (original)",
+        "instance_checked (fidelity downgrade 2026-09-13)",
+        "proved (generalised 2026-09-14)"
+      ]
+    },
+    {
+      "id": "eq:em-missing-info",
+      "tex_file": "thesis/chapters/ch09-em-kernel.tex",
+      "tex_lines": "47-54",
+      "status": "proved",
+      "lean_name": "ch09_em_missing_info",
+      "summary": "I_com = I_obs + I_mis, and the EM Jacobian J = I_com^{-1} I_mis = Id - I_com^{-1} I_obs.",
+      "note": "First display defines I_mis as the difference (definitional). Proved for arbitrary n-by-n real matrices: given I_com = I_obs + I_mis and I_com invertible, I_com^{-1} I_mis = 1 - I_com^{-1} I_obs, so the two stated expressions for J agree. The identification of J with I_com^{-1} I_mis itself is the cited Dempster-Laird-Rubin statistical theorem and is not re-proved.\n\n[FIDELITY NOTE 2026-09-13] tex_lines corrected from 42-49 to the actual equation environment at 47-54 (the old pointer landed on the prose defining I_com/I_obs). Status unchanged: this item is proved for arbitrary n-by-n matrices.",
+      "tex_lines_recorded": "42-49",
+      "module": "ThesisAudit.Ch09"
+    },
+    {
+      "id": "eq:em-settle",
+      "tex_file": "thesis/chapters/ch09-em-kernel.tex",
+      "tex_lines": "83-92",
+      "status": "proved",
+      "lean_name": "ch09_em_settle_count",
+      "summary": "Iteration count k(tau,lambda) ~ log tau / log lambda, and settling-ratio factorization k2/k1 = (log tau2/log tau1)(log lambda1/log lambda2).",
+      "note": "The two 'approximately' claims are formalized as the exact identities underlying them, both proved: (a) ch09_em_settle_count: lambda^(log tau / log lambda) = tau for 0 < lambda != 1, tau > 0, so log tau/log lambda is exactly the crossing exponent of lambda^k = tau; (b) ch09_em_settle_ratio: (log tau2/log lambda2)/(log tau1/log lambda1) = (log tau2/log tau1)*(log lambda1/log lambda2) whenever the denominators' logs are nonzero. Both correct.\n\n[FIDELITY NOTE 2026-09-13] tex_lines corrected from 61-70 to the actual equation environment at 83-92 (the old pointer landed on the scope-condition paragraph). Status unchanged.",
+      "tex_lines_recorded": "61-70",
+      "module": "ThesisAudit.Ch09"
+    },
+    {
+      "id": "eq:em-cumulant-damping",
+      "tex_file": "thesis/chapters/ch09-em-kernel.tex",
+      "tex_lines": "139-144",
+      "status": "proved",
+      "lean_name": "ch09_em_cumulant_damping_rv",
+      "summary": "The OU channel preserves the second cumulant, kappa2(X_t) = kappa2(A) for all t, and damps the fourth, kappa4(X_t) = e^{-4t} kappa4(A).",
+      "note": "Proved for the channel X_t = e^{-t}A + sqrt(1-e^{-2t})Z, Z standard Gaussian independent of A, variance-matched kappa2(A)=1 (the thesis's stated normalization). The standard cumulant calculus (additivity over independent summands, order-n homogeneity, Gaussian kappa4 = 0) enters as hypotheses; the kappa4 additivity rule is itself derived from the raw fourth-moment expansion in ch09_em_kappa4_additive (the 6 c^2 s^2 cross terms cancel identically, pure ring identity), and ch09_em_cumulant_damping_sqrt checks sqrt(Delta_t)^2 = Delta_t for t >= 0. Both stated identities are correct; note kappa2 preservation genuinely requires the variance matching (c^2+s^2=1 with unit variances) stated in the surrounding text, while the e^{-4t} damping of kappa4 needs only Gaussian noise.\n\n[FIDELITY DOWNGRADE 2026-09-13] Downgraded from 'proved'. The kappa_4 half of ch09_em_cumulant_damping is its own hypothesis restated: h4 : k4X = exp(-t)^4 * k4A + s2^2 * 0 differs from the conclusion k4X = exp(-(4t)) * k4A only by the exponent identity exp(-t)^4 = exp(-4t) and the literal '* 0'. Cumulant additivity over independent summands, homogeneity kappa_n(cY) = c^n kappa_n(Y), and the vanishing of the Gaussian fourth cumulant are all assumed, not derived; ThesisAudit/Ch09.lean contains no random variable, no independence hypothesis and no definition of a cumulant. The kappa_2 conjunct IS genuine content (exp(-2t)*1 + (1 - exp(-2t)) = 1) and remains so. Status reflects: an algebraic consequence of assumed cumulant transformation laws, checked at kappa_2(A) = 1.\n\n[GENERALISED 2026-09-14] Restored to 'proved'. The identity is now proved for genuine random variables on a probability space, in ThesisAudit/Ch01.lean (the module this JSON owns); ThesisAudit/Ch09.lean was not touched. The cumulants are DEFINED from raw moments -- ch09_kappa2 P X = m2 - m1^2 and ch09_kappa4 P X = m4 - 4 m3 m1 - 3 m2^2 + 12 m2 m1^2 - 6 m1^4 -- with ch09_kappa2_eq_variance proving that ch09_kappa2 is mathlib's Var[X; P], and ch09_kappa4_centered giving the familiar E X^4 - 3 (E X^2)^2 in the centred case. The three laws the previous formalisation ASSUMED are now theorems. (a) Additivity over independent summands and order-n homogeneity, together, in ch09_cumulants_of_indep_sum: for A, Z with IndepFun A Z P and four finite moments and any scalars c, s, kappa2(cA + sZ) = c^2 kappa2(A) + s^2 kappa2(Z) and kappa4(cA + sZ) = c^4 kappa4(A) + s^4 kappa4(Z), proved by expanding the first four raw moments of cA + sZ binomially and factoring every mixed moment E[A^i Z^j] = E[A^i] E[Z^j] through independence (ch09_integral_pow_mul_pow, via IndepFun.comp and IndepFun.integral_mul_eq_mul_integral; ch09_integrable_pow_mul_pow supplies the integrability). The 6 c^2 s^2 cross terms in m4 cancel against those in -3 m2^2, which is exactly why the fourth CUMULANT and not the fourth moment damps. (b) The vanishing of the Gaussian fourth cumulant, in ch09_standard_gaussian_cumulants: for Z with P.map Z = gaussianReal 0 1, kappa2(Z) = 1 and kappa4(Z) = 0. It rests on ch09_standard_gaussian_moments, which reads the first four moments 0, 1, 0, 3 off the derivatives of the moment-generating function t -> e^{t^2/2} at the origin (mgf_gaussianReal and iteratedDeriv_mgf_zero, with the derivative chain computed explicitly in ch09_gauss_deriv / ch09_gauss_iteratedDeriv) and gets integrability of every power from integrable_pow_of_mem_interior_integrableExpSet. (c) The channel identity itself, ch09_em_cumulant_damping_rv: for X = e^{-t} A + sqrt(1 - e^{-2t}) Z with Z standard Gaussian independent of A, A measurable with four finite moments, and kappa2(A) = 1, kappa2(X) = kappa2(A) and kappa4(X) = e^{-4t} kappa4(A). No hypothesis restates the conclusion; the old h2/h4 hypotheses are gone. Scope, stated plainly: (i) proved for t >= 0, which is the channel's domain (Delta_t = 1 - e^{-2t} < 0 for t < 0), so the thesis's 'for all t' is verified on [0, infinity); (ii) kappa4 is DEFINED by the standard raw-moment polynomial rather than derived inside Lean as the fourth derivative of the cumulant generating function -- mathlib has no general cumulant API (it stops at iteratedDeriv_two_cgf) -- so the identification of that polynomial with the fourth cumulant is a definitional choice, anchored here only by ch09_kappa2_eq_variance at order two and by ch09_kappa4_centered; (iii) kappa2 preservation genuinely needs the variance matching kappa2(A) = kappa2(Z) = 1, while the e^{-4t} damping of kappa4 needs only that the noise is Gaussian; (iv) the chapter's prediction lambda_{kappa4} > lambda_alpha combines this display with eq:em-missing-info and an empirical claim, and is not formalised.",
+      "tex_lines_recorded": "108-112",
+      "status_original": "proved",
+      "module": "ThesisAudit.Ch01",
+      "lean_names": [
+        "ch09_em_cumulant_damping_rv",
+        "ch09_cumulants_of_indep_sum",
+        "ch09_standard_gaussian_cumulants",
+        "ch09_standard_gaussian_moments",
+        "ch09_kappa2",
+        "ch09_kappa4",
+        "ch09_kappa2_eq_variance",
+        "ch09_kappa4_centered",
+        "ch09_integral_pow_mul_pow",
+        "ch09_integrable_pow_mul_pow"
+      ],
+      "module_previous": "ThesisAudit.Ch09",
+      "status_history": [
+        "proved (original)",
+        "instance_checked (fidelity downgrade 2026-09-13)",
+        "proved (generalised 2026-09-14)"
+      ]
+    }
+  ],
+  "tex_lines_regenerated": "Line pointers were regenerated on 2026-09-13 by locating each \\label in the current chapter source and taking the enclosing display environment. The value the original audit pass recorded is preserved in tex_lines_recorded where it differed; many of those pointers were written against an earlier revision of the .tex.",
+  "modules": {
+    "ThesisAudit.Ch01": {
+      "build_ok": true,
+      "built": "2026-09-14",
+      "covers": "ch01-introduction.tex, plus the general proofs of the two ch09-em-kernel.tex items generalised on 2026-09-14",
+      "items": [
+        "eq:intro-score",
+        "eq:em-fixedpoint",
+        "eq:em-cumulant-damping"
+      ]
+    },
+    "ThesisAudit.Ch09": {
+      "build_ok": true,
+      "built": "2026-09-14",
+      "covers": "ch09-em-kernel.tex",
+      "items": [
+        "eq:em-missing-info",
+        "eq:em-settle"
+      ],
+      "items_superseded": [
+        "eq:em-fixedpoint",
+        "eq:em-cumulant-damping"
+      ],
+      "note": "The instance-level theorems for eq:em-fixedpoint (ch09_em_fixedpoint_littleO, ch09_em_fixedpoint_quadratic_instance) and eq:em-cumulant-damping (ch09_em_cumulant_damping, ch09_em_kappa4_additive, ch09_em_cumulant_damping_sqrt) are still in this module and still build; they are superseded by the general proofs added to ThesisAudit.Ch01 on 2026-09-14 and are no longer what those two verdicts rest on. This module was not edited."
+    }
+  },
+  "module_attribution_note": "[CORRECTED 2026-09-13 after fidelity review] This file previously declared a single module, 'ThesisAudit.Ch01', with build_ok true, while four of its five items cite theorems that live in ThesisAudit/Ch09.lean (ch09_em_fixedpoint_littleO, ch09_em_missing_info, ch09_em_settle_count, ch09_em_cumulant_damping), not in Ch01.lean. A reader could therefore attach Chapter 9's proofs to an attestation that only says ThesisAudit.Ch01 builds. Both modules were built separately on 2026-09-13 via ./safe_build.sh and both are green; the 'modules' field above now records each module's own attestation and which items belong to it, and each item carries a 'module' field. [SUPERSEDED IN PART 2026-09-14] After the generalisation pass, only two of the five items (eq:em-missing-info, eq:em-settle) still cite theorems that live in ThesisAudit/Ch09.lean; the verdicts for eq:em-fixedpoint and eq:em-cumulant-damping now rest on general theorems in ThesisAudit/Ch01.lean, and each item's 'module' field says which module its verdict rests on. Both modules were rebuilt and are green on 2026-09-14.",
+  "updated": "2026-09-14",
+  "generalisation_note": "[2026-09-14] The two items that the 2026-09-13 fidelity review downgraded to instance_checked (eq:em-fixedpoint, eq:em-cumulant-damping) were generalised and are now proved. Because the agent owning this JSON owns ThesisAudit/Ch01.lean and not ThesisAudit/Ch09.lean, the new general theorems were added to ThesisAudit/Ch01.lean; both modules were rebuilt on 2026-09-14 via ./safe_build.sh and both are green. ThesisAudit/Ch01.lean contains no sorry, no axiom and no native_decide (checked by grep after the build). The per-item notes below record exactly what is proved and what remains definitional or out of scope; nothing was weakened to make it provable and no hypothesis restates a conclusion."
+}
