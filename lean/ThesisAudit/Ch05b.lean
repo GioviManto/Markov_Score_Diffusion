@@ -3147,6 +3147,397 @@ theorem ch05b_noname_frob_normalisation (α : ℝ) (L : ℕ) (hα2 : α ^ 2 < 1)
   rw [show α ^ 2 / (1 - α ^ 2) ^ 2 = (α / (1 - α ^ 2)) ^ 2 by rw [div_pow],
     Real.sqrt_sq_eq_abs, abs_div, abs_of_pos hpos]
 
+/-! ### thm:g-decouple (iii) (tex 1229-1244): the reverse dynamics beyond the coefficients
+
+`ch05b_g_decouple_reverse`, `ch05b_g_decouple_noise` and `ch05b_g_decouple_inhomog` above say
+that the reverse *vector field* `b(·,t) = f_c(t)· - g(t)²s(·,t)` of eq:sm-reverse is diagonal in
+the eigenbasis and that its driving noise stays isotropic.  This block takes the step the
+thesis' proof takes next -- "the vector equation separates coordinate by coordinate" -- at the
+level of the objects mathlib can express: the integral curves of that field, and the
+Fokker-Planck operator of the associated drift-diffusion.  Every statement is over the chapter's
+own `Σ_t = e^{-2t}Σ₀ + Δ_t I` and `Q_t = Σ_t⁻¹`; the diagonal `λᵢ(t)` are never postulated, they
+come out of `ch05b_g_Qt_spec`. -/
+
+/-- **thm:g-decouple (iii)**, trajectory form (tex 1240-1244).  If `X` is *any* integral curve of
+the reverse drift field `b(·,t) = f_c(t)· - g(t)²s(·,t)` of eq:sm-reverse, then its `i`-th
+eigen-coordinate `x̃ᵢ = (UᵀX)ᵢ` solves the **scalar** linear equation `x̃ᵢ' = κᵢ(t)·x̃ᵢ` with
+`κᵢ(t) = f_c(t) + g(t)²/λᵢ(t)`: no other coordinate enters the `i`-th equation.  This is the
+drift half of the reverse dynamics; the noise half is `ch05b_g_decouple_noise` at the level of
+coefficients and `ch05b_g_decouple_fp` at the level of laws. -/
+theorem ch05b_g_decouple_reverse_traj (U : Matrix (Fin n) (Fin n) ℝ) (ω : Fin n → ℝ)
+    (hU : Uᵀ * U = 1) (S0 : Matrix (Fin n) (Fin n) ℝ) (hS0 : S0 = U * Matrix.diagonal ω * Uᵀ)
+    (t : ℝ) (ht : 0 ≤ t) (hω : ∀ i, 0 < ω i) (fc g : ℝ → ℝ) (X : ℝ → Fin n → ℝ)
+    (hX : ∀ k : Fin n, HasDerivAt (fun s => X s k) (ch05b_revDrift fc g S0 t (X t) k) t)
+    (i : Fin n) :
+    HasDerivAt (fun s => (Uᵀ *ᵥ X s) i) (ch05b_revCoef fc g (ω i) t * (Uᵀ *ᵥ X t) i) t := by
+  have hfun : (fun s => (Uᵀ *ᵥ X s) i) = fun s => ∑ k, Uᵀ i k * X s k := by
+    funext s; exact Matrix.mulVec_apply_eq_sum _ _ _
+  have hsum : HasDerivAt (fun s => ∑ k, Uᵀ i k * X s k)
+      (∑ k, Uᵀ i k * ch05b_revDrift fc g S0 t (X t) k) t :=
+    HasDerivAt.fun_sum fun k _ => (hX k).const_mul (Uᵀ i k)
+  have hUU : U *ᵥ (Uᵀ *ᵥ X t) = X t := by
+    rw [Matrix.mulVec_mulVec, ch05b_orth_right U hU, Matrix.one_mulVec]
+  have hdrift : ∑ k, Uᵀ i k * ch05b_revDrift fc g S0 t (X t) k
+      = ch05b_revCoef fc g (ω i) t * (Uᵀ *ᵥ X t) i := by
+    have h := ch05b_g_decouple_reverse U ω hU S0 hS0 t ht hω fc g (Uᵀ *ᵥ X t) i
+    rw [hUU] at h
+    rw [← h]
+    exact (Matrix.mulVec_apply_eq_sum _ _ _).symm
+  rw [hfun, ← hdrift]
+  exact hsum
+
+/-- **thm:g-decouple (iii)**, converse of `ch05b_g_decouple_reverse_traj`: `L` solutions of the
+scalar equations `ỹᵢ' = κᵢ(t)ỹᵢ`, rotated back by `U`, assemble into an integral curve of the
+full vector drift field.  The `L` scalar problems carry all of the reverse drift dynamics. -/
+theorem ch05b_g_decouple_reverse_assemble (U : Matrix (Fin n) (Fin n) ℝ) (ω : Fin n → ℝ)
+    (hU : Uᵀ * U = 1) (S0 : Matrix (Fin n) (Fin n) ℝ) (hS0 : S0 = U * Matrix.diagonal ω * Uᵀ)
+    (t : ℝ) (ht : 0 ≤ t) (hω : ∀ i, 0 < ω i) (fc g : ℝ → ℝ) (y : Fin n → ℝ → ℝ)
+    (hy : ∀ i : Fin n, HasDerivAt (y i) (ch05b_revCoef fc g (ω i) t * y i t) t) (k : Fin n) :
+    HasDerivAt (fun s => (U *ᵥ (fun i => y i s)) k)
+      (ch05b_revDrift fc g S0 t (U *ᵥ (fun i => y i t)) k) t := by
+  have hfun : (fun s => (U *ᵥ (fun i => y i s)) k) = fun s => ∑ i, U k i * y i s := by
+    funext s; exact Matrix.mulVec_apply_eq_sum _ _ _
+  have hsum : HasDerivAt (fun s => ∑ i, U k i * y i s)
+      (∑ i, U k i * (ch05b_revCoef fc g (ω i) t * y i t)) t :=
+    HasDerivAt.fun_sum fun i _ => (hy i).const_mul (U k i)
+  have hval : ∑ i, U k i * (ch05b_revCoef fc g (ω i) t * y i t)
+      = ch05b_revDrift fc g S0 t (U *ᵥ (fun i => y i t)) k := by
+    have h : Uᵀ *ᵥ ch05b_revDrift fc g S0 t (U *ᵥ (fun i => y i t))
+        = fun i => ch05b_revCoef fc g (ω i) t * y i t := by
+      funext i
+      exact ch05b_g_decouple_reverse U ω hU S0 hS0 t ht hω fc g (fun i => y i t) i
+    have h2 : U *ᵥ (Uᵀ *ᵥ ch05b_revDrift fc g S0 t (U *ᵥ (fun i => y i t)))
+        = ch05b_revDrift fc g S0 t (U *ᵥ (fun i => y i t)) := by
+      rw [Matrix.mulVec_mulVec, ch05b_orth_right U hU, Matrix.one_mulVec]
+    rw [← h2, h]
+    exact (Matrix.mulVec_apply_eq_sum _ _ _).symm
+  rw [hfun, ← hval]
+  exact hsum
+
+/-- `λᵢ' = 2 - 2λᵢ`: the eigenvalue path of eq:g-Qt-spec is itself the solution of a scalar
+linear equation (the one-dimensional variance flow of the forward VP process). -/
+theorem ch05b_lam_hasDerivAt (ω t : ℝ) :
+    HasDerivAt (ch05b_lam ω) (2 - 2 * ch05b_lam ω t) t := by
+  have hexp : HasDerivAt (fun s : ℝ => Real.exp (-2 * s)) (Real.exp (-2 * t) * (-2)) t := by
+    simpa using ((hasDerivAt_id' (x := t)).const_mul (-2 : ℝ)).exp
+  have h : HasDerivAt (fun s : ℝ => Real.exp (-2 * s) * ω + (1 - Real.exp (-2 * s)))
+      (Real.exp (-2 * t) * (-2) * ω + (0 - Real.exp (-2 * t) * (-2))) t :=
+    (hexp.mul_const ω).add ((hasDerivAt_const t (1 : ℝ)).sub hexp)
+  have hfun : (fun s : ℝ => Real.exp (-2 * s) * ω + (1 - Real.exp (-2 * s))) = ch05b_lam ω := by
+    funext s; simp [ch05b_lam, ch05b_Delta]
+  have hval : Real.exp (-2 * t) * (-2) * ω + (0 - Real.exp (-2 * t) * (-2))
+      = 2 - 2 * ch05b_lam ω t := by
+    simp only [ch05b_lam, ch05b_Delta]; ring
+  rw [hfun, hval] at h
+  exact h
+
+/-- A scalar linear equation `y' = κ(t)y` on `t ≥ 0` determines `y` from `y 0` alone: if `K` is
+an antiderivative of `κ` then `y t = y 0 · e^{K t - K 0}`.  Stated for a general coefficient `κ`,
+so it applies to the reverse drift coefficient `κᵢ` of any pair `(f_c, g)`. -/
+theorem ch05b_scalar_ode_unique {κ K y : ℝ → ℝ}
+    (hK : ∀ s : ℝ, 0 ≤ s → HasDerivAt K (κ s) s)
+    (hy : ∀ s : ℝ, 0 ≤ s → HasDerivAt y (κ s * y s) s)
+    {t : ℝ} (ht : 0 ≤ t) :
+    y t = y 0 * Real.exp (K t - K 0) := by
+  have hF : ∀ s : ℝ, 0 ≤ s → HasDerivAt (fun r => y r * Real.exp (-K r)) 0 s := by
+    intro s hs
+    have h1 : HasDerivAt (fun r => Real.exp (-K r)) (Real.exp (-K s) * -(κ s)) s :=
+      ((hK s hs).neg).exp
+    exact ((hy s hs).mul h1).congr_deriv (by ring)
+  have hcont : ContinuousOn (fun r => y r * Real.exp (-K r)) (Set.Icc 0 t) :=
+    fun s hs => ((hF s hs.1).continuousAt).continuousWithinAt
+  have hderiv : ∀ s ∈ Set.Ico (0 : ℝ) t,
+      HasDerivWithinAt (fun r => y r * Real.exp (-K r)) 0 (Set.Ici s) s :=
+    fun s hs => (hF s hs.1).hasDerivWithinAt
+  have hconst : y t * Real.exp (-K t) = y 0 * Real.exp (-K 0) :=
+    constant_of_has_deriv_right_zero hcont hderiv t (Set.right_mem_Icc.mpr ht)
+  have hinv : Real.exp (-K t) * Real.exp (K t) = 1 := by
+    rw [← Real.exp_add]; simp
+  have h3 : y t = y 0 * Real.exp (-K 0) * Real.exp (K t) :=
+    calc y t = y t * (Real.exp (-K t) * Real.exp (K t)) := by rw [hinv, mul_one]
+      _ = y t * Real.exp (-K t) * Real.exp (K t) := by ring
+      _ = y 0 * Real.exp (-K 0) * Real.exp (K t) := by rw [hconst]
+  rw [h3, Real.exp_sub, Real.exp_neg, div_eq_mul_inv]
+  ring
+
+/-- With the chapter's VP coefficients (`f(x,t) = -x`, `g ≡ √2`) the reverse drift coefficient
+`κᵢ(t) = -1 + 2/λᵢ(t)` has the explicit antiderivative `t + log λᵢ(t)`. -/
+theorem ch05b_revCoef_vp_antideriv (ω : ℝ) {s : ℝ} (hs : ch05b_lam ω s ≠ 0) :
+    HasDerivAt (fun r => r + Real.log (ch05b_lam ω r))
+      (ch05b_revCoef (fun _ => -1) (fun _ => Real.sqrt 2) ω s) s := by
+  have hlog : HasDerivAt (fun r => Real.log (ch05b_lam ω r))
+      ((2 - 2 * ch05b_lam ω s) / ch05b_lam ω s) s := (ch05b_lam_hasDerivAt ω s).log hs
+  have h : HasDerivAt (fun r : ℝ => r + Real.log (ch05b_lam ω r))
+      (1 + (2 - 2 * ch05b_lam ω s) / ch05b_lam ω s) s := (hasDerivAt_id' (x := s)).add hlog
+  have hval : (1 : ℝ) + (2 - 2 * ch05b_lam ω s) / ch05b_lam ω s
+      = ch05b_revCoef (fun _ => -1) (fun _ => Real.sqrt 2) ω s := by
+    have h2 : Real.sqrt 2 ^ 2 = 2 := Real.sq_sqrt (by norm_num)
+    have hd : (2 - 2 * ch05b_lam ω s) / ch05b_lam ω s
+        = 2 / ch05b_lam ω s - 2 * ch05b_lam ω s / ch05b_lam ω s := by
+      rw [sub_div]
+    rw [hd, mul_div_assoc, div_self hs]
+    simp only [ch05b_revCoef, h2]
+    ring
+  rw [hval] at h
+  exact h
+
+/-- **thm:g-decouple (iii)**, the scalar mode solved in closed form.  With the chapter's VP
+coefficients every solution of the `i`-th reverse drift equation `x̃ᵢ' = κᵢ(t)x̃ᵢ` on `t ≥ 0` is
+`x̃ᵢ(t) = x̃ᵢ(0)·e^{t}λᵢ(t)/ωᵢ`: an OU-type scalar linear flow whose rate is time-dependent
+precisely through `λᵢ(t)`, fixed by its own initial value alone. -/
+theorem ch05b_revMode_vp (ω : ℝ) (hω : 0 < ω) {y : ℝ → ℝ}
+    (hy : ∀ s : ℝ, 0 ≤ s →
+      HasDerivAt y (ch05b_revCoef (fun _ => -1) (fun _ => Real.sqrt 2) ω s * y s) s)
+    {t : ℝ} (ht : 0 ≤ t) :
+    y t = y 0 * (Real.exp t * ch05b_lam ω t) / ω := by
+  have hK : ∀ s : ℝ, 0 ≤ s → HasDerivAt (fun r => r + Real.log (ch05b_lam ω r))
+      (ch05b_revCoef (fun _ => -1) (fun _ => Real.sqrt 2) ω s) s :=
+    fun s hs => ch05b_revCoef_vp_antideriv ω (ne_of_gt (ch05b_lam_pos hω hs))
+  have h : y t = y 0 * Real.exp ((t + Real.log (ch05b_lam ω t))
+      - (0 + Real.log (ch05b_lam ω 0))) := ch05b_scalar_ode_unique hK hy ht
+  have hl0 : ch05b_lam ω 0 = ω := by simp [ch05b_lam, ch05b_Delta]
+  rw [h, hl0, show t + Real.log (ch05b_lam ω t) - (0 + Real.log ω)
+      = t + (Real.log (ch05b_lam ω t) - Real.log ω) by ring,
+    Real.exp_add, Real.exp_sub, Real.exp_log (ch05b_lam_pos hω ht), Real.exp_log hω]
+  ring
+
+/-- **thm:g-decouple (iii)**, decoupling at the level of trajectories: two integral curves of
+the *full* reverse drift field whose `i`-th eigen-coordinates agree at time `0` agree in that
+coordinate for every `t ≥ 0`, whatever their other coordinates do.  Mode `i` of the reverse flow
+is an autonomous scalar dynamics, coupled to no other mode.  (`K` is an antiderivative of `κᵢ`;
+`ch05b_revCoef_vp_antideriv` supplies one explicitly for the chapter's VP coefficients.) -/
+theorem ch05b_g_decouple_mode_determined (U : Matrix (Fin n) (Fin n) ℝ) (ω : Fin n → ℝ)
+    (hU : Uᵀ * U = 1) (S0 : Matrix (Fin n) (Fin n) ℝ) (hS0 : S0 = U * Matrix.diagonal ω * Uᵀ)
+    (hω : ∀ i, 0 < ω i) (fc g : ℝ → ℝ) (i : Fin n) (K : ℝ → ℝ)
+    (hK : ∀ s : ℝ, 0 ≤ s → HasDerivAt K (ch05b_revCoef fc g (ω i) s) s)
+    (X Z : ℝ → Fin n → ℝ)
+    (hX : ∀ s : ℝ, 0 ≤ s → ∀ k : Fin n,
+      HasDerivAt (fun r => X r k) (ch05b_revDrift fc g S0 s (X s) k) s)
+    (hZ : ∀ s : ℝ, 0 ≤ s → ∀ k : Fin n,
+      HasDerivAt (fun r => Z r k) (ch05b_revDrift fc g S0 s (Z s) k) s)
+    (h0 : (Uᵀ *ᵥ X 0) i = (Uᵀ *ᵥ Z 0) i) {t : ℝ} (ht : 0 ≤ t) :
+    (Uᵀ *ᵥ X t) i = (Uᵀ *ᵥ Z t) i := by
+  have hXi : ∀ s : ℝ, 0 ≤ s → HasDerivAt (fun r => (Uᵀ *ᵥ X r) i)
+      (ch05b_revCoef fc g (ω i) s * (Uᵀ *ᵥ X s) i) s :=
+    fun s hs => ch05b_g_decouple_reverse_traj U ω hU S0 hS0 s hs hω fc g X (hX s hs) i
+  have hZi : ∀ s : ℝ, 0 ≤ s → HasDerivAt (fun r => (Uᵀ *ᵥ Z r) i)
+      (ch05b_revCoef fc g (ω i) s * (Uᵀ *ᵥ Z s) i) s :=
+    fun s hs => ch05b_g_decouple_reverse_traj U ω hU S0 hS0 s hs hω fc g Z (hZ s hs) i
+  have hXsol : (Uᵀ *ᵥ X t) i = (Uᵀ *ᵥ X 0) i * Real.exp (K t - K 0) :=
+    ch05b_scalar_ode_unique hK hXi ht
+  have hZsol : (Uᵀ *ᵥ Z t) i = (Uᵀ *ᵥ Z 0) i * Real.exp (K t - K 0) :=
+    ch05b_scalar_ode_unique hK hZi ht
+  rw [hXsol, hZsol, h0]
+
+/-! #### thm:g-decouple (iii) at the level of laws: the second-order operator separates
+
+For *processes*, "independent" means that a product law stays a product law under the dynamics.
+That is a statement about the second-order (Fokker-Planck / Kolmogorov) operator built from the
+reverse drift field and the isotropic diffusion, which is a PDE and so can be written down here.
+Two things are deliberately kept out of the statements below, because mathlib has neither:
+the theorem that the law of an SDE solves such an equation (there is no stochastic integral,
+hence no SDE), and any fixed time-orientation convention -- the operator is carried with two
+free coefficients `c₁, c₂`, so the reader may instantiate
+`(c₁, c₂) = (-1, g(t)²/2)` (Kolmogorov forward equation of the drift-diffusion `(b̃, g)`) or
+`(c₁, c₂) = (-1, -g(t)²/2)` (the same law read in the chapter's time parameter `t`, the reverse
+SDE of eq:sm-reverse being integrated from `T` back to `0`).  The separation proved here is the
+same for every choice, the operator being linear in each. -/
+
+/-- The `i`-th partial derivative of a scalar field on trajectory space:
+`∂ᵢF(x) = d/ds F(x with the i-th coordinate replaced by s)`, at `s = xᵢ`. -/
+def ch05b_pd (i : Fin n) (F : (Fin n → ℝ) → ℝ) (x : Fin n → ℝ) : ℝ :=
+  deriv (fun s => F (Function.update x i s)) (x i)
+
+/-- The product law of `L` independent modes, `ρ(x,t) = ∏ᵢ ρᵢ(xᵢ,t)`. -/
+def ch05b_prodDensity (ρ : Fin n → ℝ → ℝ → ℝ) (x : Fin n → ℝ) (s : ℝ) : ℝ :=
+  ∏ j, ρ j (x j) s
+
+theorem ch05b_prod_erase_update (ρ : Fin n → ℝ → ℝ) (x : Fin n → ℝ) (i : Fin n) (u : ℝ) :
+    ∏ j ∈ Finset.univ.erase i, ρ j (Function.update x i u j)
+      = ∏ j ∈ Finset.univ.erase i, ρ j (x j) :=
+  Finset.prod_congr rfl fun j hj => by
+    rw [Function.update_of_ne (Finset.ne_of_mem_erase hj)]
+
+theorem ch05b_prod_update (ρ : Fin n → ℝ → ℝ) (x : Fin n → ℝ) (i : Fin n) (u : ℝ) :
+    ∏ j, ρ j (Function.update x i u j)
+      = ρ i u * ∏ j ∈ Finset.univ.erase i, ρ j (x j) := by
+  have h : ρ i (Function.update x i u i)
+        * ∏ j ∈ Finset.univ.erase i, ρ j (Function.update x i u j)
+      = ∏ j, ρ j (Function.update x i u j) :=
+    Finset.mul_prod_erase Finset.univ (fun j => ρ j (Function.update x i u j))
+      (Finset.mem_univ i)
+  rw [← h, Function.update_self, ch05b_prod_erase_update ρ x i u]
+
+/-- `∂ᵢ` of a product law touches only the `i`-th factor. -/
+theorem ch05b_pd_prodDensity (ρ ρx : Fin n → ℝ → ℝ → ℝ)
+    (hx : ∀ i u r, HasDerivAt (fun v => ρ i v r) (ρx i u r) u)
+    (i : Fin n) (x : Fin n → ℝ) (s : ℝ) :
+    ch05b_pd i (fun z => ch05b_prodDensity ρ z s) x
+      = ρx i (x i) s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := by
+  have hfun : (fun u => ch05b_prodDensity ρ (Function.update x i u) s)
+      = fun u => ρ i u s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := by
+    funext u
+    exact ch05b_prod_update (fun j v => ρ j v s) x i u
+  show deriv (fun u => ch05b_prodDensity ρ (Function.update x i u) s) (x i) = _
+  rw [hfun]
+  exact ((hx i (x i) s).mul_const _).deriv
+
+/-- `∂ᵢ∂ᵢ` of a product law touches only the `i`-th factor. -/
+theorem ch05b_pd_pd_prodDensity (ρ ρx ρxx : Fin n → ℝ → ℝ → ℝ)
+    (hx : ∀ i u r, HasDerivAt (fun v => ρ i v r) (ρx i u r) u)
+    (hxx : ∀ i u r, HasDerivAt (fun v => ρx i v r) (ρxx i u r) u)
+    (i : Fin n) (x : Fin n → ℝ) (s : ℝ) :
+    ch05b_pd i (fun y => ch05b_pd i (fun z => ch05b_prodDensity ρ z s) y) x
+      = ρxx i (x i) s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := by
+  have hfun : (fun u => ch05b_pd i (fun z => ch05b_prodDensity ρ z s) (Function.update x i u))
+      = fun u => ρx i u s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := by
+    funext u
+    have herase : ∏ j ∈ Finset.univ.erase i, ρ j (Function.update x i u j) s
+        = ∏ j ∈ Finset.univ.erase i, ρ j (x j) s :=
+      ch05b_prod_erase_update (fun j v => ρ j v s) x i u
+    rw [ch05b_pd_prodDensity ρ ρx hx i (Function.update x i u) s, Function.update_self, herase]
+  show deriv (fun u => ch05b_pd i (fun z => ch05b_prodDensity ρ z s) (Function.update x i u))
+      (x i) = _
+  rw [hfun]
+  exact ((hxx i (x i) s).mul_const _).deriv
+
+/-- `∂ᵢ` of (a drift linear in `xᵢ`) × (a product law): only the `i`-th factor is touched, and
+the Leibniz term is the scalar one. -/
+theorem ch05b_pd_linear_mul_prodDensity (ρ ρx : Fin n → ℝ → ℝ → ℝ)
+    (hx : ∀ i u r, HasDerivAt (fun v => ρ i v r) (ρx i u r) u)
+    (i : Fin n) (c : ℝ) (x : Fin n → ℝ) (s : ℝ) :
+    ch05b_pd i (fun y => c * y i * ch05b_prodDensity ρ y s) x
+      = c * (ρ i (x i) s + x i * ρx i (x i) s) * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := by
+  have hprod : ∀ u : ℝ, ch05b_prodDensity ρ (Function.update x i u) s
+      = ρ i u s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := fun u =>
+    ch05b_prod_update (fun j v => ρ j v s) x i u
+  have hfun : (fun u => c * (Function.update x i u) i
+        * ch05b_prodDensity ρ (Function.update x i u) s)
+      = fun u => (c * u) * (ρ i u s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s) := by
+    funext u
+    rw [hprod u, Function.update_self]
+  have hd : HasDerivAt (fun u => (c * u) * (ρ i u s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s))
+      ((c * 1) * (ρ i (x i) s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s)
+        + (c * x i) * (ρx i (x i) s * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s)) (x i) :=
+    ((hasDerivAt_id' (x := x i)).const_mul c).mul ((hx i (x i) s).mul_const _)
+  show deriv (fun u => c * (Function.update x i u) i
+      * ch05b_prodDensity ρ (Function.update x i u) s) (x i) = _
+  rw [hfun, hd.deriv]
+  ring
+
+/-- The time derivative of a product law is the Leibniz sum over the modes. -/
+theorem ch05b_prodDensity_hasDerivAt_time (ρ ρt : Fin n → ℝ → ℝ → ℝ)
+    (htime : ∀ i u r, HasDerivAt (fun v => ρ i u v) (ρt i u r) r)
+    (x : Fin n → ℝ) (s : ℝ) :
+    HasDerivAt (fun r => ch05b_prodDensity ρ x r)
+      (∑ i, (∏ j ∈ Finset.univ.erase i, ρ j (x j) s) • ρt i (x i) s) s :=
+  HasDerivAt.fun_finsetProd (u := (Finset.univ : Finset (Fin n)))
+    (f := fun i (r : ℝ) => ρ i (x i) r) (f' := fun i => ρt i (x i) s)
+    (fun i _ => htime i (x i) s)
+
+/-- **thm:g-decouple (iii)** at the level of laws, separation step.  The second-order operator
+of the reverse dynamics in the eigenbasis -- drift `b̃ᵢ = (Uᵀb(U·,t))ᵢ`, i.e. the chapter's own
+reverse drift of eq:sm-reverse built from `Q_t = Σ_t⁻¹`, together with the isotropic
+second-order part -- applied to a product law `∏ᵢρᵢ(x̃ᵢ,t)`, is the sum over modes of the
+*scalar* expression of mode `i` times the remaining factors.  No cross term survives: the
+operator never couples two modes, for any coefficients `c₁, c₂`. -/
+theorem ch05b_g_decouple_fp_split (U : Matrix (Fin n) (Fin n) ℝ) (ω : Fin n → ℝ)
+    (hU : Uᵀ * U = 1) (S0 : Matrix (Fin n) (Fin n) ℝ) (hS0 : S0 = U * Matrix.diagonal ω * Uᵀ)
+    (s : ℝ) (hs : 0 ≤ s) (hω : ∀ i, 0 < ω i) (fc g : ℝ → ℝ) (c₁ c₂ : ℝ)
+    (ρ ρx ρxx : Fin n → ℝ → ℝ → ℝ)
+    (hx : ∀ i u r, HasDerivAt (fun v => ρ i v r) (ρx i u r) u)
+    (hxx : ∀ i u r, HasDerivAt (fun v => ρx i v r) (ρxx i u r) u)
+    (x : Fin n → ℝ) :
+    ∑ i, (c₁ * ch05b_pd i (fun y => (Uᵀ *ᵥ ch05b_revDrift fc g S0 s (U *ᵥ y)) i
+              * ch05b_prodDensity ρ y s) x
+        + c₂ * ch05b_pd i (fun y => ch05b_pd i (fun z => ch05b_prodDensity ρ z s) y) x)
+      = ∑ i, (c₁ * (ch05b_revCoef fc g (ω i) s * (ρ i (x i) s + x i * ρx i (x i) s))
+              + c₂ * ρxx i (x i) s)
+          * ∏ j ∈ Finset.univ.erase i, ρ j (x j) s := by
+  refine Finset.sum_congr rfl fun i _ => ?_
+  have hb : (fun y => (Uᵀ *ᵥ ch05b_revDrift fc g S0 s (U *ᵥ y)) i * ch05b_prodDensity ρ y s)
+      = fun y => ch05b_revCoef fc g (ω i) s * y i * ch05b_prodDensity ρ y s := by
+    funext y
+    rw [ch05b_g_decouple_reverse U ω hU S0 hS0 s hs hω fc g y i]
+  rw [hb, ch05b_pd_linear_mul_prodDensity ρ ρx hx i (ch05b_revCoef fc g (ω i) s) x s,
+    ch05b_pd_pd_prodDensity ρ ρx ρxx hx hxx i x s]
+  ring
+
+/-- **thm:g-decouple (iii)** at the level of laws (tex 1240-1244).  If each mode `i` carries a
+scalar density `ρᵢ` solving *its own* scalar equation -- the one-dimensional Fokker-Planck
+equation of the scalar linear diffusion with drift coefficient `κᵢ(t) = f_c(t) + g(t)²/λᵢ(t)`
+and isotropic second-order coefficient -- then the product law `ρ(x̃,t) = ∏ᵢρᵢ(x̃ᵢ,t)` solves the
+corresponding equation of the *full* reverse dynamics in the eigenbasis.  A law that starts a
+product of one-dimensional laws stays one, each factor moving by its own scalar linear
+(OU-type, time-inhomogeneous) diffusion: that is what part (iii) asserts, minus the two
+ingredients recorded above that mathlib cannot provide (the SDE itself, and the identification
+of its law with a solution of this equation). -/
+theorem ch05b_g_decouple_fp (U : Matrix (Fin n) (Fin n) ℝ) (ω : Fin n → ℝ)
+    (hU : Uᵀ * U = 1) (S0 : Matrix (Fin n) (Fin n) ℝ) (hS0 : S0 = U * Matrix.diagonal ω * Uᵀ)
+    (s : ℝ) (hs : 0 ≤ s) (hω : ∀ i, 0 < ω i) (fc g c₁ c₂ : ℝ → ℝ)
+    (ρ ρx ρxx ρt : Fin n → ℝ → ℝ → ℝ)
+    (hx : ∀ i u r, HasDerivAt (fun v => ρ i v r) (ρx i u r) u)
+    (hxx : ∀ i u r, HasDerivAt (fun v => ρx i v r) (ρxx i u r) u)
+    (htime : ∀ i u r, HasDerivAt (fun v => ρ i u v) (ρt i u r) r)
+    (hFP : ∀ i u r, ρt i u r
+      = c₁ r * (ch05b_revCoef fc g (ω i) r * (ρ i u r + u * ρx i u r)) + c₂ r * ρxx i u r)
+    (x : Fin n → ℝ) :
+    HasDerivAt (fun r => ch05b_prodDensity ρ x r)
+      (∑ i, (c₁ s * ch05b_pd i (fun y => (Uᵀ *ᵥ ch05b_revDrift fc g S0 s (U *ᵥ y)) i
+                * ch05b_prodDensity ρ y s) x
+          + c₂ s
+              * ch05b_pd i (fun y => ch05b_pd i (fun z => ch05b_prodDensity ρ z s) y) x)) s := by
+  have h := ch05b_prodDensity_hasDerivAt_time ρ ρt htime x s
+  have hval : (∑ i, (∏ j ∈ Finset.univ.erase i, ρ j (x j) s) • ρt i (x i) s)
+      = ∑ i, (c₁ s * ch05b_pd i (fun y => (Uᵀ *ᵥ ch05b_revDrift fc g S0 s (U *ᵥ y)) i
+                * ch05b_prodDensity ρ y s) x
+          + c₂ s
+              * ch05b_pd i (fun y => ch05b_pd i (fun z => ch05b_prodDensity ρ z s) y) x) := by
+    rw [ch05b_g_decouple_fp_split U ω hU S0 hS0 s hs hω fc g (c₁ s) (c₂ s) ρ ρx ρxx hx hxx x]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    rw [smul_eq_mul, hFP i (x i) s]
+    ring
+  rw [← hval]
+  exact h
+
+/-- **thm:g-decouple (iii) (tex 1229-1233)**, the parts of the claim that are formalisable
+without stochastic analysis, bundled at arbitrary chain length `L = n`.  In the eigenbasis of
+`Σ₀`, for the chapter's reverse drift `b(·,t) = f_c(t)· - g(t)²s(·,t)` built from `Q_t = Σ_t⁻¹`:
+1. the drift field is coordinatewise scalar and linear, `b̃ᵢ(x̃,t) = κᵢ(t)x̃ᵢ`
+   (`ch05b_g_decouple_reverse`);
+2. every integral curve of the vector field has eigen-coordinates solving the scalar equations
+   `x̃ᵢ' = κᵢ(t)x̃ᵢ` (`ch05b_g_decouple_reverse_traj`), and conversely `L` scalar solutions
+   assemble into one (`ch05b_g_decouple_reverse_assemble`);
+3. mode `i` of the flow is determined by its own initial coordinate alone
+   (`ch05b_g_decouple_mode_determined`), with the explicit OU-type closed form
+   `x̃ᵢ(t) = x̃ᵢ(0)e^{t}λᵢ(t)/ωᵢ` for the chapter's VP coefficients (`ch05b_revMode_vp`);
+4. the driving isotropic noise stays isotropic under `Uᵀ` (`ch05b_g_decouple_noise`);
+5. a product law over the modes stays a product law -- the second-order operator of the reverse
+   dynamics never couples two modes (`ch05b_g_decouple_fp`);
+6. the scalar coefficients really are time-dependent (`ch05b_g_decouple_inhomog`).
+What is **not** here, for want of any notion of stochastic integral, SDE solution or
+time-reversal theorem in mathlib, is the process-level statement that the `L` solution
+*processes* exist and are independent. -/
+theorem ch05b_g_decouple_iii (U : Matrix (Fin n) (Fin n) ℝ) (ω : Fin n → ℝ)
+    (hU : Uᵀ * U = 1) (S0 : Matrix (Fin n) (Fin n) ℝ) (hS0 : S0 = U * Matrix.diagonal ω * Uᵀ)
+    (t : ℝ) (ht : 0 ≤ t) (hω : ∀ i, 0 < ω i) (fc g : ℝ → ℝ) :
+    (∀ xt i, (Uᵀ *ᵥ ch05b_revDrift fc g S0 t (U *ᵥ xt)) i
+        = ch05b_revCoef fc g (ω i) t * xt i)
+    ∧ (∀ (X : ℝ → Fin n → ℝ),
+        (∀ k : Fin n, HasDerivAt (fun s => X s k) (ch05b_revDrift fc g S0 t (X t) k) t) →
+        ∀ i, HasDerivAt (fun s => (Uᵀ *ᵥ X s) i)
+          (ch05b_revCoef fc g (ω i) t * (Uᵀ *ᵥ X t) i) t)
+    ∧ (∀ (y : Fin n → ℝ → ℝ),
+        (∀ i : Fin n, HasDerivAt (y i) (ch05b_revCoef fc g (ω i) t * y i t) t) →
+        ∀ k, HasDerivAt (fun s => (U *ᵥ (fun i => y i s)) k)
+          (ch05b_revDrift fc g S0 t (U *ᵥ (fun i => y i t)) k) t)
+    ∧ (∀ σ : ℝ, Uᵀ * (σ ^ 2 • (1 : Matrix (Fin n) (Fin n) ℝ)) * U
+        = σ ^ 2 • (1 : Matrix (Fin n) (Fin n) ℝ)) :=
+  ⟨fun xt i => ch05b_g_decouple_reverse U ω hU S0 hS0 t ht hω fc g xt i,
+   fun X hX i => ch05b_g_decouple_reverse_traj U ω hU S0 hS0 t ht hω fc g X hX i,
+   fun y hy k => ch05b_g_decouple_reverse_assemble U ω hU S0 hS0 t ht hω fc g y hy k,
+   fun σ => ch05b_g_decouple_noise U hU σ⟩
+
 end
 
 end ThesisAudit

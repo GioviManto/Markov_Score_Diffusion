@@ -1,0 +1,34 @@
+{
+ "module": "Ch02",
+ "checked": 4,
+ "verdicts": [
+  {
+   "id": "noname-10",
+   "lean_name": "ch02_noname_10_ibp_drift_nd",
+   "ok": true,
+   "kind": "clean",
+   "detail": "Ch02.lean:2425-2443. Statement quantifies over {d : Nat} (no fixed dimension): int_{Fin d -> R} sum_k ch02_partial phi k x * fp x k = -int phi * ch02_div fp x, on (Fin d -> R) with the default volume, which is the product Lebesgue measure. This is exactly tex 646-648 'int f . grad phi p_t dx = - int phi grad_x . [f(x,t)p_t(x)] dx' with fp the field f p_t: LHS sum_k d_k phi (fp)_k = grad phi . (f p_t), RHS the divergence ch02_div V x = sum_k d_k V_k (Ch02.lean:1807-1808), signs and index range (all of Fin d) match. Hypotheses are the text's own and weaker than it: hphi : ContDiff R 1 phi (text says smooth), hcs : HasCompactSupport phi (text: 'phi vanishes outside a bounded set ... this is where compact support is spent', tex 641-644), hfp : each component C^1. The three integrability conditions the 1-D ch02_noname_10_ibp_drift assumed are now derived (ch02_integrable_testMul, ch02_partial_continuous, ch02_partial_hasCompactSupport), so no hypothesis does work the thesis does not assume. Route is genuinely d-dimensional, not a d=1 instance: ch02_ibp_nd (2342) -> ch02_ibp_nd_coord (2302) = Fubini along coordinate k (ch02_fubini_slice, via volume_preserving_piFinSuccAbove) + the scalar ch02_ibp_real, summed over Fin d with integral_finsetSum. No sorry/axiom in the file; Ch02.olean (21:23) is newer than Ch02.lean (21:19). NOTE CHECK: the Pass 6 note's claims (arbitrary d, product Lebesgue measure, text's own hypotheses, integrability derived, 1-D version kept at 1882) each check out; the note makes no equivalence or converse claim."
+  },
+  {
+   "id": "noname-11",
+   "lean_name": "ch02_noname_11_ibp_lap1_nd",
+   "ok": true,
+   "kind": "clean",
+   "detail": "Ch02.lean:2446-2468. {d : Nat}, arbitrary: int ch02_laplacian phi * p = -int sum_k d_k phi d_k p, with ch02_laplacian = sum_k d_k d_k (1810-1811) over the full index range Fin d. Matches tex 655-657 'int Delta phi p_t dx = - int grad phi . grad p_t dx' in sign and shape. Hypotheses hphi : ContDiff R 2 phi, hcs : HasCompactSupport phi, hp : ContDiff R 1 p are the minimum the display needs and weaker than the text's 'smooth, compactly supported' test function; integrability is derived, not assumed. The k-th term is ch02_ibp_nd applied to u = d_k phi (C^1 by ch02_partial_contDiff, compactly supported by ch02_partial_hasCompactSupport), so the compact support is spent exactly where the text spends it. NOTE CHECK: the Pass 6 note says 'arbitrary d', 'phi C^2 with compact support, p C^1', 'integrability derived, not assumed', '1-D version kept' -- all four true (1-D version at 1890)."
+  },
+  {
+   "id": "noname-12",
+   "lean_name": "ch02_noname_12_ibp_lap2_nd",
+   "ok": true,
+   "kind": "clean",
+   "detail": "Ch02.lean:2470-2490. {d : Nat}, arbitrary: -int sum_k d_k phi d_k p = int phi * ch02_laplacian p, i.e. tex 662-664 '- int grad phi . grad p_t dx = int phi Delta_x p_t dx'; the negation sits outside the integral on both sides, as in the tex. Hypotheses phi C^1 with compact support, p C^2; integrability derived. The chaining the text draws (tex 666-668) is a separate theorem at the same generality, ch02_laplacian_selfAdjoint_nd (2493-2498): int Delta phi p = int phi Delta p for phi C^2 compactly supported, p C^2 -- and it is the version actually used in ch02_sm_weakform_implies_fokkerplanck_nd (2548), so the note's claim that the chaining is 'now also a theorem on R^d' is substantiated, not just asserted. NOTE CHECK: no overstatement; no equivalence claimed."
+  },
+  {
+   "id": "noname-13",
+   "lean_name": "ch02_noname_13_nd",
+   "ok": true,
+   "kind": "clean",
+   "detail": "Ch02.lean:2359-2366. {d : Nat}: h : (Fin d -> R) -> R continuous with int phi * h = 0 for every ContDiff R infinity, compactly supported phi implies h = 0. This is tex 683-687 ('A continuous function orthogonal to every test function is identically zero ... The bracket therefore vanishes at every point') at the ambient space the tex uses. Test-function class is the text's own (smooth + compact support), which makes the hypothesis SMALLER and the theorem stronger, so nothing is weakened. Route is Mathlib's ae_eq_zero_of_integral_contDiff_smul_eq_zero (stated for any finite-dimensional real normed space, so E := Fin d -> R costs nothing) plus Continuous.ae_eq_iff_eq, exactly as the earlier verify pass predicted. It is genuinely put to work at that generality: ch02_sm_weakform_implies_fokkerplanck_nd (2512-2555) instantiates it at h = q + ch02_div fp - g2/2 * ch02_laplacian p, matching the bracket of tex 673-681 term by term and sign by sign, and concludes q = -ch02_div fp + g2/2 * ch02_laplacian p for every x, which is boxed eq:sm-fokkerplanck (tex 689-696). That nd weak-form theorem also does what its docstring says: it assumes only continuity/smoothness plus hweak and DERIVES the integrations by parts and the three integrability conditions the 1-D ch02_sm_weakform_implies_fokkerplanck (1934-1965) took as hibp1/hibp2/hint1-3. Non-vacuous: hweak is satisfiable (take any C^2 p, C^1 fp and set q := -div fp + g2/2 Delta p; the proved ibp lemmas give hweak). NOTE CHECK: the Pass 6 note's 'written in Pass 5 but the item had not been updated', 'arbitrary d', 'no hypothesis weakened', 'last step of ch02_sm_weakform_implies_fokkerplanck_nd', '1-D version kept' (1914) are all accurate; the docstring is candid that Steps 1-3 (the weak form itself) are NOT proved, which is a disclosure rather than an overstatement."
+  }
+ ]
+}

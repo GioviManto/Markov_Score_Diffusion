@@ -10,30 +10,51 @@ where it holds, proved. The development contains **no `sorry`, no `axiom` and no
 | chapter | items | proved | instance-checked | definitions | not formalised | discrepancies |
 |---|---:|---:|---:|---:|---:|---:|
 | 1 Introduction (+ 9 EM kernel) | 5 | 4 | 0 | 1 | 0 | 0 |
-| 2 Statistical mechanics | 56 | 32 | 10 | 10 | 4 | 0 |
+| 2 Statistical mechanics | 56 | 36 | 6 | 10 | 4 | 0 |
 | 3 The model | 41 | 26 | 0 | 15 | 0 | 0 |
 | 4 The ring | 50 | 37 | 0 | 13 | 0 | 0 |
-| 5 Gaussian matrix I | 65 | 53 | 1 | 11 | 0 | 0 |
+| 5 Gaussian matrix I | 65 | 54 | 0 | 11 | 0 | 0 |
 | 5 Gaussian matrix II | 68 | 59 | 1 | 8 | 0 | 0 |
-| 6 Gaussian BP | 49 | 35 | 1 | 13 | 0 | 0 |
+| 6 Gaussian BP | 49 | 36 | 0 | 13 | 0 | 0 |
 | 7 Laplace prior | 32 | 19 | 0 | 13 | 0 | 0 |
 | 8 EM parameters I | 40 | 20 | 0 | 19 | 0 | 1 |
 | 8 EM parameters II | 40 | 30 | 0 | 10 | 0 | 0 |
 | 10 Comparison | 34 | 21 | 0 | 12 | 0 | 1 |
-| **total** | **480** | **336** | 13 | 125 | 4 | 2 |
+| **total** | **480** | **342** | 7 | 125 | 4 | 2 |
 
 Of the 480 recorded items, 125 are definitions that assert nothing.
-Of the 355 that do assert something, **336 (94.6%) are proved**
+Of the 355 that do assert something, **342 (96.3%) are proved**
 in the generality the thesis states them.
 
 ### What the verdicts mean
 
 - **proved** — Lean proves the thesis's claim in the generality stated, under the thesis's own modelling hypotheses.
-- **instance-checked** — only a special case (a fixed dimension, particular parameter values) or a weaker
-  conditional form is established. The obstruction is recorded with the item.
+- **instance-checked** — only a special case, or a weaker conditional form, is established. The obstruction is
+  recorded with the item.
 - **definition** — the display introduces notation; there is nothing to prove.
-- **not formalised** — out of reach with current `mathlib`; the missing ingredient is named in the item's note.
+- **not formalised** — cannot be stated with current `mathlib`; the missing ingredient is named in the item's note.
 - **discrepancy** — the thesis statement is wrong, demonstrated by an explicit counterexample.
+
+## Where the audit stops, and why
+
+Every item that is not fully proved fails for one of two reasons, and both are worth stating plainly.
+
+**`mathlib` has no Itô stochastic integral.** This accounts for all four *not formalised* items and most of the
+*instance-checked* ones, all in Chapter 2. `mathlib` defines Brownian motion, martingales and the process
+machinery, but a search of the library for a stochastic integral, an Itô formula, or a time-reversal theorem
+returns nothing. So a statement like "the marginals of the solution of `dX = f dt + g dW`" has no object to
+quantify over — the display cannot be stated, let alone proved. What *is* proved is everything downstream of
+that boundary, on `ℝᵈ` at arbitrary `d`: the Fokker–Planck equation and its solutions, the weak form and the
+implication from it, the Ornstein–Uhlenbeck channel's transition density and its terminal law, and the
+time-reversal identity at the level of the equations rather than the paths. The same absence is why
+`thm:g-decouple-iii` in Chapter 5 is instance-checked: "L independent scalar linear Gaussian diffusions" is a
+claim about processes. Decoupling is proved at every level `mathlib` can express — the drift field, its
+integral curves, the isotropic noise, and the Fokker–Planck operator whose product solutions are exactly the
+independent laws.
+
+**A converse is proved only in one dimension.** For `eq:sm-fokkerplanck` the forward direction ("a Gaussian
+with these moment ODEs solves the equation") holds at arbitrary `d`; the converse ("and only such a Gaussian
+does") is proved on `ℝ` alone. The item's note says so rather than claiming the equivalence.
 
 ## Findings
 
@@ -41,10 +62,10 @@ The audit found **two errors in display mathematics**, both minor and neither af
 a theorem, or a reported result. They are documented with counterexamples in
 [`AUDIT_REPORT.md`](AUDIT_REPORT.md).
 
-A companion pass over **inline mathematics and numbers quoted in prose** — the surface the display-math
-audit does not cover — found **37 further items, 12 of them outright errors**. These are listed with the
-arithmetic in [`PROSE_FINDINGS.md`](PROSE_FINDINGS.md). Read the two counts together: most of what was
-found lives in prose, not in the displayed equations.
+A companion pass over **inline mathematics and numbers quoted in prose** — the surface the display-math audit
+does not cover — found **37 further items, 12 of them outright errors**, listed with the arithmetic in
+[`PROSE_FINDINGS.md`](PROSE_FINDINGS.md). Read the two counts together: most of what was found lives in prose,
+not in the displayed equations.
 
 ## Contents
 
@@ -52,10 +73,10 @@ found lives in prose, not in the displayed equations.
 |---|---|
 | `ThesisAudit/ChNN.lean` | one module per thesis chapter (ch05 and ch08 split in two) |
 | `ThesisAudit.lean` | root module; importing it builds the whole audit |
-| `AUDIT_RESULTS/*.json` | per-formula verdicts, with the thesis line numbers and the reasoning |
+| `AUDIT_RESULTS/*.json` | per-formula verdicts, with thesis line numbers and the reasoning |
 | `AUDIT_REPORT.md` | the findings report, discrepancies first |
 | `PROSE_FINDINGS.md` | the inline-math and quoted-number audit |
-| `derivations.pdf` | every audited formula with its full Lean statement and proof (447 pp.) |
+| `derivations.pdf` | every audited formula with its full Lean statement and proof (478 pp.) |
 | `derivations.tex` | LaTeX source of the above, generated by `make_derivations_tex.py` |
 | `audit_status.py` | prints the verdict table above from the JSON files |
 
@@ -68,10 +89,10 @@ lake build ThesisAudit    # must exit 0
 ./audit_status.py         # reproduce the verdict table
 ```
 
-Requires the Lean toolchain pinned in `lean-toolchain` (Lean 4.33.0); `elan` will fetch it automatically.
+Requires the Lean toolchain pinned in `lean-toolchain` (Lean 4.33.0); `elan` fetches it automatically.
 
-To regenerate the derivations document (needs XeLaTeX or `tectonic`, and a monospace font with
-mathematical coverage — Menlo is used here):
+To regenerate the derivations document (needs XeLaTeX or `tectonic`, and a monospace font with mathematical
+coverage — Menlo is used here; glyphs it lacks are mapped to math equivalents by the generator):
 
 ```bash
 ./make_derivations_tex.py && tectonic -X compile derivations.tex
@@ -79,13 +100,14 @@ mathematical coverage — Menlo is used here):
 
 ## How it was produced, and what it does not mean
 
-The formalisation was carried out by automated agents and then subjected to two independent adversarial
-review passes whose sole job was to find theorems that compile but do not say what the thesis says —
-vacuous statements, missing quantifiers, a general claim checked only at one specialisation. Those passes
-downgraded 40 items that had been recorded as proved without being proved, and their corrections are
-reflected in the table above.
+The formalisation was carried out by automated agents and then subjected to independent adversarial review
+passes whose sole job was to find theorems that compile but do not say what the thesis says — vacuous
+statements, missing quantifiers, a general claim checked only at one specialisation, or a note promising more
+generality than its theorem delivers. Those passes downgraded 40 items that had been recorded as proved
+without being proved, and found two `sorry`s that a green build had not surfaced. All of that is reflected in
+the verdicts above.
 
-A green build means Lean accepted the proof. It does not by itself guarantee that the formalisation
-captures every nuance of the surrounding prose; that correspondence was checked by reading, item by item,
-and each item's note records what was actually established. Where a statement is weaker than the thesis's,
-the item says so rather than claiming the stronger result.
+A green build means Lean accepted the proof. It does not by itself guarantee that the formalisation captures
+every nuance of the surrounding prose; that correspondence was checked by reading, item by item, and each
+item's note records what was actually established. Where a statement is weaker than the thesis's, the item
+says so rather than claiming the stronger result.

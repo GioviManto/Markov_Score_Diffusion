@@ -558,23 +558,206 @@ theorem ch05a_g_markov_hessian_sparsity (g h : ℝ → ℝ) (x0 z0 : ℝ) :
     simp [deriv_add_const]
   rw [hc, deriv_const]
 
--- eq:g-gaussian-cond-precision (lines 549-555): E[a_k | a_{\k}] = -(Q_kk)^{-1} Σ_{l≠k} Q_kl a_l,
--- encoded as: that value is the minimiser of the quadratic form in coordinate k.
-theorem ch05a_g_gaussian_cond_precision {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ) (a : Fin n → ℝ)
-    (k : Fin n) (hq : 0 < Q k k) (x : ℝ) :
-    Q k k * (-(Q k k)⁻¹ * ∑ l ∈ Finset.univ.erase k, Q k l * a l) ^ 2
-      + 2 * (-(Q k k)⁻¹ * ∑ l ∈ Finset.univ.erase k, Q k l * a l)
-        * (∑ l ∈ Finset.univ.erase k, Q k l * a l)
-      ≤ Q k k * x ^ 2 + 2 * x * (∑ l ∈ Finset.univ.erase k, Q k l * a l) := by
-  set q := Q k k with hqdef
-  set S := ∑ l ∈ Finset.univ.erase k, Q k l * a l with hSdef
-  have hq0 : q ≠ 0 := ne_of_gt hq
-  have key : q * x ^ 2 + 2 * x * S - (q * (-q⁻¹ * S) ^ 2 + 2 * (-q⁻¹ * S) * S)
-      = q * (x + q⁻¹ * S) ^ 2 := by
+-- eq:g-gaussian-cond-precision (lines 549-555): E[a_k | a_{\k}] = -(Q_kk)^{-1} Σ_{l≠k} Q_kl a_l.
+--
+-- Proved at *arbitrary* size `n`, for a symmetric `Q` with `0 < Q k k` (both hold for the
+-- precision matrix of a nondegenerate centred Gaussian; `ch05a_g_gaussian_cond_precision_posDef`
+-- below derives them from `Q.PosDef`).  Symmetry is genuinely needed and is not a convenience
+-- hypothesis: for a non-symmetric `Q` the `k`-section of `a ⬝ᵥ Q *ᵥ a` has linear coefficient
+-- `Σ_{l≠k} (Q_kl + Q_lk) a_l`, so the displayed value is not the minimiser in general.
+--
+-- The route is the entrywise expansion `ch05a_g_quadratic_form_section` (`Matrix.mulVec`
+-- unfolded entrywise, the double sum split at index `k`, the two cross sums matched by
+-- `Finset.sum_congr` under symmetry), followed by completion of the square.
+--
+-- What is NOT formalised here, stated so that the group of lemmas below is not misread: no
+-- probability space, no Gaussian random vector on `ℝⁿ` and no `MeasureTheory.condExp` object is
+-- built, so `E[a_k | a_{\k}]` is not a formal conditional expectation in this file.  Taken as
+-- given are the two standard conventions that (i) the joint density of the centred Gaussian is
+-- proportional to `exp(-(1/2) aᵀQa)` and (ii) conditioning on the other coordinates renormalises
+-- the `k`-section of that density.  Granting (i)-(ii), the lemmas below are the display.
+
+/-- The right-hand side of \eqref{eq:g-gaussian-cond-precision}:
+`-(Q_kk)^{-1} Σ_{l≠k} Q_kl a_l`. -/
+def ch05a_condMean {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ) (a : Fin n → ℝ) (k : Fin n) : ℝ :=
+  -(Q k k)⁻¹ * ∑ l ∈ Finset.univ.erase k, Q k l * a l
+
+/-- The value of the quadratic form when coordinate `k` is set to `ch05a_condMean Q a k`, i.e.
+the part of the exponent that does not depend on coordinate `k`. -/
+def ch05a_condMin {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ) (a : Fin n → ℝ) (k : Fin n) : ℝ :=
+  Function.update a k (ch05a_condMean Q a k) ⬝ᵥ
+    Q.mulVec (Function.update a k (ch05a_condMean Q a k))
+
+/-- Entrywise expansion of the `k`-th section of the quadratic form `a ↦ a ⬝ᵥ Q *ᵥ a`: freezing
+every coordinate of `a` except the `k`-th, which is set to `x`, leaves the genuine quadratic
+`Q_kk x² + 2x Σ_{l≠k} Q_kl a_l + (term free of x)`.  Symmetry of `Q` is what makes the row-`k`
+and column-`k` cross sums agree.  Arbitrary size `n`. -/
+theorem ch05a_g_quadratic_form_section {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ) (hQ : Q.IsSymm)
+    (a : Fin n → ℝ) (k : Fin n) (x : ℝ) :
+    Function.update a k x ⬝ᵥ Q.mulVec (Function.update a k x)
+      = Q k k * x ^ 2 + 2 * x * (∑ l ∈ Finset.univ.erase k, Q k l * a l)
+        + ∑ i ∈ Finset.univ.erase k, ∑ j ∈ Finset.univ.erase k, Q i j * a i * a j := by
+  have hdot : ∀ c : Fin n → ℝ, c ⬝ᵥ Q.mulVec c = ∑ i, ∑ j, c i * Q i j * c j := by
+    intro c
+    simp only [dotProduct, Matrix.mulVec_apply_eq_sum, Finset.mul_sum, mul_assoc]
+  have hsplit : ∀ F : Fin n → Fin n → ℝ,
+      ∑ i, ∑ j, F i j
+        = (F k k + ∑ j ∈ Finset.univ.erase k, F k j)
+          + ∑ i ∈ Finset.univ.erase k, (F i k + ∑ j ∈ Finset.univ.erase k, F i j) := by
+    intro F
+    have h1 : ∀ i : Fin n, ∑ j, F i j = F i k + ∑ j ∈ Finset.univ.erase k, F i j :=
+      fun i => (Finset.add_sum_erase _ (fun j => F i j) (Finset.mem_univ k)).symm
+    have h2 : ∑ i, (∑ j, F i j)
+        = (∑ j, F k j) + ∑ i ∈ Finset.univ.erase k, ∑ j, F i j :=
+      (Finset.add_sum_erase _ (fun i => ∑ j, F i j) (Finset.mem_univ k)).symm
+    rw [h2, h1 k]
+    congr 1
+    exact Finset.sum_congr rfl fun i _ => h1 i
+  have hbk : Function.update a k x k = x := Function.update_self k x a
+  have hbne : ∀ l ∈ Finset.univ.erase k, Function.update a k x l = a l :=
+    fun l hl => Function.update_of_ne (Finset.ne_of_mem_erase hl) x a
+  have e1 : ∑ j ∈ Finset.univ.erase k,
+        Function.update a k x k * Q k j * Function.update a k x j
+      = x * ∑ l ∈ Finset.univ.erase k, Q k l * a l := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun j hj => ?_
+    rw [hbk, hbne j hj]
+    ring
+  have e2 : ∑ i ∈ Finset.univ.erase k,
+        Function.update a k x i * Q i k * Function.update a k x k
+      = x * ∑ l ∈ Finset.univ.erase k, Q k l * a l := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i hi => ?_
+    rw [hbk, hbne i hi, hQ.apply k i]
+    ring
+  have e3 : ∑ i ∈ Finset.univ.erase k, ∑ j ∈ Finset.univ.erase k,
+        Function.update a k x i * Q i j * Function.update a k x j
+      = ∑ i ∈ Finset.univ.erase k, ∑ j ∈ Finset.univ.erase k, Q i j * a i * a j :=
+    Finset.sum_congr rfl fun i hi => Finset.sum_congr rfl fun j hj => by
+      rw [hbne i hi, hbne j hj]; ring
+  have e0 : Function.update a k x k * Q k k * Function.update a k x k = Q k k * x ^ 2 := by
+    rw [hbk]; ring
+  rw [hdot, hsplit fun i j => Function.update a k x i * Q i j * Function.update a k x j,
+    Finset.sum_add_distrib, e0, e1, e2, e3]
+  ring
+
+/-- **eq:g-gaussian-cond-precision**, arbitrary `n`.  As a function of coordinate `k` alone, the
+negative log-density exponent `a ⬝ᵥ Q *ᵥ a` of a centred Gaussian with symmetric precision `Q`
+is *exactly* the completed square
+`Q_kk (x - m)² + const` with `m = -(Q_kk)^{-1} Σ_{l≠k} Q_kl a_l`.
+The text's `E[a_k | a_{\k}]` is read off from this identity in the two standard ways: the
+displayed value is the unique minimiser of the exponent (`..._min`, `..._min_strict`), and it is
+the mean of the Gaussian the section is proportional to (`..._density`, `..._mean`). -/
+theorem ch05a_g_gaussian_cond_precision {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ) (hQ : Q.IsSymm)
+    (a : Fin n → ℝ) (k : Fin n) (hq : 0 < Q k k) (x : ℝ) :
+    Function.update a k x ⬝ᵥ Q.mulVec (Function.update a k x)
+      = Q k k * (x - ch05a_condMean Q a k) ^ 2 + ch05a_condMin Q a k := by
+  have hq0 : Q k k ≠ 0 := ne_of_gt hq
+  rw [ch05a_condMin, ch05a_g_quadratic_form_section Q hQ a k x,
+    ch05a_g_quadratic_form_section Q hQ a k (ch05a_condMean Q a k), ch05a_condMean]
+  field_simp
+  ring
+
+/-- `ch05a_condMean Q a k` minimises the quadratic form in coordinate `k`. -/
+theorem ch05a_g_gaussian_cond_precision_min {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ)
+    (hQ : Q.IsSymm) (a : Fin n → ℝ) (k : Fin n) (hq : 0 < Q k k) (x : ℝ) :
+    ch05a_condMin Q a k ≤ Function.update a k x ⬝ᵥ Q.mulVec (Function.update a k x) := by
+  have h := ch05a_g_gaussian_cond_precision Q hQ a k hq x
+  have h2 : 0 ≤ Q k k * (x - ch05a_condMean Q a k) ^ 2 := mul_nonneg hq.le (sq_nonneg _)
+  linarith
+
+/-- It is the *unique* minimiser: any other value of coordinate `k` strictly increases the form. -/
+theorem ch05a_g_gaussian_cond_precision_min_strict {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ)
+    (hQ : Q.IsSymm) (a : Fin n → ℝ) (k : Fin n) (hq : 0 < Q k k) (x : ℝ)
+    (hx : x ≠ ch05a_condMean Q a k) :
+    ch05a_condMin Q a k < Function.update a k x ⬝ᵥ Q.mulVec (Function.update a k x) := by
+  have h := ch05a_g_gaussian_cond_precision Q hQ a k hq x
+  have hne : x - ch05a_condMean Q a k ≠ 0 := sub_ne_zero.mpr hx
+  have h2 : 0 < Q k k * (x - ch05a_condMean Q a k) ^ 2 :=
+    mul_pos hq (lt_of_le_of_ne (sq_nonneg _) (Ne.symm (pow_ne_zero 2 hne)))
+  linarith
+
+/-- The `k`-section of the Gaussian weight `x ↦ exp(-(1/2) a ⬝ᵥ Q *ᵥ a)`, the other coordinates
+frozen, is a positive constant times the `N(m, (Q_kk)⁻¹)` density, `m = ch05a_condMean Q a k`.
+Under the convention that conditioning renormalises this section, the conditional law of `a_k`
+given `a_{\k}` is therefore that Gaussian; its mean is `m`
+(`ch05a_g_gaussian_cond_precision_mean`), which is \eqref{eq:g-gaussian-cond-precision}.  The
+renormalisation step itself is convention here, not formalised. -/
+theorem ch05a_g_gaussian_cond_precision_density {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ)
+    (hQ : Q.IsSymm) (a : Fin n → ℝ) (k : Fin n) (hq : 0 < Q k k) :
+    ∃ c : ℝ, 0 < c ∧ ∀ x : ℝ,
+      Real.exp (-(1 / 2) * (Function.update a k x ⬝ᵥ Q.mulVec (Function.update a k x)))
+        = c * ProbabilityTheory.gaussianPDFReal (ch05a_condMean Q a k)
+            ⟨(Q k k)⁻¹, (inv_pos.mpr hq).le⟩ x := by
+  have hq0 : Q k k ≠ 0 := ne_of_gt hq
+  have hv : (0 : ℝ) < 2 * Real.pi * (Q k k)⁻¹ := mul_pos (by positivity) (inv_pos.mpr hq)
+  have hs : Real.sqrt (2 * Real.pi * (Q k k)⁻¹) ≠ 0 := ne_of_gt (Real.sqrt_pos.mpr hv)
+  refine ⟨Real.exp (-(1 / 2) * ch05a_condMin Q a k) * Real.sqrt (2 * Real.pi * (Q k k)⁻¹),
+    mul_pos (Real.exp_pos _) (Real.sqrt_pos.mpr hv), fun x => ?_⟩
+  have hexp : Real.exp (-(1 / 2) *
+        (Q k k * (x - ch05a_condMean Q a k) ^ 2 + ch05a_condMin Q a k))
+      = Real.exp (-(1 / 2) * ch05a_condMin Q a k)
+        * Real.exp (-(x - ch05a_condMean Q a k) ^ 2 / (2 * (Q k k)⁻¹)) := by
+    rw [← Real.exp_add]
+    congr 1
     field_simp
     ring
-  have h2 : 0 ≤ q * (x + q⁻¹ * S) ^ 2 := mul_nonneg hq.le (sq_nonneg _)
-  linarith [key, h2]
+  have hpdf : ProbabilityTheory.gaussianPDFReal (ch05a_condMean Q a k)
+      ⟨(Q k k)⁻¹, (inv_pos.mpr hq).le⟩ x
+      = (Real.sqrt (2 * Real.pi * (Q k k)⁻¹))⁻¹
+        * Real.exp (-(x - ch05a_condMean Q a k) ^ 2 / (2 * (Q k k)⁻¹)) := by
+    rfl
+  rw [ch05a_g_gaussian_cond_precision Q hQ a k hq x, hexp, hpdf, mul_assoc,
+    ← mul_assoc (Real.sqrt (2 * Real.pi * (Q k k)⁻¹)), mul_inv_cancel₀ hs, one_mul]
+
+/-- The mean of the law identified in `ch05a_g_gaussian_cond_precision_density` is the
+right-hand side of \eqref{eq:g-gaussian-cond-precision}.  This is mathlib's
+`ProbabilityTheory.integral_id_gaussianReal` instantiated at exactly those parameters; it adds no
+mathematical content of its own, it records that the parameters match the display. -/
+theorem ch05a_g_gaussian_cond_precision_mean {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ)
+    (a : Fin n → ℝ) (k : Fin n) (hq : 0 < Q k k) :
+    ∫ x, x ∂(ProbabilityTheory.gaussianReal (ch05a_condMean Q a k)
+        ⟨(Q k k)⁻¹, (inv_pos.mpr hq).le⟩)
+      = -(Q k k)⁻¹ * ∑ l ∈ Finset.univ.erase k, Q k l * a l :=
+  ProbabilityTheory.integral_id_gaussianReal
+
+/-- Packaging: for a positive definite precision matrix `Q` (a nondegenerate centred Gaussian),
+both hypotheses of `ch05a_g_gaussian_cond_precision` are automatic. -/
+theorem ch05a_g_gaussian_cond_precision_posDef {n : ℕ} (Q : Matrix (Fin n) (Fin n) ℝ)
+    (hQ : Q.PosDef) (a : Fin n → ℝ) (k : Fin n) (x : ℝ) :
+    Function.update a k x ⬝ᵥ Q.mulVec (Function.update a k x)
+      = Q k k * (x - ch05a_condMean Q a k) ^ 2 + ch05a_condMin Q a k :=
+  ch05a_g_gaussian_cond_precision Q (Matrix.isHermitian_iff_isSymm.mp hQ.isHermitian) a k
+    hQ.diag_pos x
+
+/-- The chapter's own precision matrix `Q₀` \eqref{eq:g-Q0} is symmetric, at every length `n`. -/
+theorem ch05a_Q0_isSymm (n : ℕ) (α : ℝ) : (ch05a_Q0 n α).IsSymm :=
+  Matrix.IsSymm.ext fun i j => by
+    rcases eq_or_ne i j with h | h
+    · rw [h]
+    · simp [ch05a_Q0, h, Ne.symm h, Nat.dist_comm j.val i.val]
+
+/-- Every diagonal entry of `Q₀` is positive when `σ_η² > 0`, i.e. when `|α| < 1`. -/
+theorem ch05a_Q0_diag_pos {n : ℕ} (α : ℝ) (hσ : 0 < ch05a_sigEta2 α) (k : Fin n) :
+    0 < ch05a_Q0 n α k k := by
+  by_cases hk : k.val = 0 ∨ k.val = n - 1
+  · have h : ch05a_Q0 n α k k = 1 / ch05a_sigEta2 α := by simp [ch05a_Q0, hk]
+    rw [h]
+    exact div_pos one_pos hσ
+  · push_neg at hk
+    rw [ch05a_g_precision_interior α k hk.1 hk.2]
+    exact div_pos (by positivity) hσ
+
+/-- \eqref{eq:g-gaussian-cond-precision} for the chapter's own precision matrix `Q₀`, at every
+length `n` and every `α` with `σ_η² > 0`: the two hypotheses are discharged, nothing is left to
+assume about the matrix. -/
+theorem ch05a_g_gaussian_cond_precision_Q0 {n : ℕ} (α : ℝ) (hσ : 0 < ch05a_sigEta2 α)
+    (a : Fin n → ℝ) (k : Fin n) (x : ℝ) :
+    Function.update a k x ⬝ᵥ (ch05a_Q0 n α).mulVec (Function.update a k x)
+      = ch05a_Q0 n α k k * (x - ch05a_condMean (ch05a_Q0 n α) a k) ^ 2
+        + ch05a_condMin (ch05a_Q0 n α) a k :=
+  ch05a_g_gaussian_cond_precision (ch05a_Q0 n α) (ch05a_Q0_isSymm n α) a k
+    (ch05a_Q0_diag_pos α hσ k) x
 
 -- eq:g-cond-mean (lines 558-572): for an interior frame,
 -- E[a_k | a_{\k}] = α/(1+α²) (a_{k-1} + a_{k+1}).

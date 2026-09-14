@@ -2210,4 +2210,783 @@ theorem ch02_sm_dsm_optimum_is_score {N : ℕ} (hN : 0 < N) (lam a : Fin N → �
     rw [e1 sstar, e1 s]
     exact hmin
 
+
+/-! ### Pass 5 (the dimension pass): toolbox tb:sm-fokkerplanck on ℝ^d
+
+The chapter states this toolbox on `ℝ^d` -- tex 538-539, "Throughout, `X_t ∈ ℝ^d`",
+and tex 641, "Integrate over `ℝ^d`" -- while Pass 4 proved Steps 4 to 6 on the line.
+This pass lifts them to `ℝ^d`, realised as `Fin d → ℝ` with the product Lebesgue
+measure: the same ambient space `ch02_partial`, `ch02_div`, `ch02_laplacian`,
+`ch02_noname_3_factorises` and `ch02_noname_4_partition` already use.
+
+The route is the text's own.  Each `∂ₖ` integration by parts is the scalar identity on
+the line through `x` in direction `k`, and Fubini reassembles the slices; the
+`d`-dimensional displays are then sums of that over the `d` coordinates.  The
+`ℝ`-integration-by-parts input is `ch02_ibp_real` of Pass 4, i.e. Mathlib's
+`integral_mul_deriv_eq_deriv_mul_of_integrable`. -/
+
+/-- Inserting the scalar `t` into coordinate `k` of a fixed `(d-1)`-tuple is an affine map
+of `t`, with derivative the `k`-th basis vector. -/
+theorem ch02_insertNth_hasDerivAt {n : ℕ} (k : Fin (n + 1)) (y : Fin n → ℝ) (t : ℝ) :
+    HasDerivAt (fun s : ℝ => (k.insertNth s y : Fin (n + 1) → ℝ))
+      (Pi.single k (1 : ℝ)) t := by
+  rw [hasDerivAt_pi]
+  intro i
+  rcases eq_or_ne i k with rfl | hik
+  · simp only [Fin.insertNth_apply_same, Pi.single_eq_same]
+    exact hasDerivAt_id' (𝕜 := ℝ) (x := t)
+  · obtain ⟨j, rfl⟩ := Fin.exists_succAbove_eq hik
+    simp only [Fin.insertNth_apply_succAbove, Pi.single_eq_of_ne (Fin.succAbove_ne k j)]
+    exact hasDerivAt_const t (y j)
+
+/-- The partial derivative `∂ₖF` is the ordinary derivative of `F` along the `k`-th
+coordinate line. -/
+theorem ch02_partial_slice {n : ℕ} (k : Fin (n + 1)) {F : (Fin (n + 1) → ℝ) → ℝ}
+    (hF : Differentiable ℝ F) (y : Fin n → ℝ) (t : ℝ) :
+    HasDerivAt (fun s : ℝ => F (k.insertNth s y))
+      (ch02_partial F k (k.insertNth t y)) t :=
+  ((hF (k.insertNth t y)).hasFDerivAt).comp_hasDerivAt t (ch02_insertNth_hasDerivAt k y t)
+
+/-- A compactly supported function restricts to a compactly supported function on every
+coordinate line: this is where the text's "φ vanishes outside a bounded set" is spent. -/
+theorem ch02_slice_hasCompactSupport {n : ℕ} {u : (Fin (n + 1) → ℝ) → ℝ}
+    (hcs : HasCompactSupport u) (k : Fin (n + 1)) (y : Fin n → ℝ) :
+    HasCompactSupport (fun t : ℝ => u (k.insertNth t y)) := by
+  have hcpt : IsCompact (tsupport u) := hcs
+  obtain ⟨R, hR⟩ := hcpt.isBounded.subset_closedBall (0 : Fin (n + 1) → ℝ)
+  refine HasCompactSupport.intro (K := Set.Icc (-R) R) isCompact_Icc ?_
+  intro t ht
+  by_contra hne
+  have hsupp : (k.insertNth t y : Fin (n + 1) → ℝ) ∈ tsupport u :=
+    subset_closure (by simpa [Function.mem_support] using hne)
+  have hball : ‖(k.insertNth t y : Fin (n + 1) → ℝ)‖ ≤ R := by
+    simpa using hR hsupp
+  have hcoord : |t| ≤ ‖(k.insertNth t y : Fin (n + 1) → ℝ)‖ := by
+    simpa using norm_le_pi_norm (k.insertNth t y : Fin (n + 1) → ℝ) k
+  exact ht (Set.mem_Icc.mpr (abs_le.mp (le_trans hcoord hball)))
+
+/-- Fubini along the `k`-th coordinate: an integral over `ℝ^d` is the integral over the
+remaining `d-1` coordinates of the integral along the `k`-th coordinate line. -/
+theorem ch02_fubini_slice {n : ℕ} (k : Fin (n + 1)) {F : (Fin (n + 1) → ℝ) → ℝ}
+    (hF : Integrable F) :
+    ∫ x : Fin (n + 1) → ℝ, F x = ∫ y : Fin n → ℝ, ∫ t : ℝ, F (k.insertNth t y) := by
+  have hmp : MeasurePreserving
+      (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) k).symm
+      (volume : Measure (ℝ × (Fin n → ℝ))) (volume : Measure (Fin (n + 1) → ℝ)) :=
+    (volume_preserving_piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) k).symm
+  have hcomp : Integrable
+      (fun z : ℝ × (Fin n → ℝ) =>
+        F ((MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) k).symm z))
+      (volume : Measure (ℝ × (Fin n → ℝ))) :=
+    (hmp.integrable_comp_emb (MeasurableEquiv.measurableEmbedding _)).mpr hF
+  have h1 : ∫ z : ℝ × (Fin n → ℝ),
+      F ((MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) k).symm z)
+        = ∫ x : Fin (n + 1) → ℝ, F x := hmp.integral_comp' F
+  rw [← h1]
+  rw [MeasureTheory.Measure.volume_eq_prod] at hcomp ⊢
+  rw [MeasureTheory.integral_prod_symm _ hcomp]
+  rfl
+
+
+/-- The coordinate line `t ↦ (…, t, …)` is continuous. -/
+theorem ch02_insertNth_continuous {n : ℕ} (k : Fin (n + 1)) (y : Fin n → ℝ) :
+    Continuous (fun s : ℝ => (k.insertNth s y : Fin (n + 1) → ℝ)) :=
+  continuous_iff_continuousAt.mpr fun s => (ch02_insertNth_hasDerivAt k y s).continuousAt
+
+/-- **Integration by parts on `ℝ^d` in one coordinate**: `∫ (∂ₖu) v = -∫ u (∂ₖv)`.
+
+`u` plays the role of the toolbox's test function -- `C¹` with compact support, which is
+what makes the boundary term vanish -- and `v` is an arbitrary `C¹` function.  The proof
+is Fubini along the `k`-th coordinate (`ch02_fubini_slice`) plus the scalar integration
+by parts `ch02_ibp_real` on each coordinate line. -/
+theorem ch02_ibp_nd_coord {n : ℕ} (k : Fin (n + 1)) {u v : (Fin (n + 1) → ℝ) → ℝ}
+    (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v) (hucs : HasCompactSupport u) :
+    ∫ x : Fin (n + 1) → ℝ, ch02_partial u k x * v x
+      = -∫ x : Fin (n + 1) → ℝ, u x * ch02_partial v k x := by
+  have hud : Differentiable ℝ u := hu.differentiable (by norm_num)
+  have hvd : Differentiable ℝ v := hv.differentiable (by norm_num)
+  have hcu : Continuous (ch02_partial u k) := by
+    show Continuous fun x => fderiv ℝ u x (Pi.single k (1 : ℝ))
+    exact (hu.continuous_fderiv (by norm_num)).clm_apply continuous_const
+  have hcv : Continuous (ch02_partial v k) := by
+    show Continuous fun x => fderiv ℝ v x (Pi.single k (1 : ℝ))
+    exact (hv.continuous_fderiv (by norm_num)).clm_apply continuous_const
+  have hcsu : HasCompactSupport (ch02_partial u k) :=
+    hucs.fderiv_apply ℝ (Pi.single k (1 : ℝ))
+  have hA : Integrable (fun x : Fin (n + 1) → ℝ => ch02_partial u k x * v x) :=
+    (hcu.mul hv.continuous).integrable_of_hasCompactSupport hcsu.mul_right
+  have hB : Integrable (fun x : Fin (n + 1) → ℝ => u x * ch02_partial v k x) :=
+    (hu.continuous.mul hcv).integrable_of_hasCompactSupport hucs.mul_right
+  rw [ch02_fubini_slice k hA, ch02_fubini_slice k hB, ← MeasureTheory.integral_neg]
+  refine MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun y => ?_)
+  have hins := ch02_insertNth_continuous k y
+  have hsu : HasCompactSupport (fun t : ℝ => u (k.insertNth t y)) :=
+    ch02_slice_hasCompactSupport hucs k y
+  have hspu : HasCompactSupport (fun t : ℝ => ch02_partial u k (k.insertNth t y)) :=
+    ch02_slice_hasCompactSupport hcsu k y
+  have h1 : Integrable (fun t : ℝ =>
+      u (k.insertNth t y) * ch02_partial v k (k.insertNth t y)) :=
+    ((hu.continuous.comp hins).mul (hcv.comp hins)).integrable_of_hasCompactSupport
+      hsu.mul_right
+  have h2 : Integrable (fun t : ℝ =>
+      ch02_partial u k (k.insertNth t y) * v (k.insertNth t y)) :=
+    ((hcu.comp hins).mul (hv.continuous.comp hins)).integrable_of_hasCompactSupport
+      hspu.mul_right
+  have h3 : Integrable (fun t : ℝ => u (k.insertNth t y) * v (k.insertNth t y)) :=
+    ((hu.continuous.comp hins).mul (hv.continuous.comp hins)).integrable_of_hasCompactSupport
+      hsu.mul_right
+  exact ch02_ibp_real (fun t _ => ch02_partial_slice k hud y t)
+    (fun t _ => ch02_partial_slice k hvd y t) h1 h2 h3
+
+/-- `ch02_ibp_nd_coord` at an arbitrary dimension (for `d = 0` both sides are `0`). -/
+theorem ch02_ibp_nd : ∀ {d : ℕ} (k : Fin d) {u v : (Fin d → ℝ) → ℝ},
+    ContDiff ℝ 1 u → ContDiff ℝ 1 v → HasCompactSupport u →
+    ∫ x : Fin d → ℝ, ch02_partial u k x * v x
+      = -∫ x : Fin d → ℝ, u x * ch02_partial v k x := by
+  rintro (_ | n) k u v hu hv hucs
+  · exact k.elim0
+  · exact ch02_ibp_nd_coord k hu hv hucs
+
+/-! #### noname-13 (tex 672-682) on ℝ^d
+
+The fundamental lemma of the calculus of variations is already available in Mathlib at
+this generality: `ae_eq_zero_of_integral_contDiff_smul_eq_zero` is stated for an
+arbitrary finite-dimensional real normed space, so the `ℝ^d` statement costs no more
+than the one-dimensional one.  The test-function class is the text's own -- smooth
+(`ContDiff ℝ ∞`) with compact support -- and continuity upgrades the almost-everywhere
+conclusion to "at every point", which is what the text asserts. -/
+
+theorem ch02_noname_13_nd {d : ℕ} (h : (Fin d → ℝ) → ℝ) (hc : Continuous h)
+    (hzero : ∀ φ : (Fin d → ℝ) → ℝ, ContDiff ℝ ∞ φ → HasCompactSupport φ →
+      ∫ x : Fin d → ℝ, φ x * h x = 0) :
+    h = 0 := by
+  have hae : ∀ᵐ x ∂(volume : Measure (Fin d → ℝ)), h x = 0 :=
+    ae_eq_zero_of_integral_contDiff_smul_eq_zero hc.locallyIntegrable
+      (fun g hg hgc => by simpa using hzero g hg hgc)
+  exact (hc.ae_eq_iff_eq volume continuous_const).mp hae
+
+/-! ### Pass 6 (the dimension pass, completed): Steps 4-6 of tb:sm-fokkerplanck on ℝ^d
+
+The chapter states this toolbox on `ℝ^d` (tex 538-539, "Throughout, `X_t ∈ ℝ^d`";
+tex 641, "Integrate over `ℝ^d`").  Pass 5 built the two `ℝ^d` ingredients --
+coordinatewise integration by parts `ch02_ibp_nd` and the fundamental lemma
+`ch02_noname_13_nd` -- but the four displays they serve (noname-10, noname-11,
+noname-12 and the implication eq:sm-weakform ⇒ eq:sm-fokkerplanck) were still stated
+on the line.  They are stated and proved here on `ℝ^d`, at arbitrary `d`, with the
+divergence and Laplacian of `ch02_div` / `ch02_laplacian`.
+
+Two things improve besides the dimension.  The `ℝ^d` integration-by-parts statements
+carry the text's OWN hypotheses -- `φ` smooth with compact support, the density and
+the field continuously differentiable -- rather than assuming the integrability side
+conditions, and the `ℝ^d` weak-form theorem consequently DISCHARGES the three
+integrations by parts and the three integrability hypotheses that the one-dimensional
+`ch02_sm_weakform_implies_fokkerplanck` had to take as assumptions. -/
+
+/-- `∂ₖF` is continuous when `F` is `C¹`. -/
+theorem ch02_partial_continuous {d : ℕ} {F : (Fin d → ℝ) → ℝ} (hF : ContDiff ℝ 1 F)
+    (k : Fin d) : Continuous (ch02_partial F k) := by
+  show Continuous fun x => fderiv ℝ F x (Pi.single k (1 : ℝ))
+  exact (hF.continuous_fderiv (by norm_num)).clm_apply continuous_const
+
+/-- `∂ₖF` is `C¹` when `F` is `C²`. -/
+theorem ch02_partial_contDiff {d : ℕ} {F : (Fin d → ℝ) → ℝ} (hF : ContDiff ℝ 2 F)
+    (k : Fin d) : ContDiff ℝ 1 (ch02_partial F k) := by
+  show ContDiff ℝ 1 fun x => fderiv ℝ F x (Pi.single k (1 : ℝ))
+  exact (hF.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+
+/-- `∂ₖφ` inherits the compact support of `φ`: the text's "`φ` vanishes outside a
+bounded set", which is what makes every boundary term below vanish. -/
+theorem ch02_partial_hasCompactSupport {d : ℕ} {F : (Fin d → ℝ) → ℝ}
+    (hcs : HasCompactSupport F) (k : Fin d) : HasCompactSupport (ch02_partial F k) :=
+  hcs.fderiv_apply ℝ (Pi.single k (1 : ℝ))
+
+theorem ch02_div_continuous {d : ℕ} {V : (Fin d → ℝ) → Fin d → ℝ}
+    (hV : ∀ k, ContDiff ℝ 1 (fun y => V y k)) : Continuous (ch02_div V) := by
+  show Continuous fun x => ∑ k, ch02_partial (fun y => V y k) k x
+  exact continuous_finset_sum _ fun k _ => ch02_partial_continuous (hV k) k
+
+theorem ch02_laplacian_continuous {d : ℕ} {p : (Fin d → ℝ) → ℝ} (hp : ContDiff ℝ 2 p) :
+    Continuous (ch02_laplacian p) := by
+  show Continuous fun x => ∑ k, ch02_partial (ch02_partial p k) k x
+  exact continuous_finset_sum _ fun k _ =>
+    ch02_partial_continuous (ch02_partial_contDiff hp k) k
+
+/-- A continuous compactly supported factor times a continuous factor is integrable:
+this is how every integral below is known to exist. -/
+theorem ch02_integrable_testMul {d : ℕ} {u v : (Fin d → ℝ) → ℝ}
+    (hu : Continuous u) (hcs : HasCompactSupport u) (hv : Continuous v) :
+    Integrable (fun x => u x * v x) (volume : Measure (Fin d → ℝ)) :=
+  (hu.mul hv).integrable_of_hasCompactSupport hcs.mul_right
+
+/-- **noname-10 (tex 645-649) on `ℝ^d`**: `∫ f·∇φ p = -∫ φ ∇·[f p]`.
+
+`fp` is the vector field `f p_t`.  Proved at arbitrary `d` from coordinatewise
+integration by parts `ch02_ibp_nd`, summed over the `d` coordinates. -/
+theorem ch02_noname_10_ibp_drift_nd {d : ℕ} {φ : (Fin d → ℝ) → ℝ}
+    {fp : (Fin d → ℝ) → Fin d → ℝ}
+    (hφ : ContDiff ℝ 1 φ) (hcs : HasCompactSupport φ)
+    (hfp : ∀ k, ContDiff ℝ 1 (fun y => fp y k)) :
+    ∫ x : Fin d → ℝ, ∑ k, ch02_partial φ k x * fp x k
+      = -∫ x : Fin d → ℝ, φ x * ch02_div fp x := by
+  have hA : ∀ k : Fin d,
+      Integrable (fun x : Fin d → ℝ => ch02_partial φ k x * fp x k) :=
+    fun k => ch02_integrable_testMul (ch02_partial_continuous hφ k)
+      (ch02_partial_hasCompactSupport hcs k) (hfp k).continuous
+  have hB : ∀ k : Fin d,
+      Integrable (fun x : Fin d → ℝ => φ x * ch02_partial (fun y => fp y k) k x) :=
+    fun k => ch02_integrable_testMul hφ.continuous hcs (ch02_partial_continuous (hfp k) k)
+  have hrhs : (fun x : Fin d → ℝ => φ x * ch02_div fp x)
+      = fun x => ∑ k, φ x * ch02_partial (fun y => fp y k) k x := by
+    funext x; simp only [ch02_div, Finset.mul_sum]
+  rw [integral_finsetSum _ (fun k _ => hA k), hrhs,
+    integral_finsetSum _ (fun k _ => hB k), ← Finset.sum_neg_distrib]
+  exact Finset.sum_congr rfl fun k _ => ch02_ibp_nd k hφ (hfp k) hcs
+
+/-- **noname-11 (tex 654-658) on `ℝ^d`**: `∫ Δφ p = -∫ ∇φ·∇p`. -/
+theorem ch02_noname_11_ibp_lap1_nd {d : ℕ} {φ p : (Fin d → ℝ) → ℝ}
+    (hφ : ContDiff ℝ 2 φ) (hcs : HasCompactSupport φ) (hp : ContDiff ℝ 1 p) :
+    ∫ x : Fin d → ℝ, ch02_laplacian φ x * p x
+      = -∫ x : Fin d → ℝ, ∑ k, ch02_partial φ k x * ch02_partial p k x := by
+  have hφ1 : ContDiff ℝ 1 φ := hφ.of_le (by norm_num)
+  have hA : ∀ k : Fin d,
+      Integrable (fun x : Fin d → ℝ => ch02_partial (ch02_partial φ k) k x * p x) :=
+    fun k => ch02_integrable_testMul
+      (ch02_partial_continuous (ch02_partial_contDiff hφ k) k)
+      (ch02_partial_hasCompactSupport (ch02_partial_hasCompactSupport hcs k) k)
+      hp.continuous
+  have hB : ∀ k : Fin d,
+      Integrable (fun x : Fin d → ℝ => ch02_partial φ k x * ch02_partial p k x) :=
+    fun k => ch02_integrable_testMul (ch02_partial_continuous hφ1 k)
+      (ch02_partial_hasCompactSupport hcs k) (ch02_partial_continuous hp k)
+  have hlhs : (fun x : Fin d → ℝ => ch02_laplacian φ x * p x)
+      = fun x => ∑ k, ch02_partial (ch02_partial φ k) k x * p x := by
+    funext x; simp only [ch02_laplacian, Finset.sum_mul]
+  rw [hlhs, integral_finsetSum _ (fun k _ => hA k),
+    integral_finsetSum _ (fun k _ => hB k), ← Finset.sum_neg_distrib]
+  exact Finset.sum_congr rfl fun k _ =>
+    ch02_ibp_nd k (ch02_partial_contDiff hφ k) hp (ch02_partial_hasCompactSupport hcs k)
+
+/-- **noname-12 (tex 661-665) on `ℝ^d`**: `-∫ ∇φ·∇p = ∫ φ Δp`. -/
+theorem ch02_noname_12_ibp_lap2_nd {d : ℕ} {φ p : (Fin d → ℝ) → ℝ}
+    (hφ : ContDiff ℝ 1 φ) (hcs : HasCompactSupport φ) (hp : ContDiff ℝ 2 p) :
+    -∫ x : Fin d → ℝ, ∑ k, ch02_partial φ k x * ch02_partial p k x
+      = ∫ x : Fin d → ℝ, φ x * ch02_laplacian p x := by
+  have hp1 : ContDiff ℝ 1 p := hp.of_le (by norm_num)
+  have hA : ∀ k : Fin d,
+      Integrable (fun x : Fin d → ℝ => ch02_partial φ k x * ch02_partial p k x) :=
+    fun k => ch02_integrable_testMul (ch02_partial_continuous hφ k)
+      (ch02_partial_hasCompactSupport hcs k) (ch02_partial_continuous hp1 k)
+  have hB : ∀ k : Fin d,
+      Integrable (fun x : Fin d → ℝ => φ x * ch02_partial (ch02_partial p k) k x) :=
+    fun k => ch02_integrable_testMul hφ.continuous hcs
+      (ch02_partial_continuous (ch02_partial_contDiff hp k) k)
+  have hrhs : (fun x : Fin d → ℝ => φ x * ch02_laplacian p x)
+      = fun x => ∑ k, φ x * ch02_partial (ch02_partial p k) k x := by
+    funext x; simp only [ch02_laplacian, Finset.mul_sum]
+  rw [hrhs, integral_finsetSum _ (fun k _ => hA k),
+    integral_finsetSum _ (fun k _ => hB k), ← Finset.sum_neg_distrib]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [ch02_ibp_nd k hφ (ch02_partial_contDiff hp k) hcs, neg_neg]
+
+/-- Step 5's conclusion, on `ℝ^d`: "the Laplacian moves across unchanged, the two sign
+flips cancelling, which is the statement that it is formally self-adjoint". -/
+theorem ch02_laplacian_selfAdjoint_nd {d : ℕ} {φ p : (Fin d → ℝ) → ℝ}
+    (hφ : ContDiff ℝ 2 φ) (hcs : HasCompactSupport φ) (hp : ContDiff ℝ 2 p) :
+    ∫ x : Fin d → ℝ, ch02_laplacian φ x * p x
+      = ∫ x : Fin d → ℝ, φ x * ch02_laplacian p x := by
+  rw [ch02_noname_11_ibp_lap1_nd hφ hcs (hp.of_le (by norm_num)),
+    ch02_noname_12_ibp_lap2_nd (hφ.of_le (by norm_num)) hcs hp]
+
+/-- **eq:sm-weakform ⇒ eq:sm-fokkerplanck on `ℝ^d`** (Steps 4-6 of tb:sm-fokkerplanck).
+
+If the weak form holds against every test function -- `∫ φ ∂ₜp = ∫ f·∇φ p + ½g² ∫ Δφ p`
+-- then the boxed strong form `∂ₜp = -∇·[f p] + ½g² Δp` holds at EVERY point of `ℝ^d`.
+`q` stands for `∂ₜp_t` and `fp` for the field `f p_t`.  Unlike the one-dimensional
+`ch02_sm_weakform_implies_fokkerplanck`, the integrations by parts and the
+integrability of the three integrals are not assumed: they are derived from the
+smoothness and compact support the text itself assumes.
+
+What is NOT proved -- here or anywhere in this module -- is the weak form itself, which
+is Steps 1-3 (Itô's lemma, the vanishing of the Itô integral's expectation, and the
+generator identity eq:sm-generator): this Mathlib has no stochastic integral. -/
+theorem ch02_sm_weakform_implies_fokkerplanck_nd {d : ℕ}
+    {p q : (Fin d → ℝ) → ℝ} {fp : (Fin d → ℝ) → Fin d → ℝ} (g2 : ℝ)
+    (hq : Continuous q) (hp : ContDiff ℝ 2 p)
+    (hfp : ∀ k, ContDiff ℝ 1 (fun y => fp y k))
+    (hweak : ∀ φ : (Fin d → ℝ) → ℝ, ContDiff ℝ ∞ φ → HasCompactSupport φ →
+        ∫ x : Fin d → ℝ, φ x * q x
+          = (∫ x : Fin d → ℝ, ∑ k, ch02_partial φ k x * fp x k)
+            + g2 / 2 * ∫ x : Fin d → ℝ, ch02_laplacian φ x * p x) :
+    ∀ x, q x = -ch02_div fp x + g2 / 2 * ch02_laplacian p x := by
+  have hdiv : Continuous (ch02_div fp) := ch02_div_continuous hfp
+  have hlap : Continuous (ch02_laplacian p) := ch02_laplacian_continuous hp
+  have hbr : Continuous (fun x => q x + ch02_div fp x - g2 / 2 * ch02_laplacian p x) :=
+    (hq.add hdiv).sub (continuous_const.mul hlap)
+  have hzero : ∀ φ : (Fin d → ℝ) → ℝ, ContDiff ℝ ∞ φ → HasCompactSupport φ →
+      ∫ x : Fin d → ℝ, φ x * (q x + ch02_div fp x - g2 / 2 * ch02_laplacian p x) = 0 := by
+    intro φ hφ hφc
+    have hφ1 : ContDiff ℝ 1 φ := contDiff_infty.1 hφ 1
+    have hφ2 : ContDiff ℝ 2 φ := contDiff_infty.1 hφ 2
+    have h1 : Integrable (fun x : Fin d → ℝ => φ x * q x) :=
+      ch02_integrable_testMul hφ.continuous hφc hq
+    have h2 : Integrable (fun x : Fin d → ℝ => φ x * ch02_div fp x) :=
+      ch02_integrable_testMul hφ.continuous hφc hdiv
+    have h3 : Integrable (fun x : Fin d → ℝ => φ x * ch02_laplacian p x) :=
+      ch02_integrable_testMul hφ.continuous hφc hlap
+    have e1 : (fun x : Fin d → ℝ =>
+          φ x * (q x + ch02_div fp x - g2 / 2 * ch02_laplacian p x))
+        = fun x => (φ x * q x + φ x * ch02_div fp x)
+            - g2 / 2 * (φ x * ch02_laplacian p x) := by
+      funext x; ring
+    have hA : Integrable
+        (fun x : Fin d → ℝ => φ x * q x + φ x * ch02_div fp x) volume := h1.add h2
+    have hB : Integrable
+        (fun x : Fin d → ℝ => g2 / 2 * (φ x * ch02_laplacian p x)) volume :=
+      h3.const_mul (g2 / 2)
+    rw [e1, integral_sub hA hB, integral_add h1 h2, integral_const_mul,
+      hweak φ hφ hφc, ch02_noname_10_ibp_drift_nd hφ1 hφc hfp,
+      ch02_laplacian_selfAdjoint_nd hφ2 hφc hp]
+    ring
+  have hbrz := ch02_noname_13_nd _ hbr hzero
+  intro x
+  have hx := congrFun hbrz x
+  simp only [Pi.zero_apply] at hx
+  linarith
+
+/-! #### eq:sm-fokkerplanck (tex 688-698), eq:sm-ou (240-245) and noname-3 (286-292) on ℝ^d
+
+Pass 4 proved the Fokker-Planck equation for the whole linear-Gaussian class in ONE
+dimension (`ch02_fokkerplanck_linear_gaussian`).  The chapter states the equation on
+`ℝ^d`, and the boxed display noname-3 states the channel on `ℝ^d` with a vector mean
+`e^{-t}a` and a scalar variance `Δ_t`.  That is the family treated here: the Gaussian
+density with an arbitrary per-coordinate mean `m k` and one shared variance `v`, which
+by `ch02_lgDensityNd_eq_gauss` IS the isotropic Gaussian of the boxed display, and by
+`ch02_lgDensityNd_eq_prod` IS the product of the `d` scalar channels of
+`ch02_noname_3_factorises`.  For it the `d`-dimensional equation
+`∂ₜp = -∇·[f p] + ½g²Δp`, with `∇·` and `Δ` the `ch02_div` and `ch02_laplacian` used
+throughout, is proved at arbitrary `d` for an arbitrary time-dependent linear drift
+`f(x,t) = -θ(t)x` and an arbitrary diffusion schedule `g(t)`. -/
+
+/-- The `ℝ^d` log-density of the linear-Gaussian family: a sum over coordinates, which is
+the formal content of the boxed display's "this energy separates across coordinates". -/
+noncomputable def ch02_lgLogDensityNd {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ)
+    (x : Fin d → ℝ) (t : ℝ) : ℝ := ∑ k, ch02_lgLogDensity (m k) v (x k) t
+
+/-- The `ℝ^d` density of the linear-Gaussian family. -/
+noncomputable def ch02_lgDensityNd {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ)
+    (x : Fin d → ℝ) (t : ℝ) : ℝ := Real.exp (ch02_lgLogDensityNd m v x t)
+
+/-- It is the product of the `d` scalar channels: "the coordinates evolve independently". -/
+theorem ch02_lgDensityNd_eq_prod {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ)
+    (x : Fin d → ℝ) (t : ℝ) :
+    ch02_lgDensityNd m v x t = ∏ k, ch02_lgDensity (m k) v (x k) t := by
+  simp only [ch02_lgDensityNd, ch02_lgLogDensityNd, ch02_lgDensity, Real.exp_sum]
+
+/-- And it is the isotropic Gaussian of the boxed display noname-3. -/
+theorem ch02_lgDensityNd_eq_gauss {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ)
+    (x : Fin d → ℝ) {t : ℝ} (hv : 0 < v t) :
+    ch02_lgDensityNd m v x t
+      = Real.exp (-(∑ k, (x k - m k t) ^ 2) / (2 * v t))
+          / Real.sqrt (2 * Real.pi * v t) ^ d := by
+  rw [ch02_lgDensityNd_eq_prod,
+    Finset.prod_congr rfl (fun k _ => ch02_lgDensity_eq_gauss (m k) v (x k) t hv)]
+  exact ch02_noname_3_factorises (v t) x (fun k => m k t)
+
+theorem ch02_lgDensityNd_pos {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ)
+    (x : Fin d → ℝ) (t : ℝ) : 0 < ch02_lgDensityNd m v x t := Real.exp_pos _
+
+/-- A function of the single coordinate `x k` is differentiable, with the expected
+directional derivative. -/
+theorem ch02_hasFDerivAt_coordFun {d : ℕ} {c : ℝ → ℝ} {c' : ℝ} (k : Fin d) (x : Fin d → ℝ)
+    (h : HasDerivAt c c' (x k)) :
+    HasFDerivAt (fun y : Fin d → ℝ => c (y k))
+      (c' • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin d => ℝ) k) x :=
+  h.comp_hasFDerivAt x (hasFDerivAt_apply k x)
+
+/-- Evaluating a sum of scaled coordinate projections at the `j`-th basis vector picks out
+the `j`-th coefficient: this is how `ch02_partial` reads off a gradient. -/
+theorem ch02_sum_proj_single {d : ℕ} (c : Fin d → ℝ) (j : Fin d) :
+    (∑ k, c k • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin d => ℝ) k)
+        (Pi.single j (1 : ℝ)) = c j := by
+  simp [ContinuousLinearMap.proj_apply, Pi.single_apply]
+
+/-- `∂ₖ` of a function of the single coordinate `x k`. -/
+theorem ch02_partial_coordFun_self {d : ℕ} {c : ℝ → ℝ} {c' : ℝ} (k : Fin d) (x : Fin d → ℝ)
+    (h : HasDerivAt c c' (x k)) : ch02_partial (fun y : Fin d → ℝ => c (y k)) k x = c' := by
+  simp only [ch02_partial, (ch02_hasFDerivAt_coordFun k x h).fderiv,
+    ContinuousLinearMap.smul_apply, ContinuousLinearMap.proj_apply, smul_eq_mul,
+    Pi.single_eq_same, mul_one]
+
+/-- The `x`-derivative of the scalar log-density: `∂ₓ log p = -(x - m)/v`. -/
+theorem ch02_lgLogDensity_hasDerivAt_x (m v : ℝ → ℝ) {t : ℝ} (hv : 0 < v t) (y : ℝ) :
+    HasDerivAt (fun z => ch02_lgLogDensity m v z t) (-((y - m t) / v t)) y := by
+  have hy : HasDerivAt (fun z : ℝ => z - m t) 1 y := (hasDerivAt_id y).sub_const (m t)
+  have hp2 : HasDerivAt (fun z : ℝ => (z - m t) ^ 2) (2 * (y - m t)) y := by
+    simpa using hy.fun_pow 2
+  have h1 : HasDerivAt (fun z : ℝ => -(z - m t) ^ 2 / (2 * v t))
+      (-(2 * (y - m t)) / (2 * v t)) y := hp2.neg.div_const (2 * v t)
+  have h2 := h1.sub_const (Real.log (2 * Real.pi * v t) / 2)
+  have hsimp : -(2 * (y - m t)) / (2 * v t) = -((y - m t) / v t) := by
+    rw [neg_div, mul_div_mul_left _ _ (by norm_num : (2:ℝ) ≠ 0)]
+  rw [hsimp] at h2
+  unfold ch02_lgLogDensity
+  exact h2
+
+/-- The gradient of the `ℝ^d` log-density, coordinate by coordinate. -/
+theorem ch02_lgLogDensityNd_hasFDerivAt {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ) {t : ℝ}
+    (hv : 0 < v t) (y : Fin d → ℝ) :
+    HasFDerivAt (fun z : Fin d → ℝ => ch02_lgLogDensityNd m v z t)
+      (∑ k, (-((y k - m k t) / v t)) •
+        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin d => ℝ) k) y := by
+  unfold ch02_lgLogDensityNd
+  exact HasFDerivAt.fun_sum fun k _ =>
+    ch02_hasFDerivAt_coordFun k y (ch02_lgLogDensity_hasDerivAt_x (m k) v hv (y k))
+
+theorem ch02_lgDensityNd_hasFDerivAt {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ) {t : ℝ}
+    (hv : 0 < v t) (y : Fin d → ℝ) :
+    HasFDerivAt (fun z : Fin d → ℝ => ch02_lgDensityNd m v z t)
+      (ch02_lgDensityNd m v y t •
+        ∑ k, (-((y k - m k t) / v t)) •
+          ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin d => ℝ) k) y :=
+  (ch02_lgLogDensityNd_hasFDerivAt m v hv y).exp
+
+/-- `∂ₖp = -((xₖ - mₖ)/v) p`: the score of the `ℝ^d` channel. -/
+theorem ch02_lgDensityNd_partial {d : ℕ} (m : Fin d → ℝ → ℝ) (v : ℝ → ℝ) {t : ℝ}
+    (hv : 0 < v t) (j : Fin d) (y : Fin d → ℝ) :
+    ch02_partial (fun z => ch02_lgDensityNd m v z t) j y
+      = -((y j - m j t) / v t) * ch02_lgDensityNd m v y t := by
+  simp only [ch02_partial, (ch02_lgDensityNd_hasFDerivAt m v hv y).fderiv,
+    ContinuousLinearMap.smul_apply, smul_eq_mul, ch02_sum_proj_single]
+  ring
+
+/-- **eq:sm-fokkerplanck on `ℝ^d`** for the linear-Gaussian family: with drift
+`f(x,t) = -θ(t)x` and diffusion `g(t)`, the Gaussian density with per-coordinate means
+`m k` and shared variance `v` satisfies `∂ₜp = -∇·[f p] + ½g²Δp` at every point of `ℝ^d`
+WHENEVER the means and the variance solve the moment ODEs `mₖ' = -θ mₖ` and
+`v' = -2θv + g²`.  (In one dimension the converse also holds, so there the relation is
+an equivalence: `ch02_fokkerplanck_linear_gaussian_converse`.) -/
+theorem ch02_fokkerplanck_linear_gaussian_nd {d : ℕ} (m : Fin d → ℝ → ℝ) (v θ g : ℝ → ℝ)
+    (x : Fin d → ℝ) {t : ℝ} (hv : 0 < v t)
+    (hm : ∀ k, HasDerivAt (m k) (-(θ t) * m k t) t)
+    (hvd : HasDerivAt v (-(2 * θ t * v t) + g t ^ 2) t) :
+    HasDerivAt (fun s => ch02_lgDensityNd m v x s)
+      (-ch02_div (fun y k => (-(θ t) * y k) * ch02_lgDensityNd m v y t) x
+        + g t ^ 2 / 2 * ch02_laplacian (fun y => ch02_lgDensityNd m v y t) x) t := by
+  have hvne : v t ≠ 0 := ne_of_gt hv
+  have hPdiff : ∀ y : Fin d → ℝ,
+      DifferentiableAt ℝ (fun z : Fin d → ℝ => ch02_lgDensityNd m v z t) y :=
+    fun y => (ch02_lgDensityNd_hasFDerivAt m v hv y).differentiableAt
+  -- the score factor `-((y j - m j t)/v t)` and its own `j`-th partial derivative
+  have hcderiv : ∀ (j : Fin d) (z : Fin d → ℝ),
+      HasDerivAt (fun s : ℝ => -((s - m j t) / v t)) (-(1 / v t)) (z j) := by
+    intro j z
+    have h : HasDerivAt (fun s : ℝ => (s - m j t) / v t) (1 / v t) (z j) :=
+      ((hasDerivAt_id (z j)).sub_const (m j t)).div_const (v t)
+    exact h.fun_neg
+  have hcdiff : ∀ (j : Fin d) (z : Fin d → ℝ),
+      DifferentiableAt ℝ (fun y : Fin d → ℝ => -((y j - m j t) / v t)) z :=
+    fun j z => (ch02_hasFDerivAt_coordFun j z (hcderiv j z)).differentiableAt
+  have hcpart : ∀ (j : Fin d) (z : Fin d → ℝ),
+      ch02_partial (fun y : Fin d → ℝ => -((y j - m j t) / v t)) j z = -(1 / v t) :=
+    fun j z => ch02_partial_coordFun_self j z (hcderiv j z)
+  -- the Laplacian of the density
+  have hpfun : ∀ j : Fin d,
+      ch02_partial (fun z : Fin d → ℝ => ch02_lgDensityNd m v z t) j
+        = fun y => -((y j - m j t) / v t) * ch02_lgDensityNd m v y t :=
+    fun j => funext fun y => ch02_lgDensityNd_partial m v hv j y
+  have hlap : ch02_laplacian (fun y : Fin d → ℝ => ch02_lgDensityNd m v y t) x
+      = ∑ j, (-(1 / v t) + ((x j - m j t) / v t) ^ 2) * ch02_lgDensityNd m v x t := by
+    simp only [ch02_laplacian]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [hpfun j, ch02_partial_mul (fun y : Fin d → ℝ => -((y j - m j t) / v t))
+        (fun z : Fin d → ℝ => ch02_lgDensityNd m v z t) j x (hcdiff j x) (hPdiff x),
+      hcpart j x, ch02_lgDensityNd_partial m v hv j x]
+    ring
+  -- the divergence of the drift flux
+  have hdiv : ch02_div (fun y k => (-(θ t) * y k) * ch02_lgDensityNd m v y t) x
+      = ∑ k, (-(θ t) * ch02_lgDensityNd m v x t
+          + (-(θ t) * x k)
+            * (-((x k - m k t) / v t) * ch02_lgDensityNd m v x t)) := by
+    simp only [ch02_div]
+    refine Finset.sum_congr rfl fun k _ => ?_
+    have hlin : HasDerivAt (fun s : ℝ => -(θ t) * s) (-(θ t)) (x k) := by
+      simpa using (hasDerivAt_id (x k)).const_mul (-(θ t))
+    have hlindiff : DifferentiableAt ℝ (fun y : Fin d → ℝ => -(θ t) * y k) x :=
+      (ch02_hasFDerivAt_coordFun k x hlin).differentiableAt
+    rw [ch02_partial_mul (fun y : Fin d → ℝ => -(θ t) * y k)
+        (fun z : Fin d → ℝ => ch02_lgDensityNd m v z t) k x hlindiff (hPdiff x),
+      ch02_partial_coordFun_self k x hlin, ch02_lgDensityNd_partial m v hv k x]
+  -- the time derivative, coordinate by coordinate
+  have hL : HasDerivAt (fun s => ch02_lgLogDensityNd m v x s)
+      (∑ k, ((x k - m k t) * (-(θ t) * m k t) / v t
+        + (x k - m k t) ^ 2 * (-(2 * θ t * v t) + g t ^ 2) / (2 * v t ^ 2)
+        - (-(2 * θ t * v t) + g t ^ 2) / (2 * v t))) t := by
+    unfold ch02_lgLogDensityNd
+    exact HasDerivAt.fun_sum fun k _ =>
+      ch02_lgLogDensity_deriv (m k) v (x k) hv (hm k) hvd
+  have hexp : HasDerivAt (fun s => ch02_lgDensityNd m v x s)
+      (ch02_lgDensityNd m v x t *
+        ∑ k, ((x k - m k t) * (-(θ t) * m k t) / v t
+          + (x k - m k t) ^ 2 * (-(2 * θ t * v t) + g t ^ 2) / (2 * v t ^ 2)
+          - (-(2 * θ t * v t) + g t ^ 2) / (2 * v t))) t := hL.exp
+  rw [hlap, hdiv]
+  convert hexp using 1
+  rw [← Finset.sum_neg_distrib, Finset.mul_sum, ← Finset.sum_add_distrib, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  field_simp
+  ring
+
+/-- The Ornstein-Uhlenbeck channel of eq:sm-ou and of the boxed display noname-3, on
+`ℝ^d`: `θ ≡ 1`, `g ≡ √2`, mean `e^{-t}a` with `a ∈ ℝ^d`, variance `Δ_t = 1 - e^{-2t}`. -/
+theorem ch02_fokkerplanck_ou_nd {d : ℕ} (a : Fin d → ℝ) (x : Fin d → ℝ) {t : ℝ}
+    (ht : 0 < t) :
+    HasDerivAt (fun s => ch02_lgDensityNd (fun k r => Real.exp (-r) * a k) ch02_Delta x s)
+      (-ch02_div (fun y k => (-(1 : ℝ) * y k)
+            * ch02_lgDensityNd (fun k r => Real.exp (-r) * a k) ch02_Delta y t) x
+        + Real.sqrt 2 ^ 2 / 2
+          * ch02_laplacian (fun y =>
+              ch02_lgDensityNd (fun k r => Real.exp (-r) * a k) ch02_Delta y t) x) t := by
+  have hΔ : 0 < ch02_Delta t := ch02_sm_ou_Delta_pos ht
+  have hs2 : Real.sqrt 2 ^ 2 = 2 := Real.sq_sqrt (by norm_num)
+  have hm : ∀ k : Fin d, HasDerivAt (fun r : ℝ => Real.exp (-r) * a k)
+      (-(1 : ℝ) * (Real.exp (-t) * a k)) t := by
+    intro k
+    have h : HasDerivAt (fun r : ℝ => -r) (-1) t := (hasDerivAt_id t).neg
+    have h2 : HasDerivAt (fun r : ℝ => Real.exp (-r)) (Real.exp (-t) * -1) t := h.exp
+    have h3 := h2.mul_const (a k)
+    have heq : Real.exp (-t) * -1 * a k = -(1 : ℝ) * (Real.exp (-t) * a k) := by ring
+    rwa [heq] at h3
+  have hvd : HasDerivAt ch02_Delta
+      (-(2 * 1 * ch02_Delta t) + Real.sqrt 2 ^ 2) t := by
+    have h := ch02_sm_ou_var_ode t
+    have heq : (2 : ℝ) - 2 * ch02_Delta t = -(2 * 1 * ch02_Delta t) + Real.sqrt 2 ^ 2 := by
+      rw [hs2]; ring
+    rwa [heq] at h
+  exact ch02_fokkerplanck_linear_gaussian_nd _ _ (fun _ => (1 : ℝ)) (fun _ => Real.sqrt 2)
+    x hΔ hm hvd
+
+/-! #### eq:sm-fokkerplanck: the converse direction, in one dimension
+
+The note attached to eq:sm-fokkerplanck used to say that the Gaussian solves the equation
+"exactly when" the moments solve the ODEs, while only the forward direction was proved.
+The converse is proved here, in one dimension and for the whole linear-Gaussian class:
+if the Gaussian density with mean `m` and variance `v` satisfies the Fokker-Planck
+identity at EVERY `x`, then `m` and `v` MUST solve `m' = -θm` and `v' = -2θv + g²`.  So
+the displayed `Δ_t = 1 - e^{-2t}` and `e^{-t}a` of eq:sm-ou really are THE solutions the
+equation forces, not merely solutions that work. -/
+
+/-- The Fokker-Planck right-hand side of the linear-Gaussian family, computed: this is the
+algebra shared by the two directions. -/
+theorem ch02_fokkerplanck_rhs_eq (m v θ g : ℝ → ℝ) {t : ℝ} (hv : 0 < v t) (x : ℝ) :
+    -deriv (fun y => (-(θ t) * y) * ch02_lgDensity m v y t) x
+        + g t ^ 2 / 2 * deriv (deriv (fun y => ch02_lgDensity m v y t)) x
+      = ((x - m t) * (-(θ t) * m t) / v t
+          + (x - m t) ^ 2 * (-(2 * θ t * v t) + g t ^ 2) / (2 * v t ^ 2)
+          - (-(2 * θ t * v t) + g t ^ 2) / (2 * v t)) * ch02_gauss (v t) x (m t) := by
+  have hvne : v t ≠ 0 := ne_of_gt hv
+  have hfun : (fun y => ch02_lgDensity m v y t) = fun y => ch02_gauss (v t) y (m t) := by
+    funext y; exact ch02_lgDensity_eq_gauss m v y t hv
+  have hd1 : deriv (fun y => ch02_lgDensity m v y t)
+      = fun y => -((y - m t) / v t) * ch02_gauss (v t) y (m t) := by
+    rw [hfun]; funext y; exact (ch02_kernelgrad hv y _).deriv
+  have hd2 : deriv (deriv (fun y => ch02_lgDensity m v y t)) x
+      = (-(1 / v t) + ((x - m t) / v t) ^ 2) * ch02_gauss (v t) x (m t) := by
+    rw [hd1]; exact (ch02_gauss_deriv2 hv x _).deriv
+  have hd3 : deriv (fun y => (-(θ t) * y) * ch02_lgDensity m v y t) x
+      = -(θ t) * 1 * ch02_gauss (v t) x (m t)
+        + -(θ t) * x * (-((x - m t) / v t) * ch02_gauss (v t) x (m t)) := by
+    have hxfun : (fun y => (-(θ t) * y) * ch02_lgDensity m v y t)
+        = fun y => (-(θ t) * y) * ch02_gauss (v t) y (m t) := by
+      funext y; rw [ch02_lgDensity_eq_gauss m v y t hv]
+    rw [hxfun]
+    exact (((hasDerivAt_id x).const_mul (-(θ t))).mul (ch02_kernelgrad hv x _)).deriv
+  rw [hd2, hd3]
+  field_simp
+  ring
+
+/-- **The converse of `ch02_fokkerplanck_linear_gaussian`** (one dimension): satisfying the
+Fokker-Planck equation at every `x` FORCES the moment ODEs. -/
+theorem ch02_fokkerplanck_linear_gaussian_converse (m v θ g : ℝ → ℝ) {t m' v' : ℝ}
+    (hv : 0 < v t) (hm : HasDerivAt m m' t) (hvd : HasDerivAt v v' t)
+    (hfp : ∀ x : ℝ, HasDerivAt (fun s => ch02_lgDensity m v x s)
+      (-deriv (fun y => (-(θ t) * y) * ch02_lgDensity m v y t) x
+        + g t ^ 2 / 2 * deriv (deriv (fun y => ch02_lgDensity m v y t)) x) t) :
+    m' = -(θ t) * m t ∧ v' = -(2 * θ t * v t) + g t ^ 2 := by
+  have hvne : v t ≠ 0 := ne_of_gt hv
+  have key : ∀ x : ℝ,
+      (x - m t) * m' / v t + (x - m t) ^ 2 * v' / (2 * v t ^ 2) - v' / (2 * v t)
+        = (x - m t) * (-(θ t) * m t) / v t
+            + (x - m t) ^ 2 * (-(2 * θ t * v t) + g t ^ 2) / (2 * v t ^ 2)
+            - (-(2 * θ t * v t) + g t ^ 2) / (2 * v t) := by
+    intro x
+    have hA := (ch02_lgLogDensity_deriv m v x hv hm hvd).exp
+    have hGexp : Real.exp (ch02_lgLogDensity m v x t) = ch02_gauss (v t) x (m t) :=
+      ch02_lgDensity_eq_gauss m v x t hv
+    rw [hGexp] at hA
+    have heq := hA.unique (hfp x)
+    rw [ch02_fokkerplanck_rhs_eq m v θ g hv x] at heq
+    refine mul_right_cancel₀ (ne_of_gt (ch02_gauss_pos hv x (m t))) ?_
+    linear_combination heq
+  have hv'eq : v' = -(2 * θ t * v t) + g t ^ 2 := by
+    have h := key (m t)
+    have h2 : v' / (2 * v t) = (-(2 * θ t * v t) + g t ^ 2) / (2 * v t) := by
+      linear_combination -h
+    field_simp at h2
+    linarith
+  refine ⟨?_, hv'eq⟩
+  have h := key (m t + 1)
+  rw [hv'eq] at h
+  have h2 : m' / v t = (-(θ t) * m t) / v t := by linear_combination h
+  field_simp at h2
+  linarith
+
+/-! #### eq:sm-forward (tex 215-218): the terminal law on ℝ^d
+
+Pass 3 proved the terminal-law claim in one dimension: the time-`t` marginal of an
+arbitrary finitely supported data law converges, at every point and as `t → ∞`, to the
+standard Gaussian density.  The chapter's `X_t` lives in `ℝ^d`, so the same statement is
+proved here on `ℝ^d`, for an arbitrary finite number of atoms at arbitrary positions
+`A i ∈ ℝ^d` with arbitrary weights summing to one.  The display itself is still the SDE
+and is still not formalised; see the note on the Itô boundary. -/
+
+/-- The time-`t` marginal of eq:marg on `ℝ^d`: a finitely supported data law pushed
+through the isotropic Gaussian channel of the boxed display noname-3. -/
+noncomputable def ch02_margNd {N d : ℕ} (lam : Fin N → ℝ) (A : Fin N → Fin d → ℝ)
+    (Δ c : ℝ) (x : Fin d → ℝ) : ℝ :=
+  ∑ i, lam i * ∏ k, ch02_gauss Δ (x k) (c * A i k)
+
+theorem ch02_sm_forward_terminal_nd {N d : ℕ} (lam : Fin N → ℝ) (A : Fin N → Fin d → ℝ)
+    (hlam : ∑ i, lam i = 1) (x : Fin d → ℝ) :
+    Filter.Tendsto (fun t : ℝ => ch02_margNd lam A (ch02_Delta t) (Real.exp (-t)) x)
+      Filter.atTop (nhds (∏ k, ch02_gauss 1 (x k) 0)) := by
+  have hmean : ∀ (i : Fin N) (k : Fin d),
+      Filter.Tendsto (fun t : ℝ => Real.exp (-t) * A i k) Filter.atTop (nhds 0) := by
+    intro i k
+    simpa using Real.tendsto_exp_neg_atTop_nhds_zero.mul_const (A i k)
+  have hprod : ∀ i : Fin N, Filter.Tendsto
+      (fun t : ℝ => ∏ k, ch02_gauss (ch02_Delta t) (x k) (Real.exp (-t) * A i k))
+      Filter.atTop (nhds (∏ k, ch02_gauss 1 (x k) 0)) := fun i =>
+    tendsto_finsetProd _ fun k _ =>
+      ch02_gauss_tendsto (x k) ch02_Delta_tendsto_one (hmean i k)
+  have hterm : ∀ i : Fin N, Filter.Tendsto
+      (fun t : ℝ => lam i * ∏ k, ch02_gauss (ch02_Delta t) (x k) (Real.exp (-t) * A i k))
+      Filter.atTop (nhds (lam i * ∏ k, ch02_gauss 1 (x k) 0)) :=
+    fun i => (hprod i).const_mul (lam i)
+  have hval : ∑ _i : Fin N, lam _i * ∏ k, ch02_gauss 1 (x k) 0
+      = ∏ k, ch02_gauss 1 (x k) 0 := by
+    rw [← Finset.sum_mul, hlam, one_mul]
+  have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin N)) (fun i _ => hterm i)
+  rw [hval] at hsum
+  have hfun : (fun t : ℝ => ch02_margNd lam A (ch02_Delta t) (Real.exp (-t)) x)
+      = fun t : ℝ =>
+        ∑ i, lam i * ∏ k, ch02_gauss (ch02_Delta t) (x k) (Real.exp (-t) * A i k) := rfl
+  rw [hfun]
+  exact hsum
+
+/-- The terminal law of the previous theorem IS the standard Gaussian density on `ℝ^d`,
+the "simple terminal measure" whose partition function is noname-4. -/
+theorem ch02_sm_forward_terminal_nd_gauss {d : ℕ} (x : Fin d → ℝ) :
+    ∏ k, ch02_gauss 1 (x k) 0
+      = Real.exp (-(∑ k, x k ^ 2) / 2) / Real.sqrt (2 * Real.pi) ^ d := by
+  simpa using ch02_noname_3_factorises (d := d) 1 x (fun _ => 0)
+
+/-! #### eq:sm-probflow-continuity (tex 723-735) on ℝ^d
+
+The continuity-equation rewriting of the Fokker-Planck right-hand side.  Pass 3 proved it
+in one dimension; with the divergence of noname-9 and the field identity of noname-14
+available it is proved here at arbitrary `d`, for an arbitrary vector field `f` and an
+arbitrary positive differentiable density, exactly as `ch02_sm_reverse_nd` does for the
+reverse drift. -/
+
+theorem ch02_sm_probflow_continuity_nd {d : ℕ} (p : (Fin d → ℝ) → ℝ)
+    (f : (Fin d → ℝ) → Fin d → ℝ) (g2 : ℝ) (x : Fin d → ℝ)
+    (hp : ∀ y, 0 < p y) (hd : Differentiable ℝ p)
+    (hfld : ∀ k, DifferentiableAt ℝ (fun y => f y k * p y) x)
+    (hpk : ∀ k, DifferentiableAt ℝ (ch02_partial p k) x) :
+    -ch02_div (fun y k =>
+        (f y k - g2 / 2 * ch02_partial (fun z => Real.log (p z)) k y) * p y) x
+      = -ch02_div (fun y k => f y k * p y) x + g2 / 2 * ch02_laplacian p x := by
+  have hfield : ∀ k : Fin d,
+      (fun y => (f y k - g2 / 2 * ch02_partial (fun z => Real.log (p z)) k y) * p y)
+        = fun y => f y k * p y - g2 / 2 * ch02_partial p k y := by
+    intro k; funext y
+    have hy := congrFun (ch02_noname_14_score_field p hp hd k) y
+    calc (f y k - g2 / 2 * ch02_partial (fun z => Real.log (p z)) k y) * p y
+        = f y k * p y - g2 / 2 * (p y * ch02_partial (fun z => Real.log (p z)) k y) := by
+          ring
+      _ = f y k * p y - g2 / 2 * ch02_partial p k y := by rw [hy]
+  have hdiv : ch02_div (fun y k =>
+        (f y k - g2 / 2 * ch02_partial (fun z => Real.log (p z)) k y) * p y) x
+      = ch02_div (fun y k => f y k * p y) x - g2 / 2 * ch02_laplacian p x := by
+    simp only [ch02_div, ch02_laplacian]
+    rw [Finset.mul_sum, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun k _ => ?_
+    rw [hfield k, ch02_partial_sub _ _ k x (hfld k) ((hpk k).const_mul (g2 / 2)),
+      ch02_partial_const_mul _ (g2 / 2) k x (hpk k)]
+  rw [hdiv]
+  ring
+
+/-! #### noname-8 (tex 610-616) and eq:sm-reverse (tex 773-786) on ℝ^d
+
+The two remaining one-dimensional statements of the toolbox.  Neither restriction was an
+obstruction: Mathlib's dominated differentiation-under-the-integral theorem is stated for
+an ARBITRARY measure space, so Step 3 costs no more on `ℝ^d` than on the line, and the
+time-reversal corollary of eq:sm-reverse only needed the `ℝ^d` identity `ch02_sm_reverse_nd`
+that Pass 4 already proved. -/
+
+/-- **noname-8 on `ℝ^d`**: `d/dt E[φ(X_t)] = d/dt ∫ φ p_t = ∫ φ ∂ₜp_t`, by dominated
+convergence, with the text's own hypotheses (`φ` bounded of compact support supplies the
+dominating function `bd`). -/
+theorem ch02_noname_8_dt_under_integral_nd {d : ℕ}
+    (φ : (Fin d → ℝ) → ℝ) (p pt : ℝ → (Fin d → ℝ) → ℝ) (bd : (Fin d → ℝ) → ℝ)
+    {t₀ : ℝ} {S : Set ℝ}
+    (hS : S ∈ nhds t₀)
+    (hmeas : ∀ᶠ t in nhds t₀,
+      AEStronglyMeasurable (fun x => φ x * p t x) (volume : Measure (Fin d → ℝ)))
+    (hint : Integrable (fun x => φ x * p t₀ x) (volume : Measure (Fin d → ℝ)))
+    (hmeas' : AEStronglyMeasurable (fun x => φ x * pt t₀ x) (volume : Measure (Fin d → ℝ)))
+    (hbound : ∀ᵐ x ∂(volume : Measure (Fin d → ℝ)), ∀ t ∈ S, ‖φ x * pt t x‖ ≤ bd x)
+    (hbint : Integrable bd (volume : Measure (Fin d → ℝ)))
+    (hdiff : ∀ᵐ x ∂(volume : Measure (Fin d → ℝ)), ∀ t ∈ S,
+      HasDerivAt (fun τ => φ x * p τ x) (φ x * pt t x) t) :
+    HasDerivAt (fun τ => ∫ x : Fin d → ℝ, φ x * p τ x)
+      (∫ x : Fin d → ℝ, φ x * pt t₀ x) t₀ :=
+  (hasDerivAt_integral_of_dominated_loc_of_deriv_le (F := fun τ x => φ x * p τ x)
+    (F' := fun τ x => φ x * pt τ x) (bound := bd) hS hmeas hint hmeas' hbound hbint hdiff).2
+
+/-- **eq:sm-reverse on `ℝ^d`, at the level of densities**: if the forward marginal `p_t`
+solves the Fokker-Planck equation with drift `f(·,t)` and diffusion `g(t)²`, then the
+reversed density `q_τ := p_{T-τ}` solves the Fokker-Planck equation of the reverse SDE,
+whose drift in forward time is `-(f - g²∇log p)`.  Arbitrary `d`, arbitrary
+time-dependent `f` and `g`, arbitrary positive differentiable `p`.  The pathwise
+statement (Anderson's theorem) remains out of reach: it needs a stochastic integral. -/
+theorem ch02_sm_reverse_time_reversal_nd {d : ℕ} (p : ℝ → (Fin d → ℝ) → ℝ)
+    (f : ℝ → (Fin d → ℝ) → Fin d → ℝ) (g2 : ℝ → ℝ) (T τ : ℝ) (x : Fin d → ℝ) (dtp : ℝ)
+    (hp : ∀ y, 0 < p (T - τ) y) (hd : Differentiable ℝ (p (T - τ)))
+    (hfld : ∀ k, DifferentiableAt ℝ (fun y => f (T - τ) y k * p (T - τ) y) x)
+    (hpk : ∀ k, DifferentiableAt ℝ (ch02_partial (p (T - τ)) k) x)
+    (hdt : HasDerivAt (fun s => p s x) dtp (T - τ))
+    (hfwd : dtp = -ch02_div (fun y k => f (T - τ) y k * p (T - τ) y) x
+        + g2 (T - τ) / 2 * ch02_laplacian (p (T - τ)) x) :
+    HasDerivAt (fun s => p (T - s) x)
+      (-ch02_div (fun y k => (-(f (T - τ) y k)
+            + g2 (T - τ) * ch02_partial (fun z => Real.log (p (T - τ) z)) k y)
+            * p (T - τ) y) x
+        + g2 (T - τ) / 2 * ch02_laplacian (p (T - τ)) x) τ := by
+  have hlin : HasDerivAt (fun s : ℝ => T - s) (-1) τ := (hasDerivAt_id τ).const_sub T
+  have hchain : HasDerivAt (fun s => p (T - s) x) (-dtp) τ := by
+    have h := hdt.comp τ hlin
+    simpa [Function.comp_def] using h
+  have hrev := ch02_sm_reverse_nd (p (T - τ)) (f (T - τ)) (g2 (T - τ)) x hp hd hfld hpk
+  rw [hrev, ← hfwd]
+  exact hchain
+
+/-- **eq:sm-probability-flow (tex 737-745) on `ℝ^d`**: the velocity field of the
+probability-flow ODE, `f(x,t) - ½g(t)²∇ₓlog p_t(x)`, as a vector field.  A definition; the
+claim that it reproduces the marginals `p_t` is `ch02_sm_probflow_continuity_nd`. -/
+noncomputable def ch02_sm_probability_flow_velocity_nd {d : ℕ}
+    (f : (Fin d → ℝ) → ℝ → Fin d → ℝ) (g : ℝ → ℝ) (s : (Fin d → ℝ) → ℝ → Fin d → ℝ)
+    (x : Fin d → ℝ) (t : ℝ) (k : Fin d) : ℝ :=
+  f x t k - g t ^ 2 / 2 * s x t k
+
 end ThesisAudit

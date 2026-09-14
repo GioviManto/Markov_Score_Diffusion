@@ -45,6 +45,7 @@ FALLBACKS = OrderedDict([
     ("\U0001d4dd", r"\mathcal{N}"), ("\U0001d540", r"\mathbb{I}"),
     ("\U0001d7cf", r"\mathbf{1}"), ("\u2096", r"{}_{k}"),
     ("\u20d7", r"\to"), ("\u20d6", r"\leftarrow"),
+    ("\u209c", r"{}_{t}"), ("\U0001d55c", r"\Bbbk"),
 ])
 
 DECL = re.compile(

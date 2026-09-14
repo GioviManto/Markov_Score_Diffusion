@@ -1475,6 +1475,129 @@ theorem ch06_bp_error_numerator (M Q Sg : Matrix n n ℝ) :
     Matrix.trace ((M - Q)ᵀ * (M - Q) * Sg) = Matrix.trace ((M - Q) * Sg * (M - Q)ᵀ) := by
   rw [mul_assoc ((M - Q)ᵀ) (M - Q) Sg, Matrix.trace_mul_comm]
 
+/-! #### The expectation step of eq:bp-error-numerator
+
+`ch06_bp_error_numerator` above is only the *second* equality of eq:bp-error-numerator
+(cyclicity of the trace).  The first equality is where the data law `x ∼ N(0, Σ_t)`
+actually enters, and it is carried out below for a genuine Bochner integral:
+`ch06_bp_quadratic_trace_integral` is eq:bp-quadratic-trace as an expectation over an
+arbitrary law with second-moment matrix `Σ`, `ch06_bp_error_numerator_expectation`
+composes it with `ch06_normSq_as_quad` to give the first display, and
+`ch06_bp_error_numerator_gaussian` specialises the whole chain to the chapter's own law,
+mathlib's `multivariateGaussian 0 Σ`.  Throughout, `‖v‖²` is written `v ⬝ᵥ v`;
+`ch06_dotProduct_self_eq_normSq` records that this is the squared Euclidean norm. -/
+
+/-- `v ⬝ᵥ v` really is the squared Euclidean norm of `v`. -/
+theorem ch06_dotProduct_self_eq_normSq (v : n → ℝ) :
+    v ⬝ᵥ v = ‖(WithLp.toLp 2 v : EuclideanSpace ℝ n)‖ ^ 2 := by
+  rw [EuclideanSpace.real_norm_sq_eq]
+  simp [dotProduct, pow_two]
+
+/-- `xᵀAx = ∑ᵢ ∑ⱼ Aᵢⱼ xᵢ xⱼ`: the entrywise form in which the expectation is taken. -/
+theorem ch06_quad_expand (A : Matrix n n ℝ) (x : n → ℝ) :
+    x ⬝ᵥ (A *ᵥ x) = ∑ i, ∑ j, A i j * (x i * x j) := by
+  simp only [dotProduct, Matrix.mulVec, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => by ring
+
+/-- eq:bp-quadratic-trace (ch06 lines 654-663) as a genuine expectation: if the random
+vector `X` on `(Ω, μ)` has second moments `E[xᵢxⱼ] = Σᵢⱼ` — so `Σ` is its covariance
+matrix whenever `X` is centred — then `E[xᵀAx] = tr(AΣ)` for every matrix `A`.  Only the
+second moments of the law enter, and Gaussianity is never used. -/
+theorem ch06_bp_quadratic_trace_integral {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    (X : Ω → n → ℝ) (Sg A : Matrix n n ℝ)
+    (hint : ∀ i j, Integrable (fun ω => X ω i * X ω j) μ)
+    (hcov : ∀ i j, ∫ ω, X ω i * X ω j ∂μ = Sg i j) :
+    ∫ ω, (X ω) ⬝ᵥ (A *ᵥ X ω) ∂μ = Matrix.trace (A * Sg) := by
+  have hintA : ∀ i j : n, Integrable (fun ω => A i j * (X ω i * X ω j)) μ :=
+    fun i j => (hint i j).const_mul (A i j)
+  have hrow : ∀ i : n, ∫ ω, ∑ j, A i j * (X ω i * X ω j) ∂μ = ∑ j, A i j * Sg i j := by
+    intro i
+    rw [integral_finsetSum _ fun j _ => hintA i j]
+    exact Finset.sum_congr rfl fun j _ => by rw [integral_const_mul, hcov i j]
+  have hsymm : ∀ i j : n, Sg i j = Sg j i := by
+    intro i j
+    rw [← hcov i j, ← hcov j i]
+    simp_rw [mul_comm]
+  calc ∫ ω, (X ω) ⬝ᵥ (A *ᵥ X ω) ∂μ
+      = ∫ ω, ∑ i, ∑ j, A i j * (X ω i * X ω j) ∂μ := by simp_rw [ch06_quad_expand]
+    _ = ∑ i, ∑ j, A i j * Sg i j := by
+        rw [integral_finsetSum _ fun i _ => integrable_finsetSum _ fun j _ => hintA i j]
+        exact Finset.sum_congr rfl fun i _ => hrow i
+    _ = Matrix.trace (A * Sg) := by
+        simp only [Matrix.trace, Matrix.diag, Matrix.mul_apply]
+        exact Finset.sum_congr rfl fun i _ =>
+          Finset.sum_congr rfl fun j _ => by rw [hsymm i j]
+
+/-- eq:bp-error-numerator, first equality (ch06 lines 666-672): for any data law with
+second-moment matrix `Σ`, the expected squared error of the linear estimator
+`Ŝ(x,t) = -Mx` against the exact score `S(x,t) = -Q_t x` is `tr[(M - Q_t)ᵀ(M - Q_t)Σ]`.
+This is the step the chapter takes with `A = (M - Q_t)ᵀ(M - Q_t)`. -/
+theorem ch06_bp_error_numerator_expectation {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    (X : Ω → n → ℝ) (M Q Sg : Matrix n n ℝ)
+    (hint : ∀ i j, Integrable (fun ω => X ω i * X ω j) μ)
+    (hcov : ∀ i j, ∫ ω, X ω i * X ω j ∂μ = Sg i j) :
+    ∫ ω, (ch06_Shat_lin M (X ω) - ch06_S_exact Q (X ω)) ⬝ᵥ
+        (ch06_Shat_lin M (X ω) - ch06_S_exact Q (X ω)) ∂μ
+      = Matrix.trace ((M - Q)ᵀ * (M - Q) * Sg) := by
+  have hpt : ∀ ω, (ch06_Shat_lin M (X ω) - ch06_S_exact Q (X ω)) ⬝ᵥ
+      (ch06_Shat_lin M (X ω) - ch06_S_exact Q (X ω))
+      = (X ω) ⬝ᵥ (((M - Q)ᵀ * (M - Q)) *ᵥ X ω) := by
+    intro ω
+    rw [ch06_bp_error_vector, neg_dotProduct_neg]
+    exact ch06_normSq_as_quad (M - Q) (X ω)
+  simp_rw [hpt]
+  exact ch06_bp_quadratic_trace_integral μ X Sg _ hint hcov
+
+/-- eq:bp-error-numerator (ch06 lines 666-677), both equalities at once, for any data law
+with second-moment matrix `Σ`. -/
+theorem ch06_bp_error_numerator_chain {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    (X : Ω → n → ℝ) (M Q Sg : Matrix n n ℝ)
+    (hint : ∀ i j, Integrable (fun ω => X ω i * X ω j) μ)
+    (hcov : ∀ i j, ∫ ω, X ω i * X ω j ∂μ = Sg i j) :
+    ∫ ω, (ch06_Shat_lin M (X ω) - ch06_S_exact Q (X ω)) ⬝ᵥ
+        (ch06_Shat_lin M (X ω) - ch06_S_exact Q (X ω)) ∂μ
+      = Matrix.trace ((M - Q) * Sg * (M - Q)ᵀ) := by
+  rw [ch06_bp_error_numerator_expectation μ X M Q Sg hint hcov, ch06_bp_error_numerator]
+
+open ProbabilityTheory in
+/-- eq:bp-error-numerator (ch06 lines 666-677) at the chapter's own data law: for
+`x ∼ N(0, Σ_t)` — mathlib's `multivariateGaussian 0 Σ_t`, with `Σ_t` positive semidefinite
+as a covariance matrix is — the expectation `E‖Ŝ(x,t) - S(x,t)‖²` of the squared score
+error equals `tr[(M - Q_t)Σ_t(M - Q_t)ᵀ]`.  The expectation is a Bochner integral against
+the Gaussian measure and `Σ_t` is its actual covariance matrix
+(`covariance_eval_multivariateGaussian`), so no step of the display is assumed. -/
+theorem ch06_bp_error_numerator_gaussian [DecidableEq n] (M Q Sg : Matrix n n ℝ)
+    (hSg : Sg.PosSemidef) :
+    ∫ x : EuclideanSpace ℝ n,
+        (ch06_Shat_lin M x.ofLp - ch06_S_exact Q x.ofLp) ⬝ᵥ
+          (ch06_Shat_lin M x.ofLp - ch06_S_exact Q x.ofLp)
+          ∂(multivariateGaussian 0 Sg)
+      = Matrix.trace ((M - Q) * Sg * (M - Q)ᵀ) := by
+  have hmem : ∀ i : n, MemLp (fun x : EuclideanSpace ℝ n => x i) 2
+      (multivariateGaussian 0 Sg) := by
+    intro i
+    have h : MemLp (id : EuclideanSpace ℝ n → EuclideanSpace ℝ n) 2
+        (multivariateGaussian 0 Sg) := IsGaussian.memLp_two_id
+    exact memLp_piLp_iff.mp h i
+  have hmean : ∀ i : n, ∫ x : EuclideanSpace ℝ n, x i ∂(multivariateGaussian 0 Sg) = 0 := by
+    intro i
+    have hI : Integrable (id : EuclideanSpace ℝ n → EuclideanSpace ℝ n)
+        (multivariateGaussian 0 Sg) := IsGaussian.integrable_id
+    simpa using (EuclideanSpace.proj (𝕜 := ℝ) i).integral_comp_comm hI
+  have hint : ∀ i j : n, Integrable (fun x : EuclideanSpace ℝ n => x i * x j)
+      (multivariateGaussian 0 Sg) := by
+    intro i j
+    simpa [Pi.mul_def] using (hmem i).integrable_mul (hmem j)
+  have hcov : ∀ i j : n, ∫ x : EuclideanSpace ℝ n, x i * x j ∂(multivariateGaussian 0 Sg)
+      = Sg i j := by
+    intro i j
+    have h := covariance_eq_sub (hmem i) (hmem j)
+    rw [covariance_eval_multivariateGaussian hSg i j] at h
+    simp only [Pi.mul_apply, hmean i, hmean j, mul_zero, sub_zero] at h
+    exact h.symm
+  exact ch06_bp_error_numerator_chain (multivariateGaussian 0 Sg)
+    (fun x : EuclideanSpace ℝ n => x.ofLp) M Q Sg hint hcov
+
 /-- eq:bp-error-denominator (ch06 lines 682-689): with `Q = Σ⁻¹` and both matrices
 symmetric, `E‖Qx‖² = tr(QΣQ) = tr(Q)`. -/
 theorem ch06_bp_error_denominator [DecidableEq n] (Q Sg : Matrix n n ℝ)
